@@ -1,0 +1,33 @@
+apply from: "https://raw.githubusercontent.com/Piasy/GradleScripts/master/simple_lib_android_bintray.gradle"
+
+android {
+    //if (!"true".equals(System.getenv('IS_PIASY_LIB_RELEASE')))
+    defaultConfig {
+        ndk.abiFilters = ['armeabi-v7a']
+        externalNativeBuild {
+            cmake {
+                arguments = ['-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_shared']
+                cppFlags '-std=c++11 -fno-rtti'
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+dependencies {
+    debugImplementation "com.android.support:appcompat-v7:$rootProject.androidSupportSdkVersion"
+    debugImplementation("com.github.hotchemi:permissionsdispatcher:3.0.1") {
+        // if you don't use android.app.Fragment you can exclude support for them
+        exclude module: "support-v13"
+    }
+    debugAnnotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.0.1"
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5'
+}
