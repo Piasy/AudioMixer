@@ -6,18 +6,19 @@
 
 #include "audio_mixer.h"
 
-AudioMixer::AudioMixer() : mixer(webrtc::AudioMixerImpl::Create()) {
-    src1 = new FileAudioSource("/sdcard/1234.wav", 1234);
-    src2 = new FileAudioSource("/sdcard/morning.wav", 1235);
-    src3 = new FileAudioSource("/sdcard/lion.wav", 1236);
-    src4 = new FileAudioSource("/sdcard/iamyou.wav", 1237);
+AudioMixer::AudioMixer() : mixer(webrtc::AudioMixerImpl::Create()),
+                           mixFrame(std::make_unique<webrtc::AudioFrame>()) {
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/1234.wav", 1234));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/1235.wav", 1235));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/1236.wav", 1236));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/morning.wav", 1237));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/lion.wav", 1238));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/iamyou.wav", 1239));
 
-    mixer->AddSource(src1);
-    mixer->AddSource(src2);
-    mixer->AddSource(src3);
-    mixer->AddSource(src4);
+    for (auto& source : sources) {
+        mixer->AddSource(source.get());
+    }
 
-    mixFrame = new webrtc::AudioFrame();
     mixFrame->sample_rate_hz_ = 48000;
     mixFrame->num_channels_ = 2;
     mixFrame->samples_per_channel_ = 480;
@@ -26,19 +27,15 @@ AudioMixer::AudioMixer() : mixer(webrtc::AudioMixerImpl::Create()) {
 }
 
 AudioMixer::~AudioMixer() {
-    mixer->RemoveSource(src1);
-    mixer->RemoveSource(src2);
-    mixer->RemoveSource(src3);
-    mixer->RemoveSource(src4);
-    delete src1;
-    delete src2;
-    delete src3;
-    delete src4;
-    delete mixFrame;
+    for (auto& source : sources) {
+        mixer->RemoveSource(source.get());
+    }
+
+    sources.clear();
 }
 
 int AudioMixer::mix(void* buf) {
-    mixer->Mix(2, mixFrame);
+    mixer->Mix(2, mixFrame.get());
     int size = 48000 / 100 * 2 * 2;
     memcpy(buf, reinterpret_cast<const void*>(mixFrame->data()), static_cast<size_t>(size));
     return size;

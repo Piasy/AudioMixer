@@ -8,7 +8,7 @@
 
 
 FileAudioSource::FileAudioSource(std::string filename, int ssrc)
-        : pcm(new std::ifstream()), ssrc(ssrc) {
+        : pcm(std::make_unique<std::ifstream>()), ssrc(ssrc) {
     pcm->open(filename, std::ios::in | std::ios::binary);
 }
 

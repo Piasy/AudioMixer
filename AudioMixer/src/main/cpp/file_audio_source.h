@@ -2,8 +2,8 @@
 // Created by Piasy on 29/10/2017.
 //
 
-#ifndef HACKWEBRTC_FILE_AUDIO_SOURCE_H
-#define HACKWEBRTC_FILE_AUDIO_SOURCE_H
+#ifndef AUDIOMIXER_FILE_AUDIO_SOURCE_H
+#define AUDIOMIXER_FILE_AUDIO_SOURCE_H
 
 #include <fstream>
 #include <string>
@@ -29,4 +29,4 @@ private:
 };
 
 
-#endif //HACKWEBRTC_FILE_AUDIO_SOURCE_H
+#endif //AUDIOMIXER_FILE_AUDIO_SOURCE_H

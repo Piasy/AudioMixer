@@ -7,7 +7,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments = ['-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_shared']
-                cppFlags '-std=c++11 -fno-rtti'
+                cppFlags '-std=c++14 -fno-rtti'
             }
         }
     }
