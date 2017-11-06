@@ -8,12 +8,12 @@
 
 AudioMixer::AudioMixer() : mixer(webrtc::AudioMixerImpl::Create()),
                            mixFrame(std::make_unique<webrtc::AudioFrame>()) {
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/1234.wav", 1234));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/1235.wav", 1235));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/1236.wav", 1236));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/morning.wav", 1237));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/lion.wav", 1238));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/iamyou.wav", 1239));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/1234.raw", 1234));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/1235.raw", 1235));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/1236.raw", 1236));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/morning.raw", 1237));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/lion.raw", 1238));
+    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/iamyou.raw", 1239));
 
     for (auto& source : sources) {
         mixer->AddSource(source.get());

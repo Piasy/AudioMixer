@@ -31,6 +31,11 @@ import android.media.AudioTrack;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import java.io.FileInputStream;
+import java.io.IOException;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 
@@ -42,9 +47,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        findViewById(R.id.mBtnMix).setOnClickListener(view ->
-                MainActivityPermissionsDispatcher
-                        .startMixWithPermissionCheck(MainActivity.this));
+        ButterKnife.bind(this);
+    }
+
+    @OnClick(R.id.mBtnMix)
+    void mix() {
+        MainActivityPermissionsDispatcher.doMixWithPermissionCheck(MainActivity.this);
+    }
+
+    @OnClick(R.id.mBtnResample)
+    void resample() {
+        MainActivityPermissionsDispatcher.doResampleWithPermissionCheck(MainActivity.this);
     }
 
     @Override
@@ -59,17 +72,17 @@ public class MainActivity extends AppCompatActivity {
     @NeedsPermission({
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
-    void startMix() {
+    void doMix() {
         new Thread(() -> {
-            AudioMixer mixer = new AudioMixer();
-            int minBufferSize = AudioTrack.getMinBufferSize(48000,
+            int minBufferSize = AudioTrack.getMinBufferSize(44100,
                     AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
             AudioTrack audioTrack =
-                    new AudioTrack(AudioManager.STREAM_MUSIC, 48000,
+                    new AudioTrack(AudioManager.STREAM_MUSIC, 44100,
                             AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
                             Math.max(minBufferSize, 7680), AudioTrack.MODE_STREAM);
             audioTrack.play();
 
+            AudioMixer mixer = new AudioMixer();
             boolean mixing = true;
             while (mixing) {
                 byte[] data = mixer.mix();
@@ -77,6 +90,58 @@ public class MainActivity extends AppCompatActivity {
             }
 
             mixer.destroy();
+        }).start();
+    }
+
+    @NeedsPermission({
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    })
+    void doResample() {
+        new Thread(() -> {
+            int inChannelNum = 2;
+            int inSampleRate = 44100;
+            int outChannelNum = 1;
+            int outSampleRate = 16000;
+            int msPerBuf = 10;
+
+            int minBufferSize = AudioTrack.getMinBufferSize(outSampleRate,
+                    outChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                            : AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            AudioTrack audioTrack =
+                    new AudioTrack(AudioManager.STREAM_MUSIC, outSampleRate,
+                            outChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                                    : AudioFormat.CHANNEL_OUT_STEREO,
+                            AudioFormat.ENCODING_PCM_16BIT, Math.max(minBufferSize, 7680),
+                            AudioTrack.MODE_STREAM);
+            audioTrack.play();
+
+            AudioResampler resampler = new AudioResampler(inChannelNum, inSampleRate, outChannelNum,
+                    outSampleRate, msPerBuf);
+            AudioResampler.BufferInfo inputBuffer = resampler.getInputBuffer();
+            try {
+                FileInputStream inputStream = new FileInputStream("/sdcard/wav/morning.raw");
+
+                int read;
+                while ((read = inputStream.read(inputBuffer.getBuffer(), 0,
+                        inputBuffer.getBuffer().length)) > 0) {
+                    inputBuffer.setSize(read);
+                    AudioResampler.BufferInfo outputBuffer = resampler.resample(inputBuffer);
+                    if (outputBuffer.getSize() > 0) {
+                        audioTrack.write(outputBuffer.getBuffer(), 0, outputBuffer.getSize());
+                    } else {
+                        Log.e("MainActivity", "resample error " + outputBuffer.getSize());
+                    }
+                }
+
+                Log.e("MainActivity", "resample finish");
+
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            resampler.destroy();
         }).start();
     }
 }

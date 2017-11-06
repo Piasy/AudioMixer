@@ -6,9 +6,17 @@ package com.github.piasy.audio_mixer;
 
 public class AudioMixer {
 
-    static {
-        System.loadLibrary("c++_shared");
-        System.loadLibrary("audio_mixer");
+    private static boolean sInitialized;
+
+    public static synchronized void loadNativeLibraries() {
+        if (!sInitialized) {
+            sInitialized = true;
+
+            System.loadLibrary("c++_shared");
+            System.loadLibrary("avutil");
+            System.loadLibrary("swresample");
+            System.loadLibrary("audio_mixer");
+        }
     }
 
     private long mNativeHandle;

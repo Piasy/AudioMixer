@@ -36,5 +36,7 @@ public class MyApp extends Application {
     public void onCreate() {
         super.onCreate();
         LeakCanary.install(this);
+
+        AudioMixer.loadNativeLibraries();
     }
 }

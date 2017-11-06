@@ -13,7 +13,7 @@ add_library(audio_mixer SHARED
             src/main/cpp/audio_mixer_jni.cpp
             src/main/cpp/audio_mixer.cpp
             src/main/cpp/file_audio_source.cpp
-            src/main/cpp/audio_sampler.cpp
+            src/main/cpp/audio_resampler.cpp
             )
 
 target_link_libraries(audio_mixer
@@ -22,4 +22,5 @@ target_link_libraries(audio_mixer
 
                       ${CWD}/libs/webrtc/lib/${ANDROID_ABI}/libwebrtc.a
                       ${CWD}/src/main/jniLibs/${ANDROID_ABI}/libswresample.so
+                      ${CWD}/src/main/jniLibs/${ANDROID_ABI}/libavutil.so
                       )

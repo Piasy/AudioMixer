@@ -7,7 +7,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments = ['-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_shared']
-                cppFlags '-std=c++14 -fno-rtti'
+                cppFlags '-std=c++14 -fno-rtti -fexceptions'
             }
         }
     }
@@ -24,10 +24,12 @@ android {
 
 dependencies {
     debugImplementation "com.android.support:appcompat-v7:$rootProject.androidSupportSdkVersion"
-    debugImplementation("com.github.hotchemi:permissionsdispatcher:3.0.1") {
-        // if you don't use android.app.Fragment you can exclude support for them
-        exclude module: "support-v13"
-    }
+
+    debugImplementation "com.github.hotchemi:permissionsdispatcher:3.0.1"
     debugAnnotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.0.1"
+
+    debugImplementation 'com.jakewharton:butterknife:9.0.0-SNAPSHOT'
+    debugAnnotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-SNAPSHOT'
+
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5'
 }
