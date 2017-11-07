@@ -8,44 +8,31 @@
 
 #include <memory>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <libavutil/opt.h>
-#include <libavutil/channel_layout.h>
-#include <libavutil/samplefmt.h>
-#include <libswresample/swresample.h>
-
-#ifdef __cplusplus
-}
-#endif
+#include "avx_helper.h"
 
 class AudioResampler {
 public:
-    AudioResampler(int inChannelNum, int inSampleRate, int inSamples, int outChannelNum,
-                   int outSampleRate);
+    AudioResampler(int bytesPerSample, int inChannelNum, int inSampleRate, int inSamples,
+                   int outChannelNum, int outSampleRate);
 
     ~AudioResampler();
+
+    uint8_t* getInputBuffer();
 
     int resample(const void* inData, int inLen, void* outData);
 
 private:
-    struct SwrContextDeleter {
-        void operator()(SwrContext* swrContext) {
-            swr_free(&swrContext);
-        }
-    };
 
     std::unique_ptr<SwrContext, SwrContextDeleter> context;
     uint8_t** inBuf;
     uint8_t** outBuf;
+    AVSampleFormat fmt;
     int inSampleRate;
     int inChannelNum;
     int inSamples;
     int outSampleRate;
     int outChannelNum;
-    int maxOutSamples;
+    int outSamples;
     int outLineSize;
 };
 

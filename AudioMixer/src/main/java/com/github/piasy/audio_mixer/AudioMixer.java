@@ -8,17 +8,6 @@ public class AudioMixer {
 
     private static boolean sInitialized;
 
-    public static synchronized void loadNativeLibraries() {
-        if (!sInitialized) {
-            sInitialized = true;
-
-            System.loadLibrary("c++_shared");
-            System.loadLibrary("avutil");
-            System.loadLibrary("swresample");
-            System.loadLibrary("audio_mixer");
-        }
-    }
-
     private long mNativeHandle;
     private byte[] mBuffer;
 
@@ -26,6 +15,21 @@ public class AudioMixer {
         mNativeHandle = nativeInit();
         mBuffer = new byte[7680];
     }
+
+    public static synchronized void globalInitialize() {
+        if (!sInitialized) {
+            sInitialized = true;
+
+            System.loadLibrary("c++_shared");
+            System.loadLibrary("avutil");
+            System.loadLibrary("swresample");
+            System.loadLibrary("audio_mixer");
+
+            globalInitializeFFMPEG();
+        }
+    }
+
+    private static native void globalInitializeFFMPEG();
 
     private static native long nativeInit();
 

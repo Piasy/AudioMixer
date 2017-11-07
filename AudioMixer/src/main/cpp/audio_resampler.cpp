@@ -2,51 +2,47 @@
 // Created by Piasy on 04/11/2017.
 //
 
-#include <stdexcept>
-
+#include <rtc_base/checks.h>
 #include <rtc_base/logging.h>
 
 #include "audio_resampler.h"
 
-AudioResampler::AudioResampler(int inChannelNum, int inSampleRate, int inSamples,
-                               int outChannelNum, int outSampleRate)
-        : context(swr_alloc(), SwrContextDeleter()),
+AudioResampler::AudioResampler(int bytesPerSample, int inChannelNum, int inSampleRate,
+                               int inSamples, int outChannelNum, int outSampleRate)
+        : context(swr_alloc()),
           inBuf(nullptr),
           outBuf(nullptr),
+          fmt(bytesPerSample == 1 ? AV_SAMPLE_FMT_U8 : AV_SAMPLE_FMT_S16),
           inSampleRate(inSampleRate),
           inChannelNum(inChannelNum),
           inSamples(inSamples),
           outSampleRate(outSampleRate),
           outChannelNum(outChannelNum) {
-    if (!context.get()) {
-        throw std::runtime_error("swr_alloc fail");
-    }
+    RTC_CHECK(context.get());
 
     int64_t inChannelLayout = (inChannelNum == 1) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
     int64_t outChannelLayout = (outChannelNum == 1) ? AV_CH_LAYOUT_MONO : AV_CH_LAYOUT_STEREO;
 
     av_opt_set_int(context.get(), "in_channel_layout", inChannelLayout, 0);
     av_opt_set_int(context.get(), "in_sample_rate", inSampleRate, 0);
-    av_opt_set_sample_fmt(context.get(), "in_sample_fmt", AV_SAMPLE_FMT_S16, 0);
+    av_opt_set_sample_fmt(context.get(), "in_sample_fmt", fmt, 0);
 
     av_opt_set_int(context.get(), "out_channel_layout", outChannelLayout, 0);
     av_opt_set_int(context.get(), "out_sample_rate", outSampleRate, 0);
-    av_opt_set_sample_fmt(context.get(), "out_sample_fmt", AV_SAMPLE_FMT_S16, 0);
+    av_opt_set_sample_fmt(context.get(), "out_sample_fmt", fmt, 0);
 
-    if (swr_init(context.get()) < 0) {
-        throw std::runtime_error("swr_init fail");
-    }
+    int error = swr_init(context.get());
+    RTC_CHECK(error >= 0) << av_err2str(error);
 
-    if (av_samples_alloc_array_and_samples(&inBuf, nullptr, inChannelNum,
-                                           inSamples, AV_SAMPLE_FMT_S16, 0) < 0) {
-        throw std::runtime_error("alloc in buf fail");
-    }
-    maxOutSamples = static_cast<int>(av_rescale_rnd(inSamples, outSampleRate, inSampleRate,
+    error = av_samples_alloc_array_and_samples(&inBuf, nullptr, inChannelNum, inSamples, fmt, 0);
+    RTC_CHECK(error >= 0) << av_err2str(error);
+
+    outSamples = static_cast<int>(av_rescale_rnd(inSamples, outSampleRate, inSampleRate,
                                                     AV_ROUND_UP));
-    if (av_samples_alloc_array_and_samples(&outBuf, &outLineSize, outChannelNum, maxOutSamples,
-                                           AV_SAMPLE_FMT_S16, 0) < 0) {
-        throw std::runtime_error("alloc out buf fail");
-    }
+
+    error = av_samples_alloc_array_and_samples(&outBuf, &outLineSize, outChannelNum, outSamples,
+                                               fmt, 0);
+    RTC_CHECK(error >= 0) << av_err2str(error);
 }
 
 AudioResampler::~AudioResampler() {
@@ -60,27 +56,21 @@ AudioResampler::~AudioResampler() {
     av_freep(outBuf);
 }
 
+uint8_t* AudioResampler::getInputBuffer() {
+    return inBuf ? inBuf[0] : nullptr;
+}
+
 int AudioResampler::resample(const void* inData, int inLen, void* outData) {
     int64_t delay = swr_get_delay(context.get(), inSampleRate);
-    int outSamples = static_cast<int>(
-            av_rescale_rnd(delay + inSamples, outSampleRate, inSampleRate, AV_ROUND_UP)
-    );
-    if (outSamples > maxOutSamples) {
-        maxOutSamples = outSamples;
-        av_freep(&outBuf[0]);
-        if (av_samples_alloc_array_and_samples(&outBuf, &outLineSize, outChannelNum, maxOutSamples,
-                                               AV_SAMPLE_FMT_S16, 0) < 0) {
-            throw std::runtime_error("alloc out buf fail");
-        }
+    if (inData != inBuf[0]) {
+        memcpy(inBuf[0], inData, static_cast<size_t>(inLen));
     }
-
-    memcpy(inBuf[0], inData, static_cast<size_t>(inLen));
     int ret = swr_convert(context.get(), outBuf, outSamples, (const uint8_t**) inBuf, inSamples);
+    LOG(LS_INFO) << outSamples << " " << ret;
     if (ret < 0) {
         return -2;
     }
-    int outSize = av_samples_get_buffer_size(&outLineSize, outChannelNum, ret,
-                                             AV_SAMPLE_FMT_S16, 1);
+    int outSize = av_samples_get_buffer_size(&outLineSize, outChannelNum, ret, fmt, 1);
     memcpy(outData, outBuf[0], static_cast<size_t>(outSize));
     return outSize;
 }

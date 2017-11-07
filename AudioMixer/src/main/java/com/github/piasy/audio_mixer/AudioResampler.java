@@ -5,29 +5,31 @@ package com.github.piasy.audio_mixer;
  */
 
 public class AudioResampler {
+    // stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs
+    private static final int MS_PER_BUF = 10;
 
     private long mNativeHandle;
     private BufferInfo mInputBuffer;
     private BufferInfo mOutputBuffer;
 
-    public AudioResampler(int inChannelNum, int inSampleRate, int outChannelNum, int outSampleRate,
-            int msPerBuf) {
-        int inSamplesPerBuf = inSampleRate / (1000 / msPerBuf);
+    public AudioResampler(int bytesPerSample, int inChannelNum, int inSampleRate, int outChannelNum,
+            int outSampleRate) {
+        int inSamplesPerBuf = inSampleRate / (1000 / MS_PER_BUF);
 
-        mNativeHandle = nativeInit(inChannelNum, inSampleRate, inSamplesPerBuf, outChannelNum,
-                outSampleRate);
+        mNativeHandle = nativeInit(bytesPerSample, inChannelNum, inSampleRate, inSamplesPerBuf,
+                outChannelNum, outSampleRate);
 
-        int inputBufferSize = inSampleRate / (1000 / msPerBuf) * inChannelNum * 2;
+        int inputBufferSize = inSampleRate / (1000 / MS_PER_BUF) * inChannelNum * 2;
         mInputBuffer = new BufferInfo(new byte[inputBufferSize], inputBufferSize);
 
-        int outputBufferSize = outSampleRate / (1000 / msPerBuf) * outChannelNum * 2;
+        int outputBufferSize = outSampleRate / (1000 / MS_PER_BUF) * outChannelNum * 2;
         // there may have some delay in swr, so output buffer may be lager
         outputBufferSize *= 2;
         mOutputBuffer = new BufferInfo(new byte[outputBufferSize], 0);
     }
 
-    private static native long nativeInit(int inChannelNum, int inSampleRate, int inSamples,
-            int outChannelNum, int outSampleRate);
+    private static native long nativeInit(int bytesPerSample, int inChannelNum, int inSampleRate,
+            int inSamples, int outChannelNum, int outSampleRate);
 
     private static native int nativeResample(long handle, byte[] inData, int inLen, byte[] outData);
 

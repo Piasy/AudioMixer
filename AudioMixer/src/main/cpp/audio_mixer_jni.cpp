@@ -8,6 +8,7 @@
 #include <sdk/android/src/jni/jni_helpers.h>
 #include <rtc_base/logging.h>
 
+#include "avx_helper.h"
 #include "audio_mixer.h"
 #include "audio_resampler.h"
 
@@ -15,6 +16,11 @@
 #define fromJ(type, handle) reinterpret_cast<type *>((handle))
 
 extern "C" {
+
+JNIEXPORT void JNICALL
+Java_com_github_piasy_audio_1mixer_AudioMixer_globalInitializeFFMPEG(JNIEnv* env, jclass type) {
+    av_register_all();
+}
 
 JNIEXPORT jlong JNICALL
 Java_com_github_piasy_audio_1mixer_AudioMixer_nativeInit(
@@ -41,10 +47,10 @@ Java_com_github_piasy_audio_1mixer_AudioMixer_nativeDestroy(
 
 JNIEXPORT jlong JNICALL
 Java_com_github_piasy_audio_1mixer_AudioResampler_nativeInit(
-        JNIEnv* env, jclass type, jint inChannelNum, jint inSampleRate, jint inSamples,
-        jint outChannelNum, jint outSampleRate) {
-    return toJ(new AudioResampler(inChannelNum, inSampleRate, inSamples, outChannelNum,
-                                  outSampleRate));
+        JNIEnv* env, jclass type, jint bytesPerSample, jint inChannelNum, jint inSampleRate,
+        jint inSamples, jint outChannelNum, jint outSampleRate) {
+    return toJ(new AudioResampler(bytesPerSample, inChannelNum, inSampleRate, inSamples,
+                                  outChannelNum, outSampleRate));
 }
 
 JNIEXPORT jint JNICALL

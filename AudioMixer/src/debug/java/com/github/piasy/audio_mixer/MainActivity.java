@@ -74,11 +74,11 @@ public class MainActivity extends AppCompatActivity {
     })
     void doMix() {
         new Thread(() -> {
-            int minBufferSize = AudioTrack.getMinBufferSize(44100,
-                    AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+            int minBufferSize = AudioTrack.getMinBufferSize(48000,
+                    AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
             AudioTrack audioTrack =
-                    new AudioTrack(AudioManager.STREAM_MUSIC, 44100,
-                            AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT,
+                    new AudioTrack(AudioManager.STREAM_MUSIC, 48000,
+                            AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
                             Math.max(minBufferSize, 7680), AudioTrack.MODE_STREAM);
             audioTrack.play();
 
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             boolean mixing = true;
             while (mixing) {
                 byte[] data = mixer.mix();
-                audioTrack.write(data, 0, 480 * 2 * 2);
+                audioTrack.write(data, 0, 480 * 1 * 2);
             }
 
             mixer.destroy();
@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
             int inSampleRate = 44100;
             int outChannelNum = 1;
             int outSampleRate = 16000;
-            int msPerBuf = 10;
 
             int minBufferSize = AudioTrack.getMinBufferSize(outSampleRate,
                     outChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
@@ -116,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
-            AudioResampler resampler = new AudioResampler(inChannelNum, inSampleRate, outChannelNum,
-                    outSampleRate, msPerBuf);
+            AudioResampler resampler = new AudioResampler(2, inChannelNum, inSampleRate,
+                    outChannelNum, outSampleRate);
             AudioResampler.BufferInfo inputBuffer = resampler.getInputBuffer();
             try {
                 FileInputStream inputStream = new FileInputStream("/sdcard/wav/morning.raw");

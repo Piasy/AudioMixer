@@ -7,21 +7,44 @@
 #include "audio_mixer.h"
 
 AudioMixer::AudioMixer() : mixer(webrtc::AudioMixerImpl::Create()),
-                           mixFrame(std::make_unique<webrtc::AudioFrame>()) {
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/1234.raw", 1234));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/1235.raw", 1235));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/1236.raw", 1236));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/morning.raw", 1237));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/lion.raw", 1238));
-    sources.push_back(std::make_unique<FileAudioSource>("/sdcard/wav/iamyou.raw", 1239));
+                           mixFrame(std::make_unique<webrtc::AudioFrame>()),
+                           bytesPerSample(2),
+                           outputSampleRate(48000),
+                           outputChannelNum(1),
+                           outputSamples(outputSampleRate /
+                                         (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs)) {
+//    sources.push_back(std::make_unique<FileAudioSource>(
+//            1234, "/sdcard/wav/1234.raw", bytesPerSample, 44100, 2, outputSampleRate,
+//            outputChannelNum
+//    ));
+//    sources.push_back(std::make_unique<FileAudioSource>(
+//            1235, "/sdcard/wav/1235.raw", bytesPerSample, 44100, 2, outputSampleRate,
+//            outputChannelNum
+//    ));
+//    sources.push_back(std::make_unique<FileAudioSource>(
+//            1236, "/sdcard/wav/1236.raw", bytesPerSample, 44100, 2, outputSampleRate,
+//            outputChannelNum
+//    ));
+    sources.push_back(std::make_unique<FileAudioSource>(
+            1237, "/sdcard/wav/morning.raw", bytesPerSample, 44100, 2, outputSampleRate,
+            outputChannelNum
+    ));
+    sources.push_back(std::make_unique<FileAudioSource>(
+            1238, "/sdcard/wav/lion.raw", bytesPerSample, 44100, 2, outputSampleRate,
+            outputChannelNum
+    ));
+    sources.push_back(std::make_unique<FileAudioSource>(
+            1239, "/sdcard/wav/iamyou.raw", bytesPerSample, 44100, 2, outputSampleRate,
+            outputChannelNum
+    ));
 
     for (auto& source : sources) {
         mixer->AddSource(source.get());
     }
 
-    mixFrame->sample_rate_hz_ = 48000;
-    mixFrame->num_channels_ = 2;
-    mixFrame->samples_per_channel_ = 480;
+    mixFrame->sample_rate_hz_ = outputSampleRate;
+    mixFrame->num_channels_ = outputChannelNum;
+    mixFrame->samples_per_channel_ = outputSamples;
     mixFrame->speech_type_ = webrtc::AudioFrame::SpeechType::kNormalSpeech;
     mixFrame->vad_activity_ = webrtc::AudioFrame::VADActivity::kVadActive;
 }
@@ -35,8 +58,8 @@ AudioMixer::~AudioMixer() {
 }
 
 int AudioMixer::mix(void* buf) {
-    mixer->Mix(2, mixFrame.get());
-    int size = 48000 / 100 * 2 * 2;
-    memcpy(buf, reinterpret_cast<const void*>(mixFrame->data()), static_cast<size_t>(size));
+    mixer->Mix(outputChannelNum, mixFrame.get());
+    size_t size = outputSamples * outputChannelNum * bytesPerSample;
+    memcpy(buf, reinterpret_cast<const void*>(mixFrame->data()), size);
     return size;
 }

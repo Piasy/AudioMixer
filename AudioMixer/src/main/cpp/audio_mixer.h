@@ -24,6 +24,10 @@ private:
     rtc::scoped_refptr<webrtc::AudioMixer> mixer;
     std::vector<std::unique_ptr<FileAudioSource>> sources;
     std::unique_ptr<webrtc::AudioFrame> mixFrame;
+    size_t bytesPerSample;
+    size_t outputSampleRate;
+    size_t outputChannelNum;
+    size_t outputSamples;
 };
 
 

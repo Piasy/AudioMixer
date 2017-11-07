@@ -10,9 +10,12 @@
 
 #include <api/audio/audio_mixer.h>
 
+#include "audio_resampler.h"
+
 class FileAudioSource : public webrtc::AudioMixer::Source {
 public:
-    FileAudioSource(std::string filename, int ssrc);
+    FileAudioSource(int ssrc, std::string filename, int bytesPerSample, int inputSampleRate,
+                    int inputChannelNum, int outputSampleRate, int outputChannelNum);
 
     ~FileAudioSource() override;
 
@@ -24,8 +27,16 @@ public:
     int PreferredSampleRate() const override;
 
 private:
-    std::unique_ptr<std::ifstream> pcm;
     int ssrc;
+    std::unique_ptr<std::ifstream> pcm;
+    size_t bytesPerSample;
+    size_t inputSampleRate;
+    size_t inputChannelNum;
+    size_t inputSamples;
+    size_t outputSampleRate;
+    size_t outputChannelNum;
+    size_t outputSamples;
+    std::unique_ptr<AudioResampler> resampler;
 };
 
 
