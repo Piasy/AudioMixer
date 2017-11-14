@@ -11,20 +11,15 @@ extern "C" {
 
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
+#include <libswresample/swresample.h>
 #include <libavutil/opt.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/samplefmt.h>
-#include <libswresample/swresample.h>
+#include <libavutil/audio_fifo.h>
 
 #ifdef __cplusplus
 }
 #endif
-
-struct SwrContextDeleter {
-    void operator()(SwrContext* swrContext) {
-        swr_free(&swrContext);
-    }
-};
 
 struct AVFormatContextDeleter {
     void operator()(AVFormatContext* context) {
@@ -54,6 +49,22 @@ struct AVPacketDeleter {
     void operator()(AVPacket* packet) {
         if (packet) {
             av_packet_free(&packet);
+        }
+    }
+};
+
+struct SwrContextDeleter {
+    void operator()(SwrContext* swrContext) {
+        if (swrContext) {
+            swr_free(&swrContext);
+        }
+    }
+};
+
+struct AVAudioFifoDeleter {
+    void operator()(AVAudioFifo* fifo) {
+        if (fifo) {
+            av_audio_fifo_free(fifo);
         }
     }
 };

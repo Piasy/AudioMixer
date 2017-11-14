@@ -60,6 +60,11 @@ public class MainActivity extends AppCompatActivity {
         MainActivityPermissionsDispatcher.doResampleWithPermissionCheck(MainActivity.this);
     }
 
+    @OnClick(R.id.mBtnDecode)
+    void decode() {
+        MainActivityPermissionsDispatcher.doDecodeWithPermissionCheck(MainActivity.this);
+    }
+
     @Override
     public void onRequestPermissionsResult(final int requestCode,
             @NonNull final String[] permissions,
@@ -79,7 +84,8 @@ public class MainActivity extends AppCompatActivity {
             AudioTrack audioTrack =
                     new AudioTrack(AudioManager.STREAM_MUSIC, 48000,
                             AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, 7680), AudioTrack.MODE_STREAM);
+                            Math.max(minBufferSize, BufferInfo.MAX_BUF_SIZE),
+                            AudioTrack.MODE_STREAM);
             audioTrack.play();
 
             AudioMixer mixer = new AudioMixer();
@@ -89,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 audioTrack.write(data, 0, 480 * 1 * 2);
             }
 
+            audioTrack.stop();
             mixer.destroy();
         }).start();
     }
@@ -111,13 +118,14 @@ public class MainActivity extends AppCompatActivity {
                     new AudioTrack(AudioManager.STREAM_MUSIC, outSampleRate,
                             outChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
                                     : AudioFormat.CHANNEL_OUT_STEREO,
-                            AudioFormat.ENCODING_PCM_16BIT, Math.max(minBufferSize, 7680),
+                            AudioFormat.ENCODING_PCM_16BIT,
+                            Math.max(minBufferSize, BufferInfo.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
             AudioResampler resampler = new AudioResampler(2, inChannelNum, inSampleRate,
                     outChannelNum, outSampleRate);
-            AudioResampler.BufferInfo inputBuffer = resampler.getInputBuffer();
+            BufferInfo inputBuffer = resampler.getInputBuffer();
             try {
                 FileInputStream inputStream = new FileInputStream("/sdcard/wav/morning.raw");
 
@@ -125,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 while ((read = inputStream.read(inputBuffer.getBuffer(), 0,
                         inputBuffer.getBuffer().length)) > 0) {
                     inputBuffer.setSize(read);
-                    AudioResampler.BufferInfo outputBuffer = resampler.resample(inputBuffer);
+                    BufferInfo outputBuffer = resampler.resample(inputBuffer);
                     if (outputBuffer.getSize() > 0) {
                         audioTrack.write(outputBuffer.getBuffer(), 0, outputBuffer.getSize());
                     } else {
@@ -140,7 +148,46 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
+            audioTrack.stop();
             resampler.destroy();
+        }).start();
+    }
+
+    @NeedsPermission({
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    })
+    void doDecode() {
+        new Thread(() -> {
+            AudioFileDecoder decoder = new AudioFileDecoder("/sdcard/wav/morning-16k.mp3");
+            int sampleRate = decoder.getSampleRate();
+            int channelNum = decoder.getChannelNum();
+
+            int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
+                    channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                            : AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            AudioTrack audioTrack =
+                    new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
+                            channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                                    : AudioFormat.CHANNEL_OUT_STEREO,
+                            AudioFormat.ENCODING_PCM_16BIT,
+                            Math.max(minBufferSize, BufferInfo.MAX_BUF_SIZE),
+                            AudioTrack.MODE_STREAM);
+            audioTrack.play();
+
+            while (true) {
+                BufferInfo bufferInfo = decoder.consume(sampleRate / 100);
+                if (bufferInfo.getSize() < 0) {
+                    break;
+                } else if (bufferInfo.getSize() > 0) {
+                    audioTrack.write(bufferInfo.getBuffer(), 0, bufferInfo.getSize());
+                }
+            }
+
+            Log.e("MainActivity", "resample finish");
+
+            audioTrack.stop();
+            decoder.destroy();
         }).start();
     }
 }

@@ -1,4 +1,4 @@
-apply from: "https://raw.githubusercontent.com/Piasy/GradleScripts/master/simple_lib_android_bintray.gradle"
+apply from: "../simple_lib_android_bintray.gradle"
 
 android {
     //if (!"true".equals(System.getenv('IS_PIASY_LIB_RELEASE')))

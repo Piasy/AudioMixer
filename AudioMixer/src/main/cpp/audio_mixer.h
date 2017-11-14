@@ -10,7 +10,7 @@
 #include <api/audio/audio_mixer.h>
 #include <rtc_base/scoped_ref_ptr.h>
 
-#include "file_audio_source.h"
+#include "audio_file_source.h"
 
 class AudioMixer {
 public:
@@ -22,7 +22,7 @@ public:
 
 private:
     rtc::scoped_refptr<webrtc::AudioMixer> mixer;
-    std::vector<std::unique_ptr<FileAudioSource>> sources;
+    std::vector<std::unique_ptr<AudioFileSource>> sources;
     std::unique_ptr<webrtc::AudioFrame> mixFrame;
     size_t bytesPerSample;
     size_t outputSampleRate;

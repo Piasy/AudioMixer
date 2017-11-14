@@ -13,7 +13,7 @@ public class AudioMixer {
 
     public AudioMixer() {
         mNativeHandle = nativeInit();
-        mBuffer = new byte[7680];
+        mBuffer = new byte[BufferInfo.MAX_BUF_SIZE];
     }
 
     public static synchronized void globalInitialize() {
@@ -21,6 +21,8 @@ public class AudioMixer {
             sInitialized = true;
 
             System.loadLibrary("c++_shared");
+            System.loadLibrary("avcodec");
+            System.loadLibrary("avformat");
             System.loadLibrary("avutil");
             System.loadLibrary("swresample");
             System.loadLibrary("audio_mixer");

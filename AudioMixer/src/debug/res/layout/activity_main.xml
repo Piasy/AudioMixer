@@ -50,4 +50,11 @@
             android:layout_height="wrap_content"
             android:text="resample"
             />
+
+    <Button
+            android:id="@+id/mBtnDecode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="decode"
+            />
 </LinearLayout>
