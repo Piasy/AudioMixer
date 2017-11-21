@@ -18,16 +18,16 @@ public:
 
     ~AudioMixer();
 
-    int mix(void* buf);
+    int Mix(void* buffer);
 
 private:
-    rtc::scoped_refptr<webrtc::AudioMixer> mixer;
-    std::vector<std::unique_ptr<AudioFileSource>> sources;
-    std::unique_ptr<webrtc::AudioFrame> mixFrame;
-    size_t bytesPerSample;
-    size_t outputSampleRate;
-    size_t outputChannelNum;
-    size_t outputSamples;
+    rtc::scoped_refptr<webrtc::AudioMixer> mixer_;
+    std::vector<std::unique_ptr<AudioFileSource>> sources_;
+    std::unique_ptr<webrtc::AudioFrame> mixed_frame_;
+    size_t sample_size_;
+    size_t output_sample_rate_;
+    size_t output_channel_num_;
+    size_t output_samples_;
 };
 
 

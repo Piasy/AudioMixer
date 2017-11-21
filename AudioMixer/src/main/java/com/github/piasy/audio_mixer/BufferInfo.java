@@ -7,6 +7,7 @@ public class BufferInfo {
     // stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs
     public static final int MS_PER_BUF = 10;
     public static final int MAX_BUF_SIZE = 7680;
+    public static final int SAMPLE_SIZE = 2;
 
     private byte[] buffer;
     private int size;

@@ -12,28 +12,29 @@
 
 class AudioResampler {
 public:
-    AudioResampler(int bytesPerSample, int inChannelNum, int inSampleRate, int inSamples,
-                   int outChannelNum, int outSampleRate);
+    AudioResampler(AVSampleFormat input_format, int input_sample_rate, int input_channel_num,
+                   int input_samples, AVSampleFormat output_format, int output_sample_rate,
+                   int output_channel_num);
 
     ~AudioResampler();
 
-    uint8_t* getInputBuffer();
+    void** input_buffer();
 
-    int resample(const void* inData, int inLen, void* outData);
+    int Resample(void** input_buffer, int input_size, void* output_buffer);
 
 private:
 
-    std::unique_ptr<SwrContext, SwrContextDeleter> context;
-    uint8_t** inBuf;
-    uint8_t** outBuf;
-    AVSampleFormat fmt;
-    int inSampleRate;
-    int inChannelNum;
-    int inSamples;
-    int outSampleRate;
-    int outChannelNum;
-    int outSamples;
-    int outLineSize;
+    std::unique_ptr<SwrContext, SwrContextDeleter> context_;
+    void** input_buffer_;
+    void** output_buffer_;
+    AVSampleFormat input_format_;
+    int input_sample_rate_;
+    int input_channel_num_;
+    int input_samples_;
+    AVSampleFormat output_format_;
+    int output_sample_rate_;
+    int output_channel_num_;
+    int output_samples_;
 };
 
 

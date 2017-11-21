@@ -8,11 +8,3 @@ bintray.properties
 /captures
 
 AudioMixer/libs/webrtc/lib/
-wav/
-
-.buckd
-.okbuck
-buck-out
-.buckconfig
-.buckconfig.local
-**/BUCK

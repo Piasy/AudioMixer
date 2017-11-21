@@ -9,89 +9,91 @@
 
 #include "audio_file_decoder.h"
 
-AudioFileDecoder::AudioFileDecoder(std::string& filename) : packetConsumed(true) {
-    frame.reset(av_frame_alloc());
-    RTC_CHECK(frame.get()) << "av_frame_alloc fail";
+AudioFileDecoder::AudioFileDecoder(std::string& filepath) : packet_consumed_(true) {
+    frame_.reset(av_frame_alloc());
+    RTC_CHECK(frame_.get()) << "av_frame_alloc fail";
 
-    packet.reset(av_packet_alloc());
-    RTC_CHECK(packet.get()) << "av_packet_alloc fail";
-    av_init_packet(packet.get());
+    packet_.reset(av_packet_alloc());
+    RTC_CHECK(packet_.get()) << "av_packet_alloc fail";
+    av_init_packet(packet_.get());
 
     {
-        AVFormatContext* formatContext = nullptr;
-        int error = avformat_open_input(&formatContext, filename.c_str(), nullptr, nullptr);
+        AVFormatContext* format_context = nullptr;
+        int error = avformat_open_input(&format_context, filepath.c_str(), nullptr, nullptr);
         RTC_CHECK(error >= 0) << av_err2str(error);
 
-        avFormatContext.reset(formatContext);
+        format_context_.reset(format_context);
     }
 
     AVCodec* codec;
-    int error = avformat_find_stream_info(avFormatContext.get(), nullptr);
+    int error = avformat_find_stream_info(format_context_.get(), nullptr);
     RTC_CHECK(error >= 0) << av_err2str(error);
 
-    streamNo = av_find_best_stream(avFormatContext.get(), AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
-    RTC_CHECK(streamNo >= 0) << av_err2str(streamNo);
+    stream_no_ = av_find_best_stream(format_context_.get(), AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
+    RTC_CHECK(stream_no_ >= 0) << av_err2str(stream_no_);
 
-    if (!(codec = avcodec_find_decoder(avFormatContext->streams[streamNo]->codecpar->codec_id))) {
+    if (!(codec = avcodec_find_decoder(format_context_->streams[stream_no_]->codecpar->codec_id))) {
         RTC_CHECK(false) << "avcodec_find_decoder fail";
     }
-    avCodecContext.reset(avcodec_alloc_context3(codec));
-    RTC_CHECK(avCodecContext.get()) << "avcodec_alloc_context3 fail";
-    error = avcodec_parameters_to_context(avCodecContext.get(),
-                                          avFormatContext->streams[streamNo]->codecpar);
+    codec_context_.reset(avcodec_alloc_context3(codec));
+    RTC_CHECK(codec_context_.get()) << "avcodec_alloc_context3 fail";
+    error = avcodec_parameters_to_context(codec_context_.get(),
+                                          format_context_->streams[stream_no_]->codecpar);
     RTC_CHECK(error >= 0) << av_err2str(error);
 
-    error = avcodec_open2(avCodecContext.get(), codec, nullptr);
+    error = avcodec_open2(codec_context_.get(), codec, nullptr);
     RTC_CHECK(error >= 0) << av_err2str(error);
 
-    fifoCapacity = 10 * avCodecContext->sample_rate
-                   / (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs);
-    fifo.reset(av_audio_fifo_alloc(avCodecContext->sample_fmt, avCodecContext->channels,
-                                   fifoCapacity));
-    RTC_CHECK(fifo.get()) << "av_audio_fifo_alloc fail";
+    fifo_capacity_ = 10 * codec_context_->sample_rate
+                     / (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs);
+    fifo_.reset(av_audio_fifo_alloc(codec_context_->sample_fmt, codec_context_->channels,
+                                    fifo_capacity_));
+    RTC_CHECK(fifo_.get()) << "av_audio_fifo_alloc fail";
 
-    fillDecoder();
+    FillDecoder();
 }
 
 AudioFileDecoder::~AudioFileDecoder() {
 }
 
-int AudioFileDecoder::getSampleRate() {
-    return avCodecContext->sample_rate;
+AVSampleFormat AudioFileDecoder::sample_format() {
+    return codec_context_->sample_fmt;
 }
 
-int AudioFileDecoder::getChannelNum() {
-    return avCodecContext->channels;
+int AudioFileDecoder::sample_rate() {
+    return codec_context_->sample_rate;
 }
 
-int AudioFileDecoder::consume(void* buffer, int samples) {
-    fillDecoder();
-    fillFifo();
-
-    int targetSamples = std::min(av_audio_fifo_size(fifo.get()), samples);
-
-    int actualSamples = av_audio_fifo_read(fifo.get(), &buffer, targetSamples);
-    int size = actualSamples * 2 * avCodecContext->channels;
-
-    return size;
+int AudioFileDecoder::channel_num() {
+    return codec_context_->channels;
 }
 
-void AudioFileDecoder::fillDecoder() {
+int AudioFileDecoder::Consume(void** buffer, int samples) {
+    FillDecoder();
+    FillFifo();
+
+    int target_samples = std::min(av_audio_fifo_size(fifo_.get()), samples);
+    int actual_samples = av_audio_fifo_read(fifo_.get(), buffer, target_samples);
+
+    return actual_samples * 2 * codec_context_->channels;
+}
+
+void AudioFileDecoder::FillDecoder() {
     while (true) {
-        if (packetConsumed) {
-            if (av_read_frame(avFormatContext.get(), packet.get()) != 0) {
+        if (packet_consumed_) {
+            if (av_read_frame(format_context_.get(), packet_.get()) != 0) {
                 break;
             }
-            if (packet->stream_index != streamNo) {
-                av_packet_unref(packet.get());
+            if (packet_->stream_index != stream_no_) {
+                av_packet_unref(packet_.get());
                 continue;
             }
-            packetConsumed = false;
+            packet_consumed_ = false;
         }
-        int error = avcodec_send_packet(avCodecContext.get(), packet.get());
+        int error = avcodec_send_packet(codec_context_.get(), packet_.get());
         if (error == 0) {
-            av_packet_unref(packet.get());
-            packetConsumed = true;
+            av_packet_unref(packet_.get());
+            packet_consumed_ = true;
             continue;
         }
         if (error == AVERROR(EAGAIN) || error == AVERROR_EOF) {
@@ -101,11 +103,11 @@ void AudioFileDecoder::fillDecoder() {
     }
 }
 
-void AudioFileDecoder::fillFifo() {
-    while (av_audio_fifo_size(fifo.get()) < fifoCapacity
-           && avcodec_receive_frame(avCodecContext.get(), frame.get()) == 0) {
-        av_audio_fifo_write(fifo.get(), reinterpret_cast<void**>(frame->extended_data),
-                            frame->nb_samples);
-        av_frame_unref(frame.get());
+void AudioFileDecoder::FillFifo() {
+    while (av_audio_fifo_size(fifo_.get()) < fifo_capacity_
+           && avcodec_receive_frame(codec_context_.get(), frame_.get()) == 0) {
+        av_audio_fifo_write(fifo_.get(), reinterpret_cast<void**>(frame_->extended_data),
+                            frame_->nb_samples);
+        av_frame_unref(frame_.get());
     }
 }

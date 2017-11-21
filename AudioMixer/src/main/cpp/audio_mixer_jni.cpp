@@ -11,7 +11,7 @@
 #include "avx_helper.h"
 #include "audio_mixer.h"
 #include "audio_resampler.h"
-#include "audio_file_decoder.h"
+#include "audio_file_source.h"
 
 #define toJ(handle) webrtc::jni::jlongFromPointer((handle))
 #define fromJ(type, handle) reinterpret_cast<type *>((handle))
@@ -31,12 +31,12 @@ Java_com_github_piasy_audio_1mixer_AudioMixer_nativeInit(
 
 JNIEXPORT jint JNICALL
 Java_com_github_piasy_audio_1mixer_AudioMixer_nativeMix(
-        JNIEnv* env, jclass type, jlong handle, jbyteArray buf_) {
-    jbyte* buf = env->GetByteArrayElements(buf_, NULL);
+        JNIEnv* env, jclass type, jlong handle, jbyteArray buffer_) {
+    jbyte* buffer = env->GetByteArrayElements(buffer_, NULL);
 
-    int size = fromJ(AudioMixer, handle)->mix(reinterpret_cast<void*>(buf));
+    int size = fromJ(AudioMixer, handle)->Mix(reinterpret_cast<void*>(buffer));
 
-    env->ReleaseByteArrayElements(buf_, buf, 0);
+    env->ReleaseByteArrayElements(buffer_, buffer, 0);
     return size;
 }
 
@@ -48,24 +48,25 @@ Java_com_github_piasy_audio_1mixer_AudioMixer_nativeDestroy(
 
 JNIEXPORT jlong JNICALL
 Java_com_github_piasy_audio_1mixer_AudioResampler_nativeInit(
-        JNIEnv* env, jclass type, jint bytesPerSample, jint inChannelNum, jint inSampleRate,
-        jint inSamples, jint outChannelNum, jint outSampleRate) {
-    return toJ(new AudioResampler(bytesPerSample, inChannelNum, inSampleRate, inSamples,
-                                  outChannelNum, outSampleRate));
+        JNIEnv* env, jclass type, jint inputChannelNum, jint inputSampleRate,
+        jint inputSamples, jint outputChannelNum, jint outputSampleRate) {
+    return toJ(new AudioResampler(AV_SAMPLE_FMT_S16, inputSampleRate, inputChannelNum, inputSamples,
+                                  AV_SAMPLE_FMT_S16, outputSampleRate, outputChannelNum));
 }
 
 JNIEXPORT jint JNICALL
 Java_com_github_piasy_audio_1mixer_AudioResampler_nativeResample(
-        JNIEnv* env, jclass type, jlong handle, jbyteArray inData_, jint inLen,
-        jbyteArray outData_) {
-    jbyte* inData = env->GetByteArrayElements(inData_, NULL);
-    jbyte* outData = env->GetByteArrayElements(outData_, NULL);
+        JNIEnv* env, jclass type, jlong handle, jbyteArray inputBuffer_, jint inputSize,
+        jbyteArray outputBuffer_) {
+    jbyte* inputBuffer = env->GetByteArrayElements(inputBuffer_, NULL);
+    jbyte* outputBuffer = env->GetByteArrayElements(outputBuffer_, NULL);
 
-    int resampled = fromJ(AudioResampler, handle)->resample(
-            reinterpret_cast<const void*>(inData), inLen, reinterpret_cast<void*>(outData));
+    int resampled = fromJ(AudioResampler, handle)->Resample(
+            reinterpret_cast<void**>(&inputBuffer), inputSize,
+            reinterpret_cast<void*>(outputBuffer));
 
-    env->ReleaseByteArrayElements(inData_, inData, 0);
-    env->ReleaseByteArrayElements(outData_, outData, 0);
+    env->ReleaseByteArrayElements(inputBuffer_, inputBuffer, 0);
+    env->ReleaseByteArrayElements(outputBuffer_, outputBuffer, 0);
 
     return resampled;
 }
@@ -77,49 +78,50 @@ Java_com_github_piasy_audio_1mixer_AudioResampler_nativeDestroy(
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_github_piasy_audio_1mixer_AudioFileDecoder_nativeInit(
-        JNIEnv* env, jclass type, jstring filepath_) {
+Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeInit(
+        JNIEnv* env, jclass type, jint ssrc, jstring filepath_, jint outputSampleRate,
+        jint outputChannelNum) {
     const char* filepath = env->GetStringUTFChars(filepath_, 0);
 
     std::string path(filepath);
-    AudioFileDecoder* decoder = new AudioFileDecoder(path);
+    AudioFileSource* source = new AudioFileSource(ssrc, path, outputSampleRate, outputChannelNum);
 
     env->ReleaseStringUTFChars(filepath_, filepath);
 
-    return toJ(decoder);
+    return toJ(source);
 }
 
 JNIEXPORT jint JNICALL
-Java_com_github_piasy_audio_1mixer_AudioFileDecoder_nativeGetSampleRate(
+Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeGetInputSampleRate(
         JNIEnv* env, jclass type, jlong handle) {
-    AudioFileDecoder* decoder = fromJ(AudioFileDecoder, handle);
-    return decoder->getSampleRate();
+    AudioFileSource* source = fromJ(AudioFileSource, handle);
+    return source->input_sample_rate();
 }
 
 JNIEXPORT jint JNICALL
-Java_com_github_piasy_audio_1mixer_AudioFileDecoder_nativeGetChannelNum(
+Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeGetInputChannelNum(
         JNIEnv* env, jclass type, jlong handle) {
-    AudioFileDecoder* decoder = fromJ(AudioFileDecoder, handle);
-    return decoder->getChannelNum();
+    AudioFileSource* source = fromJ(AudioFileSource, handle);
+    return source->input_channel_num();
 }
 
 JNIEXPORT jint JNICALL
-Java_com_github_piasy_audio_1mixer_AudioFileDecoder_nativeConsume(
+Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeRead(
         JNIEnv* env, jclass type, jlong handle, jbyteArray buffer_, jint samples) {
     jbyte* buffer = env->GetByteArrayElements(buffer_, NULL);
 
-    AudioFileDecoder* decoder = fromJ(AudioFileDecoder, handle);
-    int decoded = decoder->consume(reinterpret_cast<void*>(buffer), samples);
+    AudioFileSource* source = fromJ(AudioFileSource, handle);
+    int read = source->Read(reinterpret_cast<void*>(buffer), samples);
 
     env->ReleaseByteArrayElements(buffer_, buffer, 0);
 
-    return decoded;
+    return read;
 }
 
 JNIEXPORT void JNICALL
-Java_com_github_piasy_audio_1mixer_AudioFileDecoder_nativeDestroy(
+Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeDestroy(
         JNIEnv* env, jclass type, jlong handle) {
-    delete fromJ(AudioFileDecoder, handle);
+    delete fromJ(AudioFileSource, handle);
 }
 
 }

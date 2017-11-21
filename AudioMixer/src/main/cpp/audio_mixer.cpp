@@ -6,60 +6,48 @@
 
 #include "audio_mixer.h"
 
-AudioMixer::AudioMixer() : mixer(webrtc::AudioMixerImpl::Create()),
-                           mixFrame(std::make_unique<webrtc::AudioFrame>()),
-                           bytesPerSample(2),
-                           outputSampleRate(48000),
-                           outputChannelNum(1),
-                           outputSamples(outputSampleRate /
+AudioMixer::AudioMixer() : mixer_(webrtc::AudioMixerImpl::Create()),
+                           mixed_frame_(std::make_unique<webrtc::AudioFrame>()),
+                           sample_size_(2),
+                           output_sample_rate_(48000),
+                           output_channel_num_(1),
+                           output_samples_(output_sample_rate_ /
                                          (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs)) {
-//    sources.push_back(std::make_unique<AudioFileSource>(
-//            1234, "/sdcard/wav/1234.raw", bytesPerSample, 44100, 2, outputSampleRate,
-//            outputChannelNum
-//    ));
-//    sources.push_back(std::make_unique<AudioFileSource>(
-//            1235, "/sdcard/wav/1235.raw", bytesPerSample, 44100, 2, outputSampleRate,
-//            outputChannelNum
-//    ));
-//    sources.push_back(std::make_unique<AudioFileSource>(
-//            1236, "/sdcard/wav/1236.raw", bytesPerSample, 44100, 2, outputSampleRate,
-//            outputChannelNum
-//    ));
-    sources.push_back(std::make_unique<AudioFileSource>(
-            1237, "/sdcard/wav/morning.raw", bytesPerSample, 44100, 2, outputSampleRate,
-            outputChannelNum
+    std::string f1("/sdcard/mp3/morning.mp3");
+    sources_.push_back(std::make_unique<AudioFileSource>(
+            1237, f1, output_sample_rate_, output_channel_num_
     ));
-    sources.push_back(std::make_unique<AudioFileSource>(
-            1238, "/sdcard/wav/lion.raw", bytesPerSample, 44100, 2, outputSampleRate,
-            outputChannelNum
-    ));
-    sources.push_back(std::make_unique<AudioFileSource>(
-            1239, "/sdcard/wav/iamyou.raw", bytesPerSample, 44100, 2, outputSampleRate,
-            outputChannelNum
-    ));
+//    std::string f2("/sdcard/mp3/lion.mp3");
+//    sources_.push_back(std::make_unique<AudioFileSource>(
+//            1238, f2, output_sample_rate_, output_channel_num_
+//    ));
+//    std::string f3("/sdcard/mp3/iamyou.mp3");
+//    sources_.push_back(std::make_unique<AudioFileSource>(
+//            1239, f3, output_sample_rate_, output_channel_num_
+//    ));
 
-    for (auto& source : sources) {
-        mixer->AddSource(source.get());
+    for (auto& source : sources_) {
+        mixer_->AddSource(source.get());
     }
 
-    mixFrame->sample_rate_hz_ = outputSampleRate;
-    mixFrame->num_channels_ = outputChannelNum;
-    mixFrame->samples_per_channel_ = outputSamples;
-    mixFrame->speech_type_ = webrtc::AudioFrame::SpeechType::kNormalSpeech;
-    mixFrame->vad_activity_ = webrtc::AudioFrame::VADActivity::kVadActive;
+    mixed_frame_->sample_rate_hz_ = output_sample_rate_;
+    mixed_frame_->num_channels_ = output_channel_num_;
+    mixed_frame_->samples_per_channel_ = output_samples_;
+    mixed_frame_->speech_type_ = webrtc::AudioFrame::SpeechType::kNormalSpeech;
+    mixed_frame_->vad_activity_ = webrtc::AudioFrame::VADActivity::kVadActive;
 }
 
 AudioMixer::~AudioMixer() {
-    for (auto& source : sources) {
-        mixer->RemoveSource(source.get());
+    for (auto& source : sources_) {
+        mixer_->RemoveSource(source.get());
     }
 
-    sources.clear();
+    sources_.clear();
 }
 
-int AudioMixer::mix(void* buf) {
-    mixer->Mix(outputChannelNum, mixFrame.get());
-    size_t size = outputSamples * outputChannelNum * bytesPerSample;
-    memcpy(buf, reinterpret_cast<const void*>(mixFrame->data()), size);
+int AudioMixer::Mix(void* buffer) {
+    mixer_->Mix(output_channel_num_, mixed_frame_.get());
+    size_t size = output_samples_ * output_channel_num_ * sample_size_;
+    memcpy(buffer, reinterpret_cast<const void*>(mixed_frame_->data()), size);
     return size;
 }

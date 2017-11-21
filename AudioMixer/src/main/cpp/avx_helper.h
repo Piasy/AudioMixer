@@ -2,8 +2,8 @@
 // Created by Piasy on 08/11/2017.
 //
 
-#ifndef AUDIOMIXER_AVX_DELETER_H
-#define AUDIOMIXER_AVX_DELETER_H
+#ifndef AUDIOMIXER_AVX_HELPER_H
+#define AUDIOMIXER_AVX_HELPER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,4 +69,4 @@ struct AVAudioFifoDeleter {
     }
 };
 
-#endif //AUDIOMIXER_AVX_DELETER_H
+#endif //AUDIOMIXER_AVX_HELPER_H

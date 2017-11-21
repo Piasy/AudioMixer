@@ -2,8 +2,8 @@
 // Created by Piasy on 08/11/2017.
 //
 
-#ifndef AUDIOMIXER_AUDIO_DECODER_H
-#define AUDIOMIXER_AUDIO_DECODER_H
+#ifndef AUDIOMIXER_AUDIO_FILE_DECODER_H
+#define AUDIOMIXER_AUDIO_FILE_DECODER_H
 
 #include <string>
 #include <vector>
@@ -12,32 +12,34 @@
 
 class AudioFileDecoder {
 public:
-    AudioFileDecoder(std::string& filename);
+    AudioFileDecoder(std::string& filepath);
 
     ~AudioFileDecoder();
 
-    int getSampleRate();
+    AVSampleFormat sample_format();
 
-    int getChannelNum();
+    int sample_rate();
 
-    int consume(void* buffer, int samples);
+    int channel_num();
+
+    int Consume(void** buffer, int samples);
 
 private:
-    void fillDecoder();
+    void FillDecoder();
 
-    void fillFifo();
+    void FillFifo();
 
-    int fifoCapacity;
-    int streamNo;
+    int fifo_capacity_;
+    int stream_no_;
 
-    std::unique_ptr<AVFormatContext, AVFormatContextDeleter> avFormatContext;
-    std::unique_ptr<AVCodecContext, AVCodecContextDeleter> avCodecContext;
+    std::unique_ptr<AVFormatContext, AVFormatContextDeleter> format_context_;
+    std::unique_ptr<AVCodecContext, AVCodecContextDeleter> codec_context_;
 
-    std::unique_ptr<AVPacket, AVPacketDeleter> packet;
-    bool packetConsumed;
-    std::unique_ptr<AVFrame, AVFrameDeleter> frame;
-    std::unique_ptr<AVAudioFifo, AVAudioFifoDeleter> fifo;
+    std::unique_ptr<AVPacket, AVPacketDeleter> packet_;
+    bool packet_consumed_;
+    std::unique_ptr<AVFrame, AVFrameDeleter> frame_;
+    std::unique_ptr<AVAudioFifo, AVAudioFifoDeleter> fifo_;
 };
 
 
-#endif //AUDIOMIXER_AUDIO_DECODER_H
+#endif //AUDIOMIXER_AUDIO_FILE_DECODER_H
