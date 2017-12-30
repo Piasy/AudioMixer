@@ -4,6 +4,9 @@ android {
     //if (!"true".equals(System.getenv('IS_PIASY_LIB_RELEASE')))
     defaultConfig {
         ndk.abiFilters = ['armeabi-v7a']
+
+        sourceSets.main.jniLibs.srcDirs += '../../libs/jniLibs'
+
         externalNativeBuild {
             cmake {
                 arguments = ['-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_shared']
@@ -31,5 +34,5 @@ dependencies {
     debugImplementation 'com.jakewharton:butterknife:9.0.0-SNAPSHOT'
     debugAnnotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-SNAPSHOT'
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'
 }
