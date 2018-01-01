@@ -2,35 +2,36 @@
 // Created by Piasy on 08/11/2017.
 //
 
-#ifndef AUDIOMIXER_AUDIO_FILE_DECODER_H
-#define AUDIOMIXER_AUDIO_FILE_DECODER_H
+#pragma once
 
 #include <string>
 #include <vector>
 
 #include "avx_helper.h"
 
+namespace audio_mixer {
+
 class AudioFileDecoder {
 public:
-    AudioFileDecoder(std::string& filepath);
+    AudioFileDecoder(const std::string& filepath);
 
     ~AudioFileDecoder();
 
     AVSampleFormat sample_format();
 
-    int sample_rate();
+    int32_t sample_rate();
 
-    int channel_num();
+    int32_t channel_num();
 
-    int Consume(void** buffer, int samples);
+    int32_t Consume(void** buffer, int32_t samples);
 
 private:
     void FillDecoder();
 
     void FillFifo();
 
-    int fifo_capacity_;
-    int stream_no_;
+    int32_t fifo_capacity_;
+    int32_t stream_no_;
 
     std::unique_ptr<AVFormatContext, AVFormatContextDeleter> format_context_;
     std::unique_ptr<AVCodecContext, AVCodecContextDeleter> codec_context_;
@@ -41,5 +42,4 @@ private:
     std::unique_ptr<AVAudioFifo, AVAudioFifoDeleter> fifo_;
 };
 
-
-#endif //AUDIOMIXER_AUDIO_FILE_DECODER_H
+}

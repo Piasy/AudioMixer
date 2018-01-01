@@ -1,0 +1,9 @@
+mixer_config = record {
+    input_files: list<string>;
+
+    output_sample_rate: i32;
+    output_channel_num: i32;
+
+    # stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs
+    const ms_per_buf: i32 = 10;
+}

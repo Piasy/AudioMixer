@@ -5,12 +5,14 @@ android {
     defaultConfig {
         ndk.abiFilters = ['armeabi-v7a']
 
+        sourceSets.main.java.srcDirs += '../../generated_src/java'
         sourceSets.main.jniLibs.srcDirs += '../../libs/jniLibs'
 
         externalNativeBuild {
             cmake {
                 arguments = ['-DANDROID_TOOLCHAIN=clang', '-DANDROID_STL=c++_shared']
-                cppFlags '-std=c++14 -fno-rtti -fexceptions'
+                // djinni need rtti...
+                cppFlags '-std=c++14 -fexceptions' // -fno-rtti
             }
         }
     }

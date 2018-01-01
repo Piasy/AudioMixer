@@ -3,7 +3,7 @@ package com.github.piasy.audio_mixer;
 /**
  * Created by Piasy{github.com/Piasy} on 15/11/2017.
  */
-public class BufferInfo {
+public class AudioBuffer {
     // stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs
     public static final int MS_PER_BUF = 10;
     public static final int MAX_BUF_SIZE = 7680;
@@ -12,7 +12,7 @@ public class BufferInfo {
     private byte[] buffer;
     private int size;
 
-    BufferInfo(final byte[] buffer, final int size) {
+    AudioBuffer(final byte[] buffer, final int size) {
         this.buffer = buffer;
         this.size = size;
     }
@@ -21,11 +21,12 @@ public class BufferInfo {
         return buffer;
     }
 
-    public void setSize(int size) {
-        this.size = size;
-    }
-
     public int getSize() {
         return size;
+    }
+
+    public AudioBuffer setSize(int size) {
+        this.size = size;
+        return this;
     }
 }

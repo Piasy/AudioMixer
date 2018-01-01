@@ -34,6 +34,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 
@@ -50,14 +54,24 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
     }
 
+    @OnClick(R.id.mBtnResample)
+    void resample() {
+        MainActivityPermissionsDispatcher.doResampleWithPermissionCheck(MainActivity.this);
+    }
+
+    @OnClick(R.id.mBtnDecodeMono)
+    void decodeMono() {
+        MainActivityPermissionsDispatcher.doDecodeMonoWithPermissionCheck(MainActivity.this);
+    }
+
+    @OnClick(R.id.mBtnDecodeAny)
+    void decodeAny() {
+        MainActivityPermissionsDispatcher.doDecodeAnyWithPermissionCheck(MainActivity.this);
+    }
+
     @OnClick(R.id.mBtnMix)
     void mix() {
         MainActivityPermissionsDispatcher.doMixWithPermissionCheck(MainActivity.this);
-    }
-
-    @OnClick(R.id.mBtnDecode)
-    void decode() {
-        MainActivityPermissionsDispatcher.doDecodeWithPermissionCheck(MainActivity.this);
     }
 
     @Override
@@ -72,40 +86,106 @@ public class MainActivity extends AppCompatActivity {
     @NeedsPermission({
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
-    void doMix() {
+    void doResample() {
         new Thread(() -> {
-            int minBufferSize = AudioTrack.getMinBufferSize(48000,
-                    AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            int inputSampleRate = 44100;
+            int inputChannelNum = 2;
+            int outputSampleRate = 48000;
+            int outputChannelNum = 1;
+
+            AudioResampler resampler = new AudioResampler(inputSampleRate, inputChannelNum,
+                    outputSampleRate, outputChannelNum);
+            AudioBuffer inputBuffer = resampler.getInputBuffer();
+
+            int minBufferSize = AudioTrack.getMinBufferSize(outputSampleRate,
+                    outputChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                            : AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT);
             AudioTrack audioTrack =
-                    new AudioTrack(AudioManager.STREAM_MUSIC, 48000,
-                            AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, BufferInfo.MAX_BUF_SIZE),
+                    new AudioTrack(AudioManager.STREAM_MUSIC, outputSampleRate,
+                            outputChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                                    : AudioFormat.CHANNEL_OUT_STEREO,
+                            AudioFormat.ENCODING_PCM_16BIT,
+                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
-            AudioMixer mixer = new AudioMixer();
-            boolean mixing = true;
-            while (mixing) {
-                byte[] data = mixer.mix();
-                audioTrack.write(data, 0, 480 * 1 * 2);
+            try {
+                FileInputStream inputStream = new FileInputStream("/sdcard/mp3/morning.raw");
+
+                int read;
+                while ((read = inputStream.read(inputBuffer.getBuffer())) > 0) {
+                    inputBuffer.setSize(read);
+                    AudioBuffer outputBuffer = resampler.resample(inputBuffer);
+
+                    if (outputBuffer.getSize() > 0) {
+                        audioTrack.write(outputBuffer.getBuffer(), 0, outputBuffer.getSize());
+                    } else {
+                        Log.e(TAG, "resample error: " + outputBuffer.getSize());
+                        break;
+                    }
+                }
+
+                inputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            Log.d(TAG, "mix finish");
-
             audioTrack.stop();
-            mixer.destroy();
+            resampler.destroy();
+
+            Log.d(TAG, "resample finish");
         }).start();
     }
 
     @NeedsPermission({
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
-    void doDecode() {
+    void doDecodeMono() {
+        new Thread(() -> {
+            AudioFileDecoder decoder = new AudioFileDecoder("/sdcard/mp3/morning-mono-16k.mp3",
+                    AudioBuffer.MS_PER_BUF);
+
+            int minBufferSize = AudioTrack.getMinBufferSize(decoder.getSampleRate(),
+                    decoder.getChannelNum() == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                            : AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            AudioTrack audioTrack =
+                    new AudioTrack(AudioManager.STREAM_MUSIC, decoder.getSampleRate(),
+                            decoder.getChannelNum() == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                                    : AudioFormat.CHANNEL_OUT_STEREO,
+                            AudioFormat.ENCODING_PCM_16BIT,
+                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
+                            AudioTrack.MODE_STREAM);
+            audioTrack.play();
+
+            int exitCode;
+            while (true) {
+                AudioBuffer buffer = decoder.consume();
+                if (buffer.getSize() > 0) {
+                    audioTrack.write(buffer.getBuffer(), 0, buffer.getSize());
+                } else {
+                    exitCode = buffer.getSize();
+                    break;
+                }
+            }
+
+            Log.d(TAG, "decode finish: " + exitCode);
+
+            audioTrack.stop();
+            decoder.destroy();
+        }).start();
+    }
+
+    @NeedsPermission({
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    })
+    void doDecodeAny() {
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
             AudioFileSource source = new AudioFileSource("/sdcard/mp3/morning.mp3", sampleRate,
-                    channelNum);
+                    channelNum, AudioBuffer.MS_PER_BUF);
 
             int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
                     channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
@@ -116,29 +196,73 @@ public class MainActivity extends AppCompatActivity {
                             channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
                                     : AudioFormat.CHANNEL_OUT_STEREO,
                             AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, BufferInfo.MAX_BUF_SIZE),
+                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
             int exitCode;
             while (true) {
-                BufferInfo bufferInfo = source.read(sampleRate / (1000 / BufferInfo.MS_PER_BUF));
-                if (bufferInfo.getSize() > 0) {
-                    audioTrack.write(bufferInfo.getBuffer(), 0, bufferInfo.getSize());
+                AudioBuffer buffer = source.read();
+                if (buffer.getSize() > 0) {
+                    audioTrack.write(buffer.getBuffer(), 0, buffer.getSize());
                 } else {
-                    exitCode = bufferInfo.getSize();
+                    exitCode = buffer.getSize();
                     break;
                 }
             }
 
-            if (exitCode == AudioFileSource.ERR_EOF) {
-                Log.d(TAG, "decode finish");
-            } else {
-                Log.e(TAG, "decode error: " + exitCode);
-            }
+            Log.d(TAG, "decode finish: " + exitCode);
 
             audioTrack.stop();
             source.destroy();
+        }).start();
+    }
+
+    @NeedsPermission({
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    })
+    void doMix() {
+        new Thread(() -> {
+            int sampleRate = 48000;
+            int channelNum = 1;
+
+            int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
+                    channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                            : AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            AudioTrack audioTrack =
+                    new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate,
+                            channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
+                                    : AudioFormat.CHANNEL_OUT_STEREO,
+                            AudioFormat.ENCODING_PCM_16BIT,
+                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
+                            AudioTrack.MODE_STREAM);
+            audioTrack.play();
+
+            AudioMixer mixer = new AudioMixer(new MixerConfig(
+                    new ArrayList<>(Arrays.asList(
+                            "/sdcard/mp3/morning.mp3", "/sdcard/mp3/lion.mp3",
+                            "/sdcard/mp3/iamyou.mp3"
+                    )),
+                    sampleRate, channelNum
+            ));
+
+            int exitCode;
+            while (true) {
+                AudioBuffer buffer = mixer.mix();
+                if (buffer.getSize() > 0) {
+                    audioTrack.write(buffer.getBuffer(), 0, buffer.getSize());
+                } else {
+                    exitCode = buffer.getSize();
+                    break;
+                }
+            }
+
+            // actually can't reach there, mixer never ends
+            Log.d(TAG, "mix finish: " + exitCode);
+
+            audioTrack.stop();
+            mixer.destroy();
         }).start();
     }
 }

@@ -6,18 +6,17 @@ package com.github.piasy.audio_mixer;
  * Usage:
  *
  * <pre>
- * AudioResampler resampler = new AudioResampler(inputChannelNum, inputSampleRate,
- *      outputChannelNum, outputSampleRate);
- * BufferInfo inputBuffer = resampler.getInputBuffer();
+ * AudioResampler resampler = new AudioResampler(inputSampleRate, inputChannelNum,
+ *      outputSampleRate, outputChannelNum);
+ * AudioBuffer inputBuffer = resampler.getInputBuffer();
  *
- * while ((read = inputStream.read(inputBuffer.getBuffer(), 0,
- *     inputBuffer.getBuffer().length)) > 0) {
+ * while ((read = inputStream.read(inputBuffer.getBuffer())) > 0) {
  *     inputBuffer.setSize(read);
- *     BufferInfo outputBuffer = resampler.resample(inputBuffer);
+ *     AudioBuffer outputBuffer = resampler.resample(inputBuffer);
  *     if (outputBuffer.getSize() > 0) {
  *         audioTrack.write(outputBuffer.getBuffer(), 0, outputBuffer.getSize());
  *     } else {
- *         Log.e("MainActivity", "resample error " + outputBuffer.getSize());
+ *         Log.e(TAG, "resample error " + outputBuffer.getSize());
  *     }
  * }
  *
@@ -26,47 +25,44 @@ package com.github.piasy.audio_mixer;
  */
 
 public class AudioResampler {
-    private final BufferInfo mInputBuffer;
-    private final BufferInfo mOutputBuffer;
+    private final AudioBuffer mInputBuffer;
+    private final AudioBuffer mOutputBuffer;
 
     private long mNativeHandle;
 
-    public AudioResampler(int inputChannelNum, int inputSampleRate, int outputChannelNum,
-            int outputSampleRate) {
-        int inputSamplesPerBuf = inputSampleRate / (1000 / BufferInfo.MS_PER_BUF);
+    public AudioResampler(int inputSampleRate, int inputChannelNum, int outputSampleRate,
+            int outputChannelNum) {
+        mNativeHandle = nativeInit(inputSampleRate, inputChannelNum, outputSampleRate,
+                outputChannelNum);
 
-        mNativeHandle = nativeInit(inputSampleRate, inputChannelNum, inputSamplesPerBuf,
-                outputSampleRate, outputChannelNum);
+        int inputSamplesPerBuf = inputSampleRate / (1000 / AudioBuffer.MS_PER_BUF);
+        int inputBufferSize = inputSamplesPerBuf * inputChannelNum * AudioBuffer.SAMPLE_SIZE;
+        mInputBuffer = new AudioBuffer(new byte[inputBufferSize], inputBufferSize);
 
-        int inputBufferSize = inputSampleRate / (1000 / BufferInfo.MS_PER_BUF)
-                              * inputChannelNum * BufferInfo.SAMPLE_SIZE;
-        mInputBuffer = new BufferInfo(new byte[inputBufferSize], inputBufferSize);
-
-        int outputBufferSize = outputSampleRate / (1000 / BufferInfo.MS_PER_BUF)
-                               * outputChannelNum * BufferInfo.SAMPLE_SIZE;
+        int outputBufferSize = outputSampleRate / (1000 / AudioBuffer.MS_PER_BUF)
+                               * outputChannelNum * AudioBuffer.SAMPLE_SIZE;
         // there may have some delay in swr, so output buffer may be lager
         outputBufferSize *= 2;
-        mOutputBuffer = new BufferInfo(new byte[outputBufferSize], 0);
+        mOutputBuffer = new AudioBuffer(new byte[outputBufferSize], 0);
     }
 
     private static native long nativeInit(int inputSampleRate, int inputChannelNum,
-            int inputSamples, int outputSampleRate, int outputChannelNum);
+            int outputSampleRate, int outputChannelNum);
 
     private static native int nativeResample(long handle, byte[] inputBuffer, int inputSize,
             byte[] outputBuffer);
 
     private static native void nativeDestroy(long handle);
 
-    public BufferInfo getInputBuffer() {
+    public AudioBuffer getInputBuffer() {
         return mInputBuffer;
     }
 
-    public BufferInfo resample(BufferInfo inputBuffer) {
-        mOutputBuffer.setSize(
+    public AudioBuffer resample(AudioBuffer inputBuffer) {
+        return mOutputBuffer.setSize(
                 nativeResample(mNativeHandle, inputBuffer.getBuffer(), inputBuffer.getSize(),
                         mOutputBuffer.getBuffer())
         );
-        return mOutputBuffer;
     }
 
     public void destroy() {

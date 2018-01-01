@@ -8,12 +8,13 @@ public class AudioMixer {
 
     private static boolean sInitialized;
 
-    private long mNativeHandle;
-    private byte[] mBuffer;
+    private final AudioBuffer mBuffer;
 
-    public AudioMixer() {
-        mNativeHandle = nativeInit();
-        mBuffer = new byte[BufferInfo.MAX_BUF_SIZE];
+    private long mNativeHandle;
+
+    public AudioMixer(MixerConfig config) {
+        mNativeHandle = nativeInit(config);
+        mBuffer = new AudioBuffer(new byte[AudioBuffer.MAX_BUF_SIZE], 0);
     }
 
     public static synchronized void globalInitialize() {
@@ -33,15 +34,16 @@ public class AudioMixer {
 
     private static native void globalInitializeFFMPEG();
 
-    private static native long nativeInit();
+    private static native long nativeInit(MixerConfig config);
 
-    private static native int nativeMix(long nativeClient, byte[] buf);
+    private static native int nativeMix(long handle, byte[] buf);
 
-    private static native void nativeDestroy(long nativeClient);
+    private static native void nativeDestroy(long handle);
 
-    public byte[] mix() {
-        int size = nativeMix(mNativeHandle, mBuffer);
-        return mBuffer;
+    public AudioBuffer mix() {
+        return mBuffer.setSize(
+                nativeMix(mNativeHandle, mBuffer.getBuffer())
+        );
     }
 
     public void destroy() {

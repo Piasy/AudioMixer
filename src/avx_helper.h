@@ -2,8 +2,7 @@
 // Created by Piasy on 08/11/2017.
 //
 
-#ifndef AUDIOMIXER_AVX_HELPER_H
-#define AUDIOMIXER_AVX_HELPER_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +19,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+namespace audio_mixer {
 
 struct AVFormatContextDeleter {
     void operator()(AVFormatContext* context) {
@@ -69,4 +70,4 @@ struct AVAudioFifoDeleter {
     }
 };
 
-#endif //AUDIOMIXER_AVX_HELPER_H
+}

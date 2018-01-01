@@ -3,19 +3,31 @@ cmake_minimum_required(VERSION 3.4.1)
 set(CWD ${CMAKE_CURRENT_LIST_DIR})
 
 
-include_directories(${CWD}/../../libs/webrtc/include)
-include_directories(${CWD}/../../libs/ffmpeg/include)
+include_directories(
+    ../../libs/webrtc/include
+    ../../libs/ffmpeg/include
+    ../../djinni/support-lib/
+    ../../djinni/support-lib/jni/
+    ../../generated_src/cpp/
+    ../../generated_src/jni/
+    ../../src/
+)
 
 
 add_definitions(-DWEBRTC_POSIX)
 
 
 file(GLOB audio_mixer_sources
-    ${CWD}/../../src/*.cpp
+    src/main/jni/*.cpp
+    ../../src/*.cpp
+    ../../djinni/support-lib/jni/*.cpp
+    ../../generated_src/jni/*.cpp
+    ../../generated_src/cpp/*.cpp
 )
 
-file(GLOB ffmpeg_libs
-    ${CWD}/../../libs/jniLibs/${ANDROID_ABI}/*.so
+file(GLOB audio_mixer_deps
+    ../../libs/jniLibs/${ANDROID_ABI}/*.so
+    ../../libs/webrtc/lib/${ANDROID_ABI}/libwebrtc.a
 )
 
 add_library(audio_mixer SHARED
@@ -26,6 +38,5 @@ target_link_libraries(audio_mixer
                       android
                       log
 
-                      ${CWD}/../../libs/webrtc/lib/${ANDROID_ABI}/libwebrtc.a
-                      ${ffmpeg_libs}
+                      ${audio_mixer_deps}
                       )
