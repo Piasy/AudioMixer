@@ -33,8 +33,8 @@ dependencies {
     debugImplementation "com.github.hotchemi:permissionsdispatcher:3.0.1"
     debugAnnotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.0.1"
 
-    debugImplementation 'com.jakewharton:butterknife:9.0.0-SNAPSHOT'
-    debugAnnotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-SNAPSHOT'
+    debugImplementation 'com.jakewharton:butterknife:8.8.1'
+    debugAnnotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
 
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.4'
 }
