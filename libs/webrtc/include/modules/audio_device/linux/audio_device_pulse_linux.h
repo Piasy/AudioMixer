@@ -141,10 +141,6 @@ public:
     int32_t StopRecording() override;
     bool Recording() const override;
 
-    // Microphone Automatic Gain Control (AGC)
-    int32_t SetAGC(bool enable) override;
-    bool AGC() const override;
-
     // Audio mixer initialization
     int32_t InitSpeaker() override;
     bool SpeakerIsInitialized() const override;
@@ -185,7 +181,6 @@ public:
 
     // Delay information and control
     int32_t PlayoutDelay(uint16_t& delayMS) const override;
-    int32_t RecordingDelay(uint16_t& delayMS) const override;
 
    void AttachAudioBuffer(AudioDeviceBuffer* audioBuffer) override;
 
@@ -290,7 +285,6 @@ private:
  bool _stopRec;
  bool _startPlay;
  bool _stopPlay;
- bool _AGC;
  bool update_speaker_volume_at_startup_;
 
  uint32_t _sndCardPlayDelay;

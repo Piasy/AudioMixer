@@ -13,12 +13,13 @@
 
 #include <vector>
 
+#include "api/audio/echo_canceller3_config.h"
 #include "api/optional.h"
-#include "modules/audio_processing/aec3/decimator_by_4.h"
+#include "modules/audio_processing/aec3/decimator.h"
+#include "modules/audio_processing/aec3/delay_estimate.h"
 #include "modules/audio_processing/aec3/downsampled_render_buffer.h"
 #include "modules/audio_processing/aec3/matched_filter.h"
 #include "modules/audio_processing/aec3/matched_filter_lag_aggregator.h"
-#include "modules/audio_processing/include/audio_processing.h"
 #include "rtc_base/constructormagic.h"
 
 namespace webrtc {
@@ -29,22 +30,33 @@ class ApmDataDumper;
 class EchoPathDelayEstimator {
  public:
   EchoPathDelayEstimator(ApmDataDumper* data_dumper,
-                         const AudioProcessing::Config::EchoCanceller3& config);
+                         const EchoCanceller3Config& config);
   ~EchoPathDelayEstimator();
 
-  // Resets the estimation.
-  void Reset();
+  // Resets the estimation. If the soft-reset is specified, only  the matched
+  // filters are reset.
+  void Reset(bool soft_reset);
 
   // Produce a delay estimate if such is avaliable.
-  rtc::Optional<size_t> EstimateDelay(
+  rtc::Optional<DelayEstimate> EstimateDelay(
       const DownsampledRenderBuffer& render_buffer,
       rtc::ArrayView<const float> capture);
 
+  // Log delay estimator properties.
+  void LogDelayEstimationProperties(int sample_rate_hz, size_t shift) const {
+    matched_filter_.LogFilterProperties(sample_rate_hz, shift,
+                                        down_sampling_factor_);
+  }
+
  private:
   ApmDataDumper* const data_dumper_;
-  DecimatorBy4 capture_decimator_;
+  const size_t down_sampling_factor_;
+  const size_t sub_block_size_;
+  Decimator capture_decimator_;
   MatchedFilter matched_filter_;
   MatchedFilterLagAggregator matched_filter_lag_aggregator_;
+  rtc::Optional<DelayEstimate> old_aggregated_lag_;
+  size_t consistent_estimate_counter_ = 0;
 
   RTC_DISALLOW_COPY_AND_ASSIGN(EchoPathDelayEstimator);
 };

@@ -6,7 +6,7 @@ android {
         ndk.abiFilters = ['armeabi-v7a']
 
         sourceSets.main.java.srcDirs += '../../generated_src/java'
-        sourceSets.main.jniLibs.srcDirs += '../../libs/jniLibs'
+        sourceSets.main.jniLibs.srcDirs += '../../libs/ffmpeg/lib'
 
         externalNativeBuild {
             cmake {

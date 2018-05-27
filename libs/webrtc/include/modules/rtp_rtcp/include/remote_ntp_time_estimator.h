@@ -14,12 +14,12 @@
 #include <memory>
 
 #include "rtc_base/constructormagic.h"
+#include "rtc_base/numerics/moving_median_filter.h"
 #include "system_wrappers/include/rtp_to_ntp_estimator.h"
 
 namespace webrtc {
 
 class Clock;
-class TimestampExtrapolator;
 
 // RemoteNtpTimeEstimator can be used to estimate a given RTP timestamp's NTP
 // time in local timebase.
@@ -42,7 +42,7 @@ class RemoteNtpTimeEstimator {
 
  private:
   Clock* clock_;
-  std::unique_ptr<TimestampExtrapolator> ts_extrapolator_;
+  MovingMedianFilter<int64_t> ntp_clocks_offset_estimator_;
   RtpToNtpEstimator rtp_to_ntp_;
   int64_t last_timing_log_ms_;
   RTC_DISALLOW_COPY_AND_ASSIGN(RemoteNtpTimeEstimator);

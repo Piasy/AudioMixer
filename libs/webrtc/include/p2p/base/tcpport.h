@@ -51,11 +51,8 @@ class TCPPort : public Port {
   int GetOption(rtc::Socket::Option opt, int* value) override;
   int SetOption(rtc::Socket::Option opt, int value) override;
   int GetError() override;
-  bool SupportsProtocol(const std::string& protocol) const override {
-    return protocol == TCP_PROTOCOL_NAME || protocol == SSLTCP_PROTOCOL_NAME;
-  }
-
-  ProtocolType GetProtocol() const override { return PROTO_TCP; }
+  bool SupportsProtocol(const std::string& protocol) const override;
+  ProtocolType GetProtocol() const override;
 
  protected:
   TCPPort(rtc::Thread* thread,
@@ -103,7 +100,7 @@ class TCPPort : public Port {
   void OnAddressReady(rtc::AsyncPacketSocket* socket,
                       const rtc::SocketAddress& address);
 
-  // TODO: Is this still needed?
+  // TODO(?): Is this still needed?
   bool incoming_only_;
   bool allow_listen_;
   rtc::AsyncPacketSocket* socket_;

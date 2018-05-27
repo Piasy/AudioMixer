@@ -15,15 +15,16 @@
 #include <string>
 
 #include "api/optional.h"
+#include "api/audio/audio_frame.h"
 #include "modules/audio_coding/neteq/audio_multi_vector.h"
 #include "modules/audio_coding/neteq/defines.h"
+#include "modules/audio_coding/neteq/expand_uma_logger.h"
 #include "modules/audio_coding/neteq/include/neteq.h"
 #include "modules/audio_coding/neteq/packet.h"  // Declare PacketList.
 #include "modules/audio_coding/neteq/random_vector.h"
 #include "modules/audio_coding/neteq/rtcp.h"
 #include "modules/audio_coding/neteq/statistics_calculator.h"
 #include "modules/audio_coding/neteq/tick_timer.h"
-#include "modules/include/module_common_types.h"
 #include "rtc_base/constructormagic.h"
 #include "rtc_base/criticalsection.h"
 #include "rtc_base/thread_annotations.h"
@@ -161,7 +162,7 @@ class NetEqImpl : public webrtc::NetEq {
 
   int SetTargetDelay() override;
 
-  int TargetDelayMs() override;
+  int TargetDelayMs() const override;
 
   int CurrentDelayMs() const override;
 
@@ -429,7 +430,6 @@ class NetEqImpl : public webrtc::NetEq {
       RTC_GUARDED_BY(crit_sect_);
   uint32_t ssrc_ RTC_GUARDED_BY(crit_sect_);
   bool first_packet_ RTC_GUARDED_BY(crit_sect_);
-  const BackgroundNoiseMode background_noise_mode_ RTC_GUARDED_BY(crit_sect_);
   NetEqPlayoutMode playout_mode_ RTC_GUARDED_BY(crit_sect_);
   bool enable_fast_accelerate_ RTC_GUARDED_BY(crit_sect_);
   std::unique_ptr<NackTracker> nack_ RTC_GUARDED_BY(crit_sect_);
@@ -440,6 +440,8 @@ class NetEqImpl : public webrtc::NetEq {
   std::unique_ptr<TickTimer::Stopwatch> generated_noise_stopwatch_
       RTC_GUARDED_BY(crit_sect_);
   std::vector<uint32_t> last_decoded_timestamps_ RTC_GUARDED_BY(crit_sect_);
+  ExpandUmaLogger expand_uma_logger_ RTC_GUARDED_BY(crit_sect_);
+  ExpandUmaLogger speech_expand_uma_logger_ RTC_GUARDED_BY(crit_sect_);
 
  private:
   RTC_DISALLOW_COPY_AND_ASSIGN(NetEqImpl);

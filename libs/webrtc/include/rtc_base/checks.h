@@ -36,7 +36,7 @@ NO_RETURN void rtc_FatalMessage(const char* file, int line, const char* msg);
 #include <sstream>
 #include <string>
 
-#include "rtc_base/safe_compare.h"
+#include "rtc_base/numerics/safe_compare.h"
 
 // The macros here print a message to stderr and abort under various
 // conditions. All will accept additional stream messages. For example:
@@ -221,6 +221,7 @@ class FatalMessageVoidify {
 #define RTC_UNREACHABLE_CODE_HIT false
 #define RTC_NOTREACHED() RTC_DCHECK(RTC_UNREACHABLE_CODE_HIT)
 
+// TODO(bugs.webrtc.org/8454): Add an RTC_ prefix or rename differently.
 #define FATAL() rtc::FatalMessage(__FILE__, __LINE__).stream()
 // TODO(ajm): Consider adding RTC_NOTIMPLEMENTED macro when
 // base/logging.h and system_wrappers/logging.h are consolidated such that we

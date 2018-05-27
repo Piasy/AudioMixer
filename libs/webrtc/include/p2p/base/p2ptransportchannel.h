@@ -20,6 +20,7 @@
 #ifndef P2P_BASE_P2PTRANSPORTCHANNEL_H_
 #define P2P_BASE_P2PTRANSPORTCHANNEL_H_
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <set>
@@ -27,14 +28,23 @@
 #include <vector>
 
 #include "api/candidate.h"
+#include "api/rtcerror.h"
+#include "logging/rtc_event_log/events/rtc_event_ice_candidate_pair_config.h"
+#include "logging/rtc_event_log/icelogger.h"
 #include "p2p/base/candidatepairinterface.h"
 #include "p2p/base/icetransportinternal.h"
+#include "p2p/base/p2pconstants.h"
 #include "p2p/base/portallocator.h"
 #include "p2p/base/portinterface.h"
+#include "rtc_base/asyncinvoker.h"
 #include "rtc_base/asyncpacketsocket.h"
 #include "rtc_base/constructormagic.h"
 #include "rtc_base/random.h"
 #include "rtc_base/sigslot.h"
+
+namespace webrtc {
+class RtcEventLog;
+}  // namespace webrtc
 
 namespace cricket {
 
@@ -42,11 +52,12 @@ namespace cricket {
 // connected/connecting/disconnected when ICE restart happens.
 enum class IceRestartState { CONNECTING, CONNECTED, DISCONNECTED, MAX_VALUE };
 
-extern const int WEAK_PING_INTERVAL;
-extern const int STRONG_PING_INTERVAL;
-extern const int WEAK_OR_STABILIZING_WRITABLE_CONNECTION_PING_INTERVAL;
-extern const int STRONG_AND_STABLE_WRITABLE_CONNECTION_PING_INTERVAL;
 static const int MIN_PINGS_AT_WEAK_PING_INTERVAL = 3;
+
+bool IceCredentialsChanged(const std::string& old_ufrag,
+                           const std::string& old_pwd,
+                           const std::string& new_ufrag,
+                           const std::string& new_pwd);
 
 // Adds the port on which the candidate originated.
 class RemoteCandidate : public Candidate {
@@ -62,22 +73,22 @@ class RemoteCandidate : public Candidate {
 
 // P2PTransportChannel manages the candidates and connection process to keep
 // two P2P clients connected to each other.
-class P2PTransportChannel : public IceTransportInternal,
-                            public rtc::MessageHandler {
+class P2PTransportChannel : public IceTransportInternal {
  public:
   P2PTransportChannel(const std::string& transport_name,
                       int component,
-                      PortAllocator* allocator);
-  virtual ~P2PTransportChannel();
+                      PortAllocator* allocator,
+                      webrtc::RtcEventLog* event_log = nullptr);
+  ~P2PTransportChannel() override;
 
   // From TransportChannelImpl:
   IceTransportState GetState() const override;
-  const std::string& transport_name() const override { return transport_name_; }
-  int component() const override { return component_; }
-  bool writable() const override { return writable_; }
-  bool receiving() const override { return receiving_; }
+  const std::string& transport_name() const override;
+  int component() const override;
+  bool writable() const override;
+  bool receiving() const override;
   void SetIceRole(IceRole role) override;
-  IceRole GetIceRole() const override { return ice_role_; }
+  IceRole GetIceRole() const override;
   void SetIceTiebreaker(uint64_t tiebreaker) override;
   void SetIceParameters(const IceParameters& ice_params) override;
   void SetRemoteIceParameters(const IceParameters& ice_params) override;
@@ -86,9 +97,7 @@ class P2PTransportChannel : public IceTransportInternal,
   // IceTransportChannel does not depend on this.
   void Connect() {}
   void MaybeStartGathering() override;
-  IceGatheringState gathering_state() const override {
-    return gathering_state_;
-  }
+  IceGatheringState gathering_state() const override;
   void AddRemoteCandidate(const Candidate& candidate) override;
   void RemoveRemoteCandidate(const Candidate& candidate) override;
   // Sets the parameters in IceConfig. We do not set them blindly. Instead, we
@@ -98,6 +107,7 @@ class P2PTransportChannel : public IceTransportInternal,
   // TODO(deadbeef): Use rtc::Optional instead of negative values.
   void SetIceConfig(const IceConfig& config) override;
   const IceConfig& config() const;
+  static webrtc::RTCError ValidateIceConfig(const IceConfig& config);
   void SetMetricsObserver(webrtc::MetricsObserverInterface* observer) override;
 
   // From TransportChannel:
@@ -107,8 +117,9 @@ class P2PTransportChannel : public IceTransportInternal,
                  int flags) override;
   int SetOption(rtc::Socket::Option opt, int value) override;
   bool GetOption(rtc::Socket::Option opt, int* value) override;
-  int GetError() override { return error_; }
-  bool GetStats(std::vector<ConnectionInfo>* stats) override;
+  int GetError() override;
+  bool GetStats(std::vector<ConnectionInfo>* candidate_pair_stats_list,
+                std::vector<CandidateStats>* candidate_stats_list) override;
   rtc::Optional<int> GetRttEstimate() override;
 
   // TODO(honghaiz): Remove this method once the reference of it in
@@ -126,8 +137,8 @@ class P2PTransportChannel : public IceTransportInternal,
   IceMode remote_ice_mode() const { return remote_ice_mode_; }
 
   void PruneAllPorts();
-  int receiving_timeout() const { return config_.receiving_timeout; }
-  int check_receiving_interval() const { return check_receiving_interval_; }
+  int check_receiving_interval() const;
+  rtc::Optional<rtc::NetworkRoute> network_route() const override;
 
   // Helper method used only in unittest.
   rtc::DiffServCodePoint DefaultDscpValue() const;
@@ -167,28 +178,27 @@ class P2PTransportChannel : public IceTransportInternal,
   bool weak() const;
 
   int weak_ping_interval() const {
-    if (config_.ice_check_min_interval &&
-        weak_ping_interval_ < *config_.ice_check_min_interval) {
-      return *config_.ice_check_min_interval;
-    }
-    return weak_ping_interval_;
+    return std::max(config_.ice_check_interval_weak_connectivity_or_default(),
+                    config_.ice_check_min_interval_or_default());
   }
 
   int strong_ping_interval() const {
-    if (config_.ice_check_min_interval &&
-        STRONG_PING_INTERVAL < *config_.ice_check_min_interval) {
-      return *config_.ice_check_min_interval;
-    }
-    return STRONG_PING_INTERVAL;
+    return std::max(config_.ice_check_interval_strong_connectivity_or_default(),
+                    config_.ice_check_min_interval_or_default());
   }
 
   // Returns true if it's possible to send packets on |connection|.
   bool ReadyToSend(Connection* connection) const;
   void UpdateConnectionStates();
-  void RequestSortAndStateUpdate();
+  void RequestSortAndStateUpdate(const std::string& reason_to_sort);
   // Start pinging if we haven't already started, and we now have a connection
   // that's pingable.
   void MaybeStartPinging();
+
+  int CompareCandidatePairNetworks(
+      const Connection* a,
+      const Connection* b,
+      rtc::Optional<rtc::AdapterType> network_preference) const;
 
   // The methods below return a positive value if |a| is preferable to |b|,
   // a negative value if |b| is preferable, and 0 if they're equally preferable.
@@ -216,7 +226,7 @@ class P2PTransportChannel : public IceTransportInternal,
 
   bool PresumedWritable(const cricket::Connection* conn) const;
 
-  void SortConnectionsAndUpdateState();
+  void SortConnectionsAndUpdateState(const std::string& reason_to_sort);
   void SwitchSelectedConnection(Connection* conn);
   void UpdateState();
   void HandleAllTimedOut();
@@ -278,10 +288,12 @@ class P2PTransportChannel : public IceTransportInternal,
 
   void OnNominated(Connection* conn);
 
-  void OnMessage(rtc::Message* pmsg) override;
-  void OnCheckAndPing();
-  void OnRegatherOnFailedNetworks();
-  void OnRegatherOnAllNetworks();
+  void CheckAndPing();
+  void RegatherOnFailedNetworks();
+  void RegatherOnAllNetworks();
+
+  void LogCandidatePairEvent(Connection* conn,
+                             webrtc::IceCandidatePairEventType type);
 
   uint32_t GetNominationAttr(Connection* conn) const;
   bool GetUseCandidateAttr(Connection* conn, NominationMode mode) const;
@@ -387,7 +399,6 @@ class P2PTransportChannel : public IceTransportInternal,
   // Used to generate random intervals for regather_all_networks_interval_range.
   webrtc::Random rand_;
 
-  int check_receiving_interval_;
   int64_t last_ping_sent_ms_ = 0;
   int weak_ping_interval_ = WEAK_PING_INTERVAL;
   IceTransportState state_ = IceTransportState::STATE_INIT;
@@ -400,7 +411,10 @@ class P2PTransportChannel : public IceTransportInternal,
   bool receiving_ = false;
   bool writable_ = false;
 
+  rtc::AsyncInvoker invoker_;
   webrtc::MetricsObserverInterface* metrics_observer_ = nullptr;
+  rtc::Optional<rtc::NetworkRoute> network_route_;
+  webrtc::IceEventLog ice_event_log_;
 
   RTC_DISALLOW_COPY_AND_ASSIGN(P2PTransportChannel);
 };

@@ -33,24 +33,40 @@ namespace optional_internal {
 // This is a non-inlined function. The optimizer can't see inside it.  It
 // prevents the compiler from generating optimized code that reads value_ even
 // if it is unset. Although safe, this causes memory sanitizers to complain.
-void* FunctionThatDoesNothingImpl(void*);
+const void* FunctionThatDoesNothingImpl(const void*);
 
 template <typename T>
-inline T* FunctionThatDoesNothing(T* x) {
-  return reinterpret_cast<T*>(
-      FunctionThatDoesNothingImpl(reinterpret_cast<void*>(x)));
+inline const T* FunctionThatDoesNothing(T* x) {
+  return reinterpret_cast<const T*>(
+      FunctionThatDoesNothingImpl(reinterpret_cast<const void*>(x)));
 }
 
 #else
 
 template <typename T>
-inline T* FunctionThatDoesNothing(T* x) {
+inline const T* FunctionThatDoesNothing(T* x) {
   return x;
 }
 
 #endif
 
+struct NulloptArg;
+
 }  // namespace optional_internal
+
+// nullopt_t must be a non-aggregate literal type with a constexpr constructor
+// that takes some implementation-defined literal type. It mustn't have a
+// default constructor nor an initializer-list constructor.
+// See:
+// http://en.cppreference.com/w/cpp/utility/optional/nullopt_t
+// That page uses int, though this seems to confuse older versions of GCC.
+struct nullopt_t {
+  constexpr explicit nullopt_t(rtc::optional_internal::NulloptArg&) {}
+};
+
+// Specification:
+// http://en.cppreference.com/w/cpp/utility/optional/nullopt
+extern const nullopt_t nullopt;
 
 // Simple std::optional-wannabe. It either contains a T or not.
 //
@@ -100,11 +116,16 @@ class Optional final {
   // Construct an empty Optional.
   Optional() : has_value_(false), empty_('\0') { PoisonValue(); }
 
+  Optional(rtc::nullopt_t)  // NOLINT(runtime/explicit)
+      : Optional() {}
+
   // Construct an Optional that contains a value.
-  explicit Optional(const T& value) : has_value_(true) {
+  Optional(const T& value)  // NOLINT(runtime/explicit)
+      : has_value_(true) {
     new (&value_) T(value);
   }
-  explicit Optional(T&& value) : has_value_(true) {
+  Optional(T&& value)  // NOLINT(runtime/explicit)
+      : has_value_(true) {
     new (&value_) T(std::move(value));
   }
 
@@ -132,6 +153,11 @@ class Optional final {
       value_.~T();
     else
       UnpoisonValue();
+  }
+
+  Optional& operator=(rtc::nullopt_t) {
+    reset();
+    return *this;
   }
 
   // Copy assignment. Uses T's copy assignment if both sides have a value, T's
@@ -255,12 +281,6 @@ class Optional final {
                       : default_val;
   }
 
-  // Dereference and move value.
-  T MoveValue() {
-    RTC_DCHECK(has_value_);
-    return std::move(value_);
-  }
-
   // Equality tests. Two Optionals are equal if they contain equivalent values,
   // or if they're both empty.
   friend bool operator==(const Optional& m1, const Optional& m2) {
@@ -274,6 +294,14 @@ class Optional final {
     return opt.has_value_ && value == opt.value_;
   }
 
+  friend bool operator==(const Optional& opt, rtc::nullopt_t) {
+    return !opt.has_value_;
+  }
+
+  friend bool operator==(rtc::nullopt_t, const Optional& opt) {
+    return !opt.has_value_;
+  }
+
   friend bool operator!=(const Optional& m1, const Optional& m2) {
     return m1.has_value_ && m2.has_value_ ? m1.value_ != m2.value_
                                           : m1.has_value_ != m2.has_value_;
@@ -283,6 +311,14 @@ class Optional final {
   }
   friend bool operator!=(const T& value, const Optional& opt) {
     return !opt.has_value_ || value != opt.value_;
+  }
+
+  friend bool operator!=(const Optional& opt, rtc::nullopt_t) {
+    return opt.has_value_;
+  }
+
+  friend bool operator!=(rtc::nullopt_t, const Optional& opt) {
+    return opt.has_value_;
   }
 
  private:

@@ -23,15 +23,16 @@ namespace webrtc {
 // hardware restrictions, such as max resolution.
 class VideoDecoderSoftwareFallbackWrapper : public VideoDecoder {
  public:
-  VideoDecoderSoftwareFallbackWrapper(VideoCodecType codec_type,
-                                      std::unique_ptr<VideoDecoder> decoder);
+  VideoDecoderSoftwareFallbackWrapper(
+      std::unique_ptr<VideoDecoder> sw_fallback_decoder,
+      std::unique_ptr<VideoDecoder> hw_decoder);
+  ~VideoDecoderSoftwareFallbackWrapper() override;
 
   int32_t InitDecode(const VideoCodec* codec_settings,
                      int32_t number_of_cores) override;
 
   int32_t Decode(const EncodedImage& input_image,
                  bool missing_frames,
-                 const RTPFragmentationHeader* fragmentation,
                  const CodecSpecificInfo* codec_specific_info,
                  int64_t render_time_ms) override;
 
@@ -45,15 +46,22 @@ class VideoDecoderSoftwareFallbackWrapper : public VideoDecoder {
 
  private:
   bool InitFallbackDecoder();
+  int32_t InitHwDecoder();
 
-  const VideoCodecType codec_type_;
-  std::unique_ptr<VideoDecoder> decoder_;
-  bool decoder_initialized_;
+  VideoDecoder& active_decoder() const;
+
+  // Determines if we are trying to use the HW or SW decoder.
+  enum class DecoderType {
+    kNone,
+    kHardware,
+    kFallback,
+  } decoder_type_;
+  std::unique_ptr<VideoDecoder> hw_decoder_;
 
   VideoCodec codec_settings_;
   int32_t number_of_cores_;
-  std::string fallback_implementation_name_;
-  std::unique_ptr<VideoDecoder> fallback_decoder_;
+  const std::unique_ptr<VideoDecoder> fallback_decoder_;
+  const std::string fallback_implementation_name_;
   DecodedImageCallback* callback_;
 };
 

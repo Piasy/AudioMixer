@@ -33,5 +33,10 @@ NS_CLASS_AVAILABLE_IOS(9)
 RTC_EXPORT
 @interface RTCMTLVideoView : UIView <RTCVideoRenderer>
 
+@property(nonatomic, weak) id<RTCVideoViewDelegate> delegate;
+
+- (void)setVideoContentMode:(UIViewContentMode)mode;
+
 @end
+
 NS_ASSUME_NONNULL_END

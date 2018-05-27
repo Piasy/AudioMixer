@@ -21,10 +21,12 @@
 #include "common_video/include/frame_callback.h"
 #include "modules/video_coding/include/video_coding_defines.h"
 #include "rtc_base/criticalsection.h"
-#include "rtc_base/moving_max_counter.h"
+#include "rtc_base/numerics/histogram_percentile_counter.h"
+#include "rtc_base/numerics/moving_max_counter.h"
 #include "rtc_base/rate_statistics.h"
 #include "rtc_base/ratetracker.h"
 #include "rtc_base/thread_annotations.h"
+#include "rtc_base/thread_checker.h"
 #include "video/quality_threshold.h"
 #include "video/report_block_stats.h"
 #include "video/stats_counter.h"
@@ -33,8 +35,6 @@
 namespace webrtc {
 
 class Clock;
-class ViECodec;
-class ViEDecoderObserver;
 struct CodecSpecificInfo;
 
 class ReceiveStatisticsProxy : public VCMReceiveStatisticsCallback,
@@ -58,6 +58,8 @@ class ReceiveStatisticsProxy : public VCMReceiveStatisticsCallback,
 
   void OnPreDecode(const EncodedImage& encoded_image,
                    const CodecSpecificInfo* codec_specific_info);
+
+  void OnUniqueFramesCounted(int num_unique_frames);
 
   // Indicates video stream has been paused (no incoming packets).
   void OnStreamInactive();
@@ -95,24 +97,10 @@ class ReceiveStatisticsProxy : public VCMReceiveStatisticsCallback,
   // Implements CallStatsObserver.
   void OnRttUpdate(int64_t avg_rtt_ms, int64_t max_rtt_ms) override;
 
-  class HistogramPercentileCounter {
-   public:
-    // Values below |long_tail_boundary| are stored in the array.
-    // Values above - in the map.
-    explicit HistogramPercentileCounter(size_t long_tail_boundary);
-    void Add(uint32_t value);
-    void Add(uint32_t value, size_t count);
-    void Add(const HistogramPercentileCounter& other);
-    // Argument should be from 0 to 1.
-    rtc::Optional<uint32_t> GetPercentile(float fraction);
-
-   private:
-    std::vector<size_t> histogram_low_;
-    std::map<uint32_t, size_t> histogram_high_;
-    const size_t long_tail_boundary_;
-    size_t total_elements_;
-    size_t total_elements_low_;
-  };
+  // Notification methods that are used to check our internal state and validate
+  // threading assumptions. These are called by VideoReceiveStream.
+  void DecoderThreadStarting();
+  void DecoderThreadStopped();
 
  private:
   struct SampleCounter {
@@ -146,7 +134,7 @@ class ReceiveStatisticsProxy : public VCMReceiveStatisticsCallback,
     SampleCounter received_height;
     SampleCounter qp_counter;
     FrameCounts frame_counts;
-    HistogramPercentileCounter interframe_delay_percentiles;
+    rtc::HistogramPercentileCounter interframe_delay_percentiles;
   };
 
   void UpdateHistograms() RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_);
@@ -195,16 +183,21 @@ class ReceiveStatisticsProxy : public VCMReceiveStatisticsCallback,
   MaxCounter freq_offset_counter_ RTC_GUARDED_BY(crit_);
   int64_t first_report_block_time_ms_ RTC_GUARDED_BY(crit_);
   ReportBlockStats report_block_stats_ RTC_GUARDED_BY(crit_);
-  QpCounters qp_counters_;  // Only accessed on the decoding thread.
+  QpCounters qp_counters_ RTC_GUARDED_BY(decode_thread_);
   std::map<uint32_t, StreamDataCounters> rtx_stats_ RTC_GUARDED_BY(crit_);
   int64_t avg_rtt_ms_ RTC_GUARDED_BY(crit_);
   mutable std::map<int64_t, size_t> frame_window_ RTC_GUARDED_BY(&crit_);
   VideoContentType last_content_type_ RTC_GUARDED_BY(&crit_);
+  rtc::Optional<int64_t> first_decoded_frame_time_ms_ RTC_GUARDED_BY(&crit_);
   rtc::Optional<int64_t> last_decoded_frame_time_ms_ RTC_GUARDED_BY(&crit_);
   // Mutable because calling Max() on MovingMaxCounter is not const. Yet it is
   // called from const GetStats().
   mutable rtc::MovingMaxCounter<TimingFrameInfo> timing_frame_info_counter_
       RTC_GUARDED_BY(&crit_);
+  rtc::Optional<int> num_unique_frames_ RTC_GUARDED_BY(crit_);
+  rtc::ThreadChecker decode_thread_;
+  rtc::ThreadChecker network_thread_;
+  rtc::ThreadChecker main_thread_;
 };
 
 }  // namespace webrtc

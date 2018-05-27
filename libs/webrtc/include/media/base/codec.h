@@ -36,6 +36,7 @@ class FeedbackParam {
       : id_(id),
         param_(kParamValueEmpty) {
   }
+
   bool operator==(const FeedbackParam& other) const;
 
   const std::string& id() const { return id_; }
@@ -49,6 +50,7 @@ class FeedbackParam {
 class FeedbackParams {
  public:
   FeedbackParams();
+  ~FeedbackParams();
   bool operator==(const FeedbackParams& other) const;
 
   bool Has(const FeedbackParam& param) const;
@@ -147,28 +149,6 @@ struct AudioCodec : public Codec {
   }
 };
 
-inline std::ostream& operator<<(std::ostream& os, const AudioCodec& ac) {
-  os << "{id: " << ac.id;
-  os << ", name: " << ac.name;
-  os << ", clockrate: " << ac.clockrate;
-  os << ", bitrate: " << ac.bitrate;
-  os << ", channels: " << ac.channels;
-  os << ", params: {";
-  const char* sep = "";
-  for (const auto& kv : ac.params) {
-    os << sep << kv.first << ": " << kv.second;
-    sep = ", ";
-  }
-  os << "}, feedback_params: {";
-  sep = "";
-  for (const FeedbackParam& fp : ac.feedback_params.params()) {
-    os << sep << fp.id() << ": " << fp.param();
-    sep = ", ";
-  }
-  os << "}}";
-  return os;
-}
-
 struct VideoCodec : public Codec {
   // Creates a codec with the given parameters.
   VideoCodec(int id, const std::string& name);
@@ -248,12 +228,17 @@ bool CodecNamesEq(const std::string& name1, const std::string& name2);
 bool CodecNamesEq(const char* name1, const char* name2);
 bool HasNack(const Codec& codec);
 bool HasRemb(const Codec& codec);
+bool HasRrtr(const Codec& codec);
 bool HasTransportCc(const Codec& codec);
 // Returns the first codec in |supported_codecs| that matches |codec|, or
 // nullptr if no codec matches.
 const VideoCodec* FindMatchingCodec(
     const std::vector<VideoCodec>& supported_codecs,
     const VideoCodec& codec);
+bool IsSameCodec(const std::string& name1,
+                 const CodecParameterMap& params1,
+                 const std::string& name2,
+                 const CodecParameterMap& params2);
 
 }  // namespace cricket
 

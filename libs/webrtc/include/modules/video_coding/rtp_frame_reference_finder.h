@@ -19,14 +19,14 @@
 #include <utility>
 
 #include "modules/include/module_common_types.h"
-#include "modules/video_coding/sequence_number_util.h"
 #include "rtc_base/criticalsection.h"
+#include "rtc_base/numerics/sequence_number_util.h"
 #include "rtc_base/thread_annotations.h"
 
 namespace webrtc {
 namespace video_coding {
 
-class FrameObject;
+class EncodedFrame;
 class RtpFrameObject;
 
 // A complete frame is a frame which has received all its packets and all its
@@ -34,7 +34,7 @@ class RtpFrameObject;
 class OnCompleteFrameCallback {
  public:
   virtual ~OnCompleteFrameCallback() {}
-  virtual void OnCompleteFrame(std::unique_ptr<FrameObject> frame) = 0;
+  virtual void OnCompleteFrame(std::unique_ptr<EncodedFrame> frame) = 0;
 };
 
 class RtpFrameReferenceFinder {
@@ -99,7 +99,8 @@ class RtpFrameReferenceFinder {
 
   // Updates necessary layer info state used to determine frame references for
   // Vp8.
-  void UpdateLayerInfoVp8(RtpFrameObject* frame)
+  void UpdateLayerInfoVp8(RtpFrameObject* frame,
+                          const RTPVideoHeaderVP8& codec_header)
       RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_);
 
   // Find references for Vp9 frames

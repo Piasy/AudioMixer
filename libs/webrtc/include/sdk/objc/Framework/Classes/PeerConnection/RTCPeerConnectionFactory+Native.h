@@ -14,19 +14,14 @@
 
 namespace webrtc {
 
+class AudioDeviceModule;
 class AudioEncoderFactory;
 class AudioDecoderFactory;
 class VideoEncoderFactory;
 class VideoDecoderFactory;
+class AudioProcessing;
 
 }  // namespace webrtc
-
-namespace cricket {
-
-class WebRtcVideoEncoderFactory;
-class WebRtcVideoDecoderFactory;
-
-}  // namespace cricket
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -48,18 +43,11 @@ NS_ASSUME_NONNULL_BEGIN
                         nativeVideoEncoderFactory:
                             (std::unique_ptr<webrtc::VideoEncoderFactory>)videoEncoderFactory
                         nativeVideoDecoderFactory:
-                            (std::unique_ptr<webrtc::VideoDecoderFactory>)videoDecoderFactory;
-
-/* Initialize object with legacy injectable native audio/video encoder/decoder factories
-   TODO(andersc): Remove this when backwards compatiblity is no longer needed.
- */
-- (instancetype)
-    initWithNativeAudioEncoderFactory:
-        (rtc::scoped_refptr<webrtc::AudioEncoderFactory>)audioEncoderFactory
-            nativeAudioDecoderFactory:
-                (rtc::scoped_refptr<webrtc::AudioDecoderFactory>)audioDecoderFactory
-      legacyNativeVideoEncoderFactory:(cricket::WebRtcVideoEncoderFactory*)videoEncoderFactory
-      legacyNativeVideoDecoderFactory:(cricket::WebRtcVideoDecoderFactory*)videoDecoderFactory;
+                            (std::unique_ptr<webrtc::VideoDecoderFactory>)videoDecoderFactory
+                                audioDeviceModule:
+                                    (nullable webrtc::AudioDeviceModule *)audioDeviceModule
+                            audioProcessingModule:
+                                (rtc::scoped_refptr<webrtc::AudioProcessing>)audioProcessingModule;
 
 @end
 

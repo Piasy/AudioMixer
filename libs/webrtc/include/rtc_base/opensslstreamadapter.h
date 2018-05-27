@@ -11,6 +11,8 @@
 #ifndef RTC_BASE_OPENSSLSTREAMADAPTER_H_
 #define RTC_BASE_OPENSSLSTREAMADAPTER_H_
 
+#include <openssl/ossl_typ.h>
+
 #include <string>
 #include <memory>
 #include <vector>
@@ -18,11 +20,6 @@
 #include "rtc_base/buffer.h"
 #include "rtc_base/opensslidentity.h"
 #include "rtc_base/sslstreamadapter.h"
-
-typedef struct ssl_st SSL;
-typedef struct ssl_ctx_st SSL_CTX;
-typedef struct ssl_cipher_st SSL_CIPHER;
-typedef struct x509_store_ctx_st X509_STORE_CTX;
 
 namespace rtc {
 
@@ -69,7 +66,7 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
       size_t digest_len,
       SSLPeerCertificateDigestError* error = nullptr) override;
 
-  std::unique_ptr<SSLCertificate> GetPeerCertificate() const override;
+  std::unique_ptr<SSLCertChain> GetPeerSSLCertChain() const override;
 
   // Goes from state SSL_NONE to either SSL_CONNECTING or SSL_WAIT, depending
   // on whether the underlying stream is already open or not.
@@ -195,9 +192,9 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
 
   // Our key and certificate.
   std::unique_ptr<OpenSSLIdentity> identity_;
-  // The certificate that the peer presented. Initially null, until the
+  // The certificate chain that the peer presented. Initially null, until the
   // connection is established.
-  std::unique_ptr<OpenSSLCertificate> peer_certificate_;
+  std::unique_ptr<SSLCertChain> peer_cert_chain_;
   bool peer_certificate_verified_ = false;
   // The digest of the certificate that the peer must present.
   Buffer peer_certificate_digest_value_;

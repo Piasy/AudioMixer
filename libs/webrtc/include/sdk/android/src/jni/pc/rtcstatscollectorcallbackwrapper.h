@@ -24,38 +24,14 @@ namespace jni {
 // Java.
 class RTCStatsCollectorCallbackWrapper : public RTCStatsCollectorCallback {
  public:
-  RTCStatsCollectorCallbackWrapper(JNIEnv* jni, jobject j_callback);
+  RTCStatsCollectorCallbackWrapper(JNIEnv* jni,
+                                   const JavaRef<jobject>& j_callback);
 
   void OnStatsDelivered(
       const rtc::scoped_refptr<const RTCStatsReport>& report) override;
 
  private:
-  // Helper functions for converting C++ RTCStatsReport to Java equivalent.
-  jobject ReportToJava(JNIEnv* jni,
-                       const rtc::scoped_refptr<const RTCStatsReport>& report);
-  jobject StatsToJava(JNIEnv* jni, const RTCStats& stats);
-  jobject MemberToJava(JNIEnv* jni, const RTCStatsMemberInterface* member);
-
-  const ScopedGlobalRef<jobject> j_callback_global_;
-  const ScopedGlobalRef<jclass> j_callback_class_;
-  const jclass j_stats_report_class_;
-  const jmethodID j_stats_report_ctor_;
-  const jclass j_stats_class_;
-  const jmethodID j_stats_ctor_;
-  const jclass j_linked_hash_map_class_;
-  const jmethodID j_linked_hash_map_ctor_;
-  const jmethodID j_linked_hash_map_put_;
-  const jclass j_boolean_class_;
-  const jmethodID j_boolean_ctor_;
-  const jclass j_integer_class_;
-  const jmethodID j_integer_ctor_;
-  const jclass j_long_class_;
-  const jmethodID j_long_ctor_;
-  const jclass j_big_integer_class_;
-  const jmethodID j_big_integer_ctor_;
-  const jclass j_double_class_;
-  const jmethodID j_double_ctor_;
-  const jclass j_string_class_;
+  const ScopedJavaGlobalRef<jobject> j_callback_global_;
 };
 
 }  // namespace jni

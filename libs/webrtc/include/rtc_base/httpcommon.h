@@ -158,8 +158,6 @@ bool HttpShouldKeepAlive(const HttpData& data);
 
 typedef std::pair<std::string, std::string> HttpAttribute;
 typedef std::vector<HttpAttribute> HttpAttributeList;
-void HttpComposeAttributes(const HttpAttributeList& attributes, char separator,
-                           std::string* composed);
 void HttpParseAttributes(const char * data, size_t len,
                          HttpAttributeList& attributes);
 bool HttpHasAttribute(const HttpAttributeList& attributes,
@@ -444,6 +442,7 @@ enum HttpAuthResult { HAR_RESPONSE, HAR_IGNORE, HAR_CREDENTIALS, HAR_ERROR };
 // 'context' is used by this function to record information between calls.
 // Start by passing a null pointer, then pass the same pointer each additional
 // call.  When the authentication attempt is finished, delete the context.
+// TODO(bugs.webrtc.org/8905): Change "response" to "ZeroOnFreeBuffer".
 HttpAuthResult HttpAuthenticate(
   const char * challenge, size_t len,
   const SocketAddress& server,

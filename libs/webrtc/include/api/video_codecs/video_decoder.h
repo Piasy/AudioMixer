@@ -36,24 +36,17 @@ class DecodedImageCallback {
   // decode time excluding waiting time for any previous pending frame to
   // return. This is necessary for breaking positive feedback in the delay
   // estimation when the decoder has a single output buffer.
-  virtual int32_t Decoded(VideoFrame& decodedImage, int64_t decode_time_ms) {
-    // The default implementation ignores custom decode time value.
-    return Decoded(decodedImage);
-  }
+  virtual int32_t Decoded(VideoFrame& decodedImage, int64_t decode_time_ms);
+
   // TODO(sakal): Remove other implementations when upstream projects have been
   // updated.
   virtual void Decoded(VideoFrame& decodedImage,
                        rtc::Optional<int32_t> decode_time_ms,
-                       rtc::Optional<uint8_t> qp) {
-    Decoded(decodedImage,
-            decode_time_ms ? static_cast<int32_t>(*decode_time_ms) : -1);
-  }
+                       rtc::Optional<uint8_t> qp);
 
-  virtual int32_t ReceivedDecodedReferenceFrame(const uint64_t pictureId) {
-    return -1;
-  }
+  virtual int32_t ReceivedDecodedReferenceFrame(const uint64_t pictureId);
 
-  virtual int32_t ReceivedDecodedFrame(const uint64_t pictureId) { return -1; }
+  virtual int32_t ReceivedDecodedFrame(const uint64_t pictureId);
 };
 
 class VideoDecoder {
@@ -65,9 +58,18 @@ class VideoDecoder {
 
   virtual int32_t Decode(const EncodedImage& input_image,
                          bool missing_frames,
+                         const CodecSpecificInfo* codec_specific_info,
+                         int64_t render_time_ms);
+
+  // TODO(nisse): Deprecated. Delete this method, and make the above pure
+  // virtual, after downstream projects are updated. The default implementations
+  // of this method and the above ensures that during the transition, subclasses
+  // can choose to implement one or the other.
+  virtual int32_t Decode(const EncodedImage& input_image,
+                         bool missing_frames,
                          const RTPFragmentationHeader* fragmentation,
                          const CodecSpecificInfo* codec_specific_info = NULL,
-                         int64_t render_time_ms = -1) = 0;
+                         int64_t render_time_ms = -1);
 
   virtual int32_t RegisterDecodeCompleteCallback(
       DecodedImageCallback* callback) = 0;
@@ -77,9 +79,9 @@ class VideoDecoder {
   // Returns true if the decoder prefer to decode frames late.
   // That is, it can not decode infinite number of frames before the decoded
   // frame is consumed.
-  virtual bool PrefersLateDecoding() const { return true; }
+  virtual bool PrefersLateDecoding() const;
 
-  virtual const char* ImplementationName() const { return "unknown"; }
+  virtual const char* ImplementationName() const;
 };
 
 }  // namespace webrtc

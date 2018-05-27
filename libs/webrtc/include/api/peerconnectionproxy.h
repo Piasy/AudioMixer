@@ -11,6 +11,7 @@
 #ifndef API_PEERCONNECTIONPROXY_H_
 #define API_PEERCONNECTIONPROXY_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,11 +28,29 @@ BEGIN_SIGNALING_PROXY_MAP(PeerConnection)
   PROXY_METHOD0(rtc::scoped_refptr<StreamCollectionInterface>, remote_streams)
   PROXY_METHOD1(bool, AddStream, MediaStreamInterface*)
   PROXY_METHOD1(void, RemoveStream, MediaStreamInterface*)
+  PROXY_METHOD2(RTCErrorOr<rtc::scoped_refptr<RtpSenderInterface>>,
+                AddTrack,
+                rtc::scoped_refptr<MediaStreamTrackInterface>,
+                const std::vector<std::string>&);
   PROXY_METHOD2(rtc::scoped_refptr<RtpSenderInterface>,
                 AddTrack,
                 MediaStreamTrackInterface*,
                 std::vector<MediaStreamInterface*>)
   PROXY_METHOD1(bool, RemoveTrack, RtpSenderInterface*)
+  PROXY_METHOD1(RTCErrorOr<rtc::scoped_refptr<RtpTransceiverInterface>>,
+                AddTransceiver,
+                rtc::scoped_refptr<MediaStreamTrackInterface>)
+  PROXY_METHOD2(RTCErrorOr<rtc::scoped_refptr<RtpTransceiverInterface>>,
+                AddTransceiver,
+                rtc::scoped_refptr<MediaStreamTrackInterface>,
+                const RtpTransceiverInit&)
+  PROXY_METHOD1(RTCErrorOr<rtc::scoped_refptr<RtpTransceiverInterface>>,
+                AddTransceiver,
+                cricket::MediaType)
+  PROXY_METHOD2(RTCErrorOr<rtc::scoped_refptr<RtpTransceiverInterface>>,
+                AddTransceiver,
+                cricket::MediaType,
+                const RtpTransceiverInit&)
   PROXY_METHOD1(rtc::scoped_refptr<DtmfSenderInterface>,
                 CreateDtmfSender,
                 AudioTrackInterface*)
@@ -43,12 +62,22 @@ BEGIN_SIGNALING_PROXY_MAP(PeerConnection)
                      GetSenders)
   PROXY_CONSTMETHOD0(std::vector<rtc::scoped_refptr<RtpReceiverInterface>>,
                      GetReceivers)
+  PROXY_CONSTMETHOD0(std::vector<rtc::scoped_refptr<RtpTransceiverInterface>>,
+                     GetTransceivers)
   PROXY_METHOD3(bool,
                 GetStats,
                 StatsObserver*,
                 MediaStreamTrackInterface*,
                 StatsOutputLevel)
   PROXY_METHOD1(void, GetStats, RTCStatsCollectorCallback*)
+  PROXY_METHOD2(void,
+                GetStats,
+                rtc::scoped_refptr<RtpSenderInterface>,
+                rtc::scoped_refptr<RTCStatsCollectorCallback>);
+  PROXY_METHOD2(void,
+                GetStats,
+                rtc::scoped_refptr<RtpReceiverInterface>,
+                rtc::scoped_refptr<RTCStatsCollectorCallback>);
   PROXY_METHOD2(rtc::scoped_refptr<DataChannelInterface>,
                 CreateDataChannel,
                 const std::string&,
@@ -87,6 +116,10 @@ BEGIN_SIGNALING_PROXY_MAP(PeerConnection)
                 SetRemoteDescription,
                 SetSessionDescriptionObserver*,
                 SessionDescriptionInterface*)
+  PROXY_METHOD2(void,
+                SetRemoteDescription,
+                std::unique_ptr<SessionDescriptionInterface>,
+                rtc::scoped_refptr<SetRemoteDescriptionObserverInterface>);
   PROXY_METHOD0(PeerConnectionInterface::RTCConfiguration, GetConfiguration);
   PROXY_METHOD2(bool,
                 SetConfiguration,
@@ -99,12 +132,21 @@ BEGIN_SIGNALING_PROXY_MAP(PeerConnection)
   PROXY_METHOD1(bool,
                 RemoveIceCandidates,
                 const std::vector<cricket::Candidate>&);
+  PROXY_METHOD1(void, SetAudioPlayout, bool)
+  PROXY_METHOD1(void, SetAudioRecording, bool)
   PROXY_METHOD1(void, RegisterUMAObserver, UMAObserver*)
-  PROXY_METHOD1(RTCError, SetBitrate, const BitrateParameters&);
+  PROXY_METHOD1(RTCError, SetBitrate, const BitrateSettings&);
+  PROXY_METHOD1(void,
+                SetBitrateAllocationStrategy,
+                std::unique_ptr<rtc::BitrateAllocationStrategy>);
   PROXY_METHOD0(SignalingState, signaling_state)
   PROXY_METHOD0(IceConnectionState, ice_connection_state)
   PROXY_METHOD0(IceGatheringState, ice_gathering_state)
   PROXY_METHOD2(bool, StartRtcEventLog, rtc::PlatformFile, int64_t)
+  PROXY_METHOD2(bool,
+                StartRtcEventLog,
+                std::unique_ptr<RtcEventLogOutput>,
+                int64_t);
   PROXY_METHOD0(void, StopRtcEventLog)
   PROXY_METHOD0(void, Close)
 END_PROXY_MAP()

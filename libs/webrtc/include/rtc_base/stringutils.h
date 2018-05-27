@@ -19,6 +19,7 @@
 #if defined(WEBRTC_WIN)
 #include <malloc.h>
 #include <wchar.h>
+#include <windows.h>
 #define alloca _alloca
 #endif  // WEBRTC_WIN
 
@@ -40,9 +41,6 @@
 
 namespace rtc {
 
-// Complement to memset.  Verifies memory consists of count bytes of value c.
-bool memory_check(const void* memory, int c, size_t count);
-
 // Determines whether the simple wildcard pattern matches target.
 // Alpha characters in pattern match case-insensitively.
 // Asterisks in pattern match 0 or more characters.
@@ -52,53 +50,19 @@ bool string_match(const char* target, const char* pattern);
 }  // namespace rtc
 
 ///////////////////////////////////////////////////////////////////////////////
-// Rename a bunch of common string functions so they are consistent across
-// platforms and between char and wchar_t variants.
-// Here is the full list of functions that are unified:
-//  strlen, strcmp, stricmp, strncmp, strnicmp
-//  strchr, vsnprintf, strtoul, tolowercase
+// Rename a few common string functions so they are consistent across platforms.
 // tolowercase is like tolower, but not compatible with end-of-file value
 //
 // It's not clear if we will ever use wchar_t strings on unix.  In theory,
 // all strings should be Utf8 all the time, except when interfacing with Win32
 // APIs that require Utf16.
 ///////////////////////////////////////////////////////////////////////////////
-
 inline char tolowercase(char c) {
   return static_cast<char>(tolower(c));
 }
 
 #if defined(WEBRTC_WIN)
 
-inline size_t strlen(const wchar_t* s) {
-  return wcslen(s);
-}
-inline int strcmp(const wchar_t* s1, const wchar_t* s2) {
-  return wcscmp(s1, s2);
-}
-inline int stricmp(const wchar_t* s1, const wchar_t* s2) {
-  return _wcsicmp(s1, s2);
-}
-inline int strncmp(const wchar_t* s1, const wchar_t* s2, size_t n) {
-  return wcsncmp(s1, s2, n);
-}
-inline int strnicmp(const wchar_t* s1, const wchar_t* s2, size_t n) {
-  return _wcsnicmp(s1, s2, n);
-}
-inline const wchar_t* strchr(const wchar_t* s, wchar_t c) {
-  return wcschr(s, c);
-}
-inline const wchar_t* strstr(const wchar_t* haystack, const wchar_t* needle) {
-  return wcsstr(haystack, needle);
-}
-#ifndef vsnprintf
-inline int vsnprintf(wchar_t* buf, size_t n, const wchar_t* fmt, va_list args) {
-  return _vsnwprintf(buf, n, fmt, args);
-}
-#endif // !vsnprintf
-inline unsigned long strtoul(const wchar_t* snum, wchar_t** end, int base) {
-  return wcstoul(snum, end, base);
-}
 inline wchar_t tolowercase(wchar_t c) {
   return static_cast<wchar_t>(towlower(c));
 }
@@ -114,7 +78,7 @@ inline int _strnicmp(const char* s1, const char* s2, size_t n) {
   return strncasecmp(s1, s2, n);
 }
 
-#endif // WEBRTC_POSIX
+#endif  // WEBRTC_POSIX
 
 ///////////////////////////////////////////////////////////////////////////////
 // Traits simplifies porting string functions to be CTYPE-agnostic
@@ -127,9 +91,9 @@ const size_t SIZE_UNKNOWN = static_cast<size_t>(-1);
 template<class CTYPE>
 struct Traits {
   // STL string type
-  //typedef XXX string;
+  // typedef XXX string;
   // Null-terminated string
-  //inline static const CTYPE* empty_str();
+  // inline static const CTYPE* empty_str();
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,7 +119,7 @@ const CTYPE* strchr(const CTYPE* str, const CTYPE* chs) {
 
 template<class CTYPE>
 const CTYPE* strchrn(const CTYPE* str, size_t slen, CTYPE ch) {
-  for (size_t i=0; i<slen && str[i]; ++i) {
+  for (size_t i=0; i < slen && str[i]; ++i) {
     if (str[i] == ch) {
       return str + i;
     }
@@ -295,6 +259,43 @@ struct Traits<wchar_t> {
 
 #endif  // WEBRTC_WIN
 
+///////////////////////////////////////////////////////////////////////////////
+// UTF helpers (Windows only)
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(WEBRTC_WIN)
+
+inline std::wstring ToUtf16(const char* utf8, size_t len) {
+  int len16 = ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len),
+                                    nullptr, 0);
+  wchar_t* ws = STACK_ARRAY(wchar_t, len16);
+  ::MultiByteToWideChar(CP_UTF8, 0, utf8, static_cast<int>(len), ws, len16);
+  return std::wstring(ws, len16);
+}
+
+inline std::wstring ToUtf16(const std::string& str) {
+  return ToUtf16(str.data(), str.length());
+}
+
+inline std::string ToUtf8(const wchar_t* wide, size_t len) {
+  int len8 = ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len),
+                                   nullptr, 0, nullptr, nullptr);
+  char* ns = STACK_ARRAY(char, len8);
+  ::WideCharToMultiByte(CP_UTF8, 0, wide, static_cast<int>(len), ns, len8,
+                        nullptr, nullptr);
+  return std::string(ns, len8);
+}
+
+inline std::string ToUtf8(const wchar_t* wide) {
+  return ToUtf8(wide, wcslen(wide));
+}
+
+inline std::string ToUtf8(const std::wstring& wstr) {
+  return ToUtf8(wstr.data(), wstr.length());
+}
+
+#endif  // WEBRTC_WIN
+
 // Replaces all occurrences of "search" with "replace".
 void replace_substrs(const char *search,
                      size_t search_len,
@@ -311,6 +312,8 @@ bool ends_with(const char *s1, const char *s2);
 // Remove leading and trailing whitespaces.
 std::string string_trim(const std::string& s);
 
+// TODO(jonasolsson): replace with absl::Hex when that becomes available.
+std::string ToHex(const int i);
 }  // namespace rtc
 
-#endif // RTC_BASE_STRINGUTILS_H_
+#endif  // RTC_BASE_STRINGUTILS_H_

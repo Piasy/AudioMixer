@@ -22,6 +22,23 @@ namespace webrtc {
 
 namespace audio_encoder_factory_template_impl {
 
+template <typename T, typename ConfigT>
+class MakeAudioEncoderTakesThreeArgs {
+ private:
+  template <typename U>
+  static auto Test(int) -> decltype(
+      U::MakeAudioEncoder(std::declval<ConfigT>(),
+                          std::declval<int>(),
+                          std::declval<rtc::Optional<AudioCodecPairId>>()),
+      std::true_type());
+
+  template <typename U>
+  static std::false_type Test(...);
+
+ public:
+  static constexpr bool value = decltype(Test<T>(0))::value;
+};
+
 template <typename... Ts>
 struct Helper;
 
@@ -31,11 +48,12 @@ struct Helper<> {
   static void AppendSupportedEncoders(std::vector<AudioCodecSpec>* specs) {}
   static rtc::Optional<AudioCodecInfo> QueryAudioEncoder(
       const SdpAudioFormat& format) {
-    return rtc::Optional<AudioCodecInfo>();
+    return rtc::nullopt;
   }
   static std::unique_ptr<AudioEncoder> MakeAudioEncoder(
       int payload_type,
-      const SdpAudioFormat& format) {
+      const SdpAudioFormat& format,
+      rtc::Optional<AudioCodecPairId> codec_pair_id) {
     return nullptr;
   }
 };
@@ -51,19 +69,46 @@ struct Helper<T, Ts...> {
   static rtc::Optional<AudioCodecInfo> QueryAudioEncoder(
       const SdpAudioFormat& format) {
     auto opt_config = T::SdpToConfig(format);
+    static_assert(std::is_same<decltype(opt_config),
+                               rtc::Optional<typename T::Config>>::value,
+                  "T::SdpToConfig() must return a value of type "
+                  "rtc::Optional<T::Config>");
     return opt_config ? rtc::Optional<AudioCodecInfo>(
                             T::QueryAudioEncoder(*opt_config))
                       : Helper<Ts...>::QueryAudioEncoder(format);
   }
   static std::unique_ptr<AudioEncoder> MakeAudioEncoder(
       int payload_type,
-      const SdpAudioFormat& format) {
+      const SdpAudioFormat& format,
+      rtc::Optional<AudioCodecPairId> codec_pair_id) {
     auto opt_config = T::SdpToConfig(format);
     if (opt_config) {
-      return T::MakeAudioEncoder(*opt_config, payload_type);
+      return CallMakeAudioEncoder(*opt_config, payload_type, codec_pair_id);
     } else {
-      return Helper<Ts...>::MakeAudioEncoder(payload_type, format);
+      return Helper<Ts...>::MakeAudioEncoder(payload_type, format,
+                                             codec_pair_id);
     }
+  }
+  template <
+      typename ConfigT,
+      typename std::enable_if<
+          !MakeAudioEncoderTakesThreeArgs<T, ConfigT>::value>::type* = nullptr>
+  static decltype(T::MakeAudioEncoder(std::declval<ConfigT>(),
+                                      std::declval<int>()))
+  CallMakeAudioEncoder(const ConfigT& config,
+                       int payload_type,
+                       rtc::Optional<AudioCodecPairId> codec_pair_id) {
+    return T::MakeAudioEncoder(config, payload_type);
+  }
+  template <typename ConfigT>
+  static decltype(
+      T::MakeAudioEncoder(std::declval<ConfigT>(),
+                          std::declval<int>(),
+                          std::declval<rtc::Optional<AudioCodecPairId>>()))
+  CallMakeAudioEncoder(const ConfigT& config,
+                       int payload_type,
+                       rtc::Optional<AudioCodecPairId> codec_pair_id) {
+    return T::MakeAudioEncoder(config, payload_type, codec_pair_id);
   }
 };
 
@@ -83,8 +128,9 @@ class AudioEncoderFactoryT : public AudioEncoderFactory {
 
   std::unique_ptr<AudioEncoder> MakeAudioEncoder(
       int payload_type,
-      const SdpAudioFormat& format) override {
-    return Helper<Ts...>::MakeAudioEncoder(payload_type, format);
+      const SdpAudioFormat& format,
+      rtc::Optional<AudioCodecPairId> codec_pair_id) override {
+    return Helper<Ts...>::MakeAudioEncoder(payload_type, format, codec_pair_id);
   }
 };
 
@@ -112,9 +158,15 @@ class AudioEncoderFactoryT : public AudioEncoderFactory {
 //   // AudioEncoderFactory::MakeAudioEncoder().
 //   std::unique_ptr<AudioEncoder> MakeAudioEncoder(const ConfigType& config,
 //                                                  int payload_type);
+//   OR
+//   std::unique_ptr<AudioDecoder> MakeAudioEncoder(
+//       const ConfigType& config,
+//       int payload_type,
+//       rtc::Optional<AudioCodecPairId> codec_pair_id);
 //
 // ConfigType should be a type that encapsulates all the settings needed to
-// create an AudioDecoder.
+// create an AudioEncoder. T::Config (where T is the encoder struct) should
+// either be the config type, or an alias for it.
 //
 // Whenever it tries to do something, the new factory will try each of the
 // encoders in the order they were specified in the template argument list,

@@ -38,7 +38,9 @@ class OrtcFactory : public OrtcFactoryInterface {
       rtc::NetworkManager* network_manager,
       rtc::PacketSocketFactory* socket_factory,
       AudioDeviceModule* adm,
-      std::unique_ptr<cricket::MediaEngineInterface> media_engine);
+      std::unique_ptr<cricket::MediaEngineInterface> media_engine,
+      rtc::scoped_refptr<AudioEncoderFactory> audio_encoder_factory,
+      rtc::scoped_refptr<AudioDecoderFactory> audio_decoder_factory);
 
   RTCErrorOr<std::unique_ptr<RtpTransportControllerInterface>>
   CreateRtpTransportController() override;
@@ -79,10 +81,6 @@ class OrtcFactory : public OrtcFactoryInterface {
   rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
       const cricket::AudioOptions& options) override;
 
-  rtc::scoped_refptr<VideoTrackSourceInterface> CreateVideoSource(
-      std::unique_ptr<cricket::VideoCapturer> capturer,
-      const MediaConstraintsInterface* constraints) override;
-
   rtc::scoped_refptr<VideoTrackInterface> CreateVideoTrack(
       const std::string& id,
       VideoTrackSourceInterface* source) override;
@@ -101,7 +99,9 @@ class OrtcFactory : public OrtcFactoryInterface {
               rtc::Thread* signaling_thread,
               rtc::NetworkManager* network_manager,
               rtc::PacketSocketFactory* socket_factory,
-              AudioDeviceModule* adm);
+              AudioDeviceModule* adm,
+              rtc::scoped_refptr<AudioEncoderFactory> audio_encoder_factory,
+              rtc::scoped_refptr<AudioDecoderFactory> audio_decoder_factory);
 
   RTCErrorOr<std::unique_ptr<RtpTransportControllerInterface>>
   CreateRtpTransportController(const RtpTransportParameters& parameters);
@@ -114,7 +114,9 @@ class OrtcFactory : public OrtcFactoryInterface {
       rtc::NetworkManager* network_manager,
       rtc::PacketSocketFactory* socket_factory,
       AudioDeviceModule* adm,
-      cricket::MediaEngineInterface* media_engine);
+      cricket::MediaEngineInterface* media_engine,
+      rtc::scoped_refptr<AudioEncoderFactory> audio_encoder_factory,
+      rtc::scoped_refptr<AudioDecoderFactory> audio_decoder_factory);
 
   // Performs initialization that can fail. Called by factory method after
   // construction, and if it fails, no object is returned.

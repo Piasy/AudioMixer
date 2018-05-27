@@ -17,12 +17,16 @@
 #include <string>
 
 #include "rtc_base/checks.h"
-#include "rtc_base/safe_conversions.h"
+#include "rtc_base/numerics/safe_conversions.h"
 
 namespace webrtc {
 
 enum TimingFrameFlags : uint8_t {
-  kDefault = 0,                // No flags set (used by old protocol)
+  kNotTriggered = 0,           // Timing info valid, but not to be transmitted.
+                               // Used on send-side only.
+  // TODO(ilnik): Delete compatibility alias.
+  // Used to be sent over the wire, for the old protocol.
+  kDefault = 0,                // Old name, for API compatibility.
   kTriggeredByTimer = 1 << 0,  // Frame marked for tracing by periodic timer.
   kTriggeredBySize = 1 << 1,   // Frame marked for tracing due to size.
   kInvalid = std::numeric_limits<uint8_t>::max()  // Invalid, ignore!
@@ -54,8 +58,8 @@ struct VideoSendTiming {
   uint16_t encode_finish_delta_ms;
   uint16_t packetization_finish_delta_ms;
   uint16_t pacer_exit_delta_ms;
-  uint16_t network_timstamp_delta_ms;
-  uint16_t network2_timstamp_delta_ms;
+  uint16_t network_timestamp_delta_ms;
+  uint16_t network2_timestamp_delta_ms;
   uint8_t flags;
 };
 

@@ -44,7 +44,7 @@ class H264EncoderImpl : public H264Encoder {
 
   int32_t RegisterEncodeCompleteCallback(
       EncodedImageCallback* callback) override;
-  int32_t SetRateAllocation(const BitrateAllocation& bitrate_allocation,
+  int32_t SetRateAllocation(const VideoBitrateAllocation& bitrate_allocation,
                             uint32_t framerate) override;
 
   // The result of encoding - an EncodedImage and RTPFragmentationHeader - are
@@ -59,7 +59,6 @@ class H264EncoderImpl : public H264Encoder {
 
   // Unsupported / Do nothing.
   int32_t SetChannelParameters(uint32_t packet_loss, int64_t rtt) override;
-  int32_t SetPeriodicKeyFrames(bool enable) override;
 
   // Exposed for testing.
   H264PacketizationMode PacketizationModeForTesting() const {

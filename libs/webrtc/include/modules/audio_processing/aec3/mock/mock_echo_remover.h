@@ -27,13 +27,14 @@ class MockEchoRemover : public EchoRemover {
   virtual ~MockEchoRemover() = default;
 
   MOCK_METHOD5(ProcessCapture,
-               void(const rtc::Optional<size_t>& echo_path_delay_samples,
-                    const EchoPathVariability& echo_path_variability,
+               void(const EchoPathVariability& echo_path_variability,
                     bool capture_signal_saturation,
-                    const RenderBuffer& render_buffer,
+                    const rtc::Optional<DelayEstimate>& delay_estimate,
+                    RenderBuffer* render_buffer,
                     std::vector<std::vector<float>>* capture));
-
+  MOCK_CONST_METHOD0(Delay, rtc::Optional<int>());
   MOCK_METHOD1(UpdateEchoLeakageStatus, void(bool leakage_detected));
+  MOCK_CONST_METHOD1(GetMetrics, void(EchoControl::Metrics* metrics));
 };
 
 }  // namespace test

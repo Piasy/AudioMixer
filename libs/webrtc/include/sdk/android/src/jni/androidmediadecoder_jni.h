@@ -8,11 +8,13 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#ifndef SDK_ANDROID_SRC_JNI_ANDROIDMEDIADECODER_JNI_H_
-#define SDK_ANDROID_SRC_JNI_ANDROIDMEDIADECODER_JNI_H_
+#ifndef SDK_ANDROID_SRC_JNI_ANDROIDMEDIADECODER_H_
+#define SDK_ANDROID_SRC_JNI_ANDROIDMEDIADECODER_H_
 
-#include "sdk/android/src/jni/jni_helpers.h"
+#include <vector>
+
 #include "media/engine/webrtcvideodecoderfactory.h"
+#include "sdk/android/src/jni/jni_helpers.h"
 
 namespace webrtc {
 namespace jni {
@@ -22,7 +24,7 @@ class MediaCodecVideoDecoderFactory
     : public cricket::WebRtcVideoDecoderFactory {
  public:
   MediaCodecVideoDecoderFactory();
-  virtual ~MediaCodecVideoDecoderFactory();
+  ~MediaCodecVideoDecoderFactory() override;
 
   void SetEGLContext(JNIEnv* jni, jobject render_egl_context);
 
@@ -30,6 +32,8 @@ class MediaCodecVideoDecoderFactory
   VideoDecoder* CreateVideoDecoder(VideoCodecType type) override;
 
   void DestroyVideoDecoder(VideoDecoder* decoder) override;
+
+  static bool IsH264HighProfileSupported(JNIEnv* env);
 
  private:
   jobject egl_context_;
@@ -39,4 +43,4 @@ class MediaCodecVideoDecoderFactory
 }  // namespace jni
 }  // namespace webrtc
 
-#endif  // SDK_ANDROID_SRC_JNI_ANDROIDMEDIADECODER_JNI_H_
+#endif  // SDK_ANDROID_SRC_JNI_ANDROIDMEDIADECODER_H_

@@ -400,13 +400,6 @@ class FileStream : public StreamInterface {
 
   bool Flush() override;
 
-#if defined(WEBRTC_POSIX) && !defined(__native_client__)
-  // Tries to aquire an exclusive lock on the file.
-  // Use OpenShare(...) on win32 to get similar functionality.
-  bool TryLock();
-  bool Unlock();
-#endif
-
  protected:
   virtual void DoClose();
 
@@ -568,37 +561,6 @@ class FifoBuffer : public StreamInterface {
   // object lock
   CriticalSection crit_;
   RTC_DISALLOW_COPY_AND_ASSIGN(FifoBuffer);
-};
-
-///////////////////////////////////////////////////////////////////////////////
-
-class LoggingAdapter : public StreamAdapterInterface {
- public:
-  LoggingAdapter(StreamInterface* stream, LoggingSeverity level,
-                 const std::string& label, bool hex_mode = false);
-
-  void set_label(const std::string& label);
-
-  StreamResult Read(void* buffer,
-                    size_t buffer_len,
-                    size_t* read,
-                    int* error) override;
-  StreamResult Write(const void* data,
-                     size_t data_len,
-                     size_t* written,
-                     int* error) override;
-  void Close() override;
-
- protected:
-  void OnEvent(StreamInterface* stream, int events, int err) override;
-
- private:
-  LoggingSeverity level_;
-  std::string label_;
-  bool hex_mode_;
-  LogMultilineState lms_;
-
-  RTC_DISALLOW_COPY_AND_ASSIGN(LoggingAdapter);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

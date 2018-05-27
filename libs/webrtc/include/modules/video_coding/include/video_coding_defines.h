@@ -45,6 +45,8 @@ enum {
   // |kDefaultOutliserFrameSizePercent| in size of average frame.
   kDefaultTimingFramesDelayMs = 200,
   kDefaultOutlierFrameSizePercent = 250,
+  // Maximum number of frames for what we store encode start timing information.
+  kMaxEncodeStartTimeListSize = 50,
 };
 
 enum VCMVideoProtection {
@@ -71,25 +73,13 @@ class VCMReceiveCallback {
                                 rtc::Optional<uint8_t> qp,
                                 VideoContentType content_type) = 0;
 
-  virtual int32_t ReceivedDecodedReferenceFrame(const uint64_t pictureId) {
-    return -1;
-  }
+  virtual int32_t ReceivedDecodedReferenceFrame(const uint64_t pictureId);
   // Called when the current receive codec changes.
-  virtual void OnIncomingPayloadType(int payload_type) {}
-  virtual void OnDecoderImplementationName(const char* implementation_name) {}
+  virtual void OnIncomingPayloadType(int payload_type);
+  virtual void OnDecoderImplementationName(const char* implementation_name);
 
  protected:
   virtual ~VCMReceiveCallback() {}
-};
-
-// Callback class used for informing the user of the bit rate and frame rate,
-// and the name of the encoder.
-class VCMSendStatisticsCallback {
- public:
-  virtual void SendStatistics(uint32_t bitRate, uint32_t frameRate) = 0;
-
- protected:
-  virtual ~VCMSendStatisticsCallback() {}
 };
 
 // Callback class used for informing the user of the incoming bit rate and frame
@@ -114,20 +104,6 @@ class VCMReceiveStatisticsCallback {
 
  protected:
   virtual ~VCMReceiveStatisticsCallback() {}
-};
-
-// Callback class used for telling the user about how to configure the FEC,
-// and the rates sent the last second is returned to the VCM.
-class VCMProtectionCallback {
- public:
-  virtual int ProtectionRequest(const FecProtectionParams* delta_params,
-                                const FecProtectionParams* key_params,
-                                uint32_t* sent_video_rate_bps,
-                                uint32_t* sent_nack_rate_bps,
-                                uint32_t* sent_fec_rate_bps) = 0;
-
- protected:
-  virtual ~VCMProtectionCallback() {}
 };
 
 // Callback class used for telling the user about what frame type needed to

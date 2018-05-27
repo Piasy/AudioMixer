@@ -46,8 +46,8 @@
 // Log *contexts* are names concatenated with '_' between them, with the name
 // of the logged/plotted string/value last. Plot *time* is inherited down the
 // tree. A branch is enabled by default but can be *disabled* to reduce output.
-// The difference between the LOG and PLOT macros is that PLOT prefixes the line
-// so it can be easily filtered, plus it outputs the current time.
+// The difference between the RTC_LOG and PLOT macros is that PLOT prefixes the
+// line so it can be easily filtered, plus it outputs the current time.
 
 #if !(BWE_TEST_LOGGING_COMPILE_TIME_ENABLE)
 
@@ -277,6 +277,10 @@ class Logging {
   void SetGlobalContext(const char* name);
   void SetGlobalEnable(bool enabled);
 
+#if defined(__GNUC__)
+  // Note: Implicit |this| argument counts as the first argument.
+  __attribute__((__format__(__printf__, 2, 3)))
+#endif
   void Log(const char format[], ...);
   void Plot(int figure, const std::string& name, double value);
   void Plot(int figure,
@@ -327,12 +331,15 @@ class Logging {
     bool enabled;
   };
   struct ThreadState {
+    ThreadState();
+    ~ThreadState();
     State global_state;
     std::stack<State> stack;
   };
   typedef std::map<uint32_t, ThreadState> ThreadMap;
 
   Logging();
+  ~Logging();
   void PushState(const std::string& append_to_tag, int64_t timestamp_ms,
                  bool enabled);
   void PopState();

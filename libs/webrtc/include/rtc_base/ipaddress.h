@@ -83,7 +83,13 @@ class IPAddress {
   bool operator!=(const IPAddress& other) const;
   bool operator <(const IPAddress& other) const;
   bool operator >(const IPAddress& other) const;
-  friend std::ostream& operator<<(std::ostream& os, const IPAddress& addr);
+
+#ifdef UNIT_TEST
+  inline std::ostream& operator<<(  // no-presubmit-check TODO(webrtc:8982)
+      std::ostream& os) {           // no-presubmit-check TODO(webrtc:8982)
+    return os << ToString();
+  }
+#endif  // UNIT_TEST
 
   int family() const { return family_; }
   in_addr ipv4_address() const;
@@ -126,8 +132,8 @@ class InterfaceAddress : public IPAddress {
  public:
   InterfaceAddress() : ipv6_flags_(IPV6_ADDRESS_FLAG_NONE) {}
 
-  InterfaceAddress(IPAddress ip)
-    : IPAddress(ip), ipv6_flags_(IPV6_ADDRESS_FLAG_NONE) {}
+  explicit InterfaceAddress(IPAddress ip)
+      : IPAddress(ip), ipv6_flags_(IPV6_ADDRESS_FLAG_NONE) {}
 
   InterfaceAddress(IPAddress addr, int ipv6_flags)
     : IPAddress(addr), ipv6_flags_(ipv6_flags) {}
@@ -141,8 +147,8 @@ class InterfaceAddress : public IPAddress {
   bool operator!=(const InterfaceAddress& other) const;
 
   int ipv6_flags() const { return ipv6_flags_; }
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const InterfaceAddress& addr);
+
+  std::string ToString() const;
 
  private:
   int ipv6_flags_;
@@ -154,6 +160,12 @@ bool IPFromString(const std::string& str, int flags,
                   InterfaceAddress* out);
 bool IPIsAny(const IPAddress& ip);
 bool IPIsLoopback(const IPAddress& ip);
+bool IPIsLinkLocal(const IPAddress& ip);
+// Identify a private network address like "192.168.111.222"
+// (see https://en.wikipedia.org/wiki/Private_network )
+bool IPIsPrivateNetwork(const IPAddress& ip);
+// Identify if an IP is "private", that is a loopback
+// or an address belonging to a link-local or a private network.
 bool IPIsPrivate(const IPAddress& ip);
 bool IPIsUnspec(const IPAddress& ip);
 size_t HashIP(const IPAddress& ip);
@@ -161,7 +173,6 @@ size_t HashIP(const IPAddress& ip);
 // These are only really applicable for IPv6 addresses.
 bool IPIs6Bone(const IPAddress& ip);
 bool IPIs6To4(const IPAddress& ip);
-bool IPIsLinkLocal(const IPAddress& ip);
 bool IPIsMacBased(const IPAddress& ip);
 bool IPIsSiteLocal(const IPAddress& ip);
 bool IPIsTeredo(const IPAddress& ip);

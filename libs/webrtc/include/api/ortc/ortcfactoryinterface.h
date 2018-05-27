@@ -27,7 +27,6 @@
 #include "api/ortc/udptransportinterface.h"
 #include "api/rtcerror.h"
 #include "api/rtpparameters.h"
-#include "p2p/base/packetsocketfactory.h"
 #include "rtc_base/network.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "rtc_base/thread.h"
@@ -76,21 +75,29 @@ class OrtcFactoryInterface {
   // be injected; otherwise a platform-specific module will be used that will
   // use the default audio input.
   //
+  // |audio_encoder_factory| and |audio_decoder_factory| are used to
+  // instantiate audio codecs; they determine what codecs are supported.
+  //
   // Note that the OrtcFactoryInterface does not take ownership of any of the
-  // objects passed in, and as previously stated, these objects can't be
-  // destroyed before the factory is.
+  // objects passed in by raw pointer, and as previously stated, these objects
+  // can't be destroyed before the factory is.
   static RTCErrorOr<std::unique_ptr<OrtcFactoryInterface>> Create(
       rtc::Thread* network_thread,
       rtc::Thread* signaling_thread,
       rtc::NetworkManager* network_manager,
       rtc::PacketSocketFactory* socket_factory,
-      AudioDeviceModule* adm);
+      AudioDeviceModule* adm,
+      rtc::scoped_refptr<AudioEncoderFactory> audio_encoder_factory,
+      rtc::scoped_refptr<AudioDecoderFactory> audio_decoder_factory);
 
-  // Constructor for convenience which uses default implementations of
-  // everything (though does still require that the current thread runs a
-  // message loop; see above).
-  static RTCErrorOr<std::unique_ptr<OrtcFactoryInterface>> Create() {
-    return Create(nullptr, nullptr, nullptr, nullptr, nullptr);
+  // Constructor for convenience which uses default implementations where
+  // possible (though does still require that the current thread runs a message
+  // loop; see above).
+  static RTCErrorOr<std::unique_ptr<OrtcFactoryInterface>> Create(
+      rtc::scoped_refptr<AudioEncoderFactory> audio_encoder_factory,
+      rtc::scoped_refptr<AudioDecoderFactory> audio_decoder_factory) {
+    return Create(nullptr, nullptr, nullptr, nullptr, nullptr,
+                  audio_encoder_factory, audio_decoder_factory);
   }
 
   virtual ~OrtcFactoryInterface() {}
@@ -206,20 +213,6 @@ class OrtcFactoryInterface {
   // Version of the above method that uses default options.
   rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource() {
     return CreateAudioSource(cricket::AudioOptions());
-  }
-
-  // Creates a video source object wrapping and taking ownership of |capturer|.
-  //
-  // |constraints| can be used for selection of resolution and frame rate, and
-  // may be null if no constraints are desired.
-  virtual rtc::scoped_refptr<VideoTrackSourceInterface> CreateVideoSource(
-      std::unique_ptr<cricket::VideoCapturer> capturer,
-      const MediaConstraintsInterface* constraints) = 0;
-
-  // Version of the above method that omits |constraints|.
-  rtc::scoped_refptr<VideoTrackSourceInterface> CreateVideoSource(
-      std::unique_ptr<cricket::VideoCapturer> capturer) {
-    return CreateVideoSource(std::move(capturer), nullptr);
   }
 
   // Creates a new local video track wrapping |source|. The same |source| can

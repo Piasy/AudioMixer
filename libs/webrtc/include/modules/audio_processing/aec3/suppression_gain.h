@@ -14,37 +14,52 @@
 #include <array>
 #include <vector>
 
+#include "api/audio/echo_canceller3_config.h"
 #include "modules/audio_processing/aec3/aec3_common.h"
+#include "modules/audio_processing/aec3/aec_state.h"
+#include "modules/audio_processing/aec3/coherence_gain.h"
 #include "modules/audio_processing/aec3/render_signal_analyzer.h"
-#include "modules/audio_processing/include/audio_processing.h"
 #include "rtc_base/constructormagic.h"
 
 namespace webrtc {
 
 class SuppressionGain {
  public:
-  SuppressionGain(const AudioProcessing::Config::EchoCanceller3& config,
-                  Aec3Optimization optimization);
-  void GetGain(const std::array<float, kFftLengthBy2Plus1>& nearend,
-               const std::array<float, kFftLengthBy2Plus1>& echo,
-               const std::array<float, kFftLengthBy2Plus1>& comfort_noise,
-               const RenderSignalAnalyzer& render_signal_analyzer,
-               bool saturated_echo,
-               const std::vector<std::vector<float>>& render,
-               bool force_zero_gain,
-               bool linear_echo_estimate,
-               float* high_bands_gain,
-               std::array<float, kFftLengthBy2Plus1>* low_band_gain);
+  SuppressionGain(const EchoCanceller3Config& config,
+                  Aec3Optimization optimization,
+                  int sample_rate_hz);
+  ~SuppressionGain();
+  void GetGain(
+      const std::array<float, kFftLengthBy2Plus1>& nearend_spectrum,
+      const std::array<float, kFftLengthBy2Plus1>& echo_spectrum,
+      const std::array<float, kFftLengthBy2Plus1>& comfort_noise_spectrum,
+      const FftData& linear_aec_fft,
+      const FftData& render_fft,
+      const FftData& capture_fft,
+      const RenderSignalAnalyzer& render_signal_analyzer,
+      const AecState& aec_state,
+      const std::vector<std::vector<float>>& render,
+      float* high_bands_gain,
+      std::array<float, kFftLengthBy2Plus1>* low_band_gain);
+
+  // Toggles the usage of the initial state.
+  void SetInitialState(bool state);
 
  private:
   void LowerBandGain(bool stationary_with_low_power,
-                     const rtc::Optional<int>& narrow_peak_band,
-                     bool saturated_echo,
-                     bool linear_echo_estimate,
+                     const AecState& aec_state,
                      const std::array<float, kFftLengthBy2Plus1>& nearend,
                      const std::array<float, kFftLengthBy2Plus1>& echo,
                      const std::array<float, kFftLengthBy2Plus1>& comfort_noise,
                      std::array<float, kFftLengthBy2Plus1>* gain);
+
+  // Limits the gain increase.
+  void UpdateGainIncrease(
+      bool low_noise_render,
+      bool linear_echo_estimate,
+      bool saturated_echo,
+      const std::array<float, kFftLengthBy2Plus1>& echo,
+      const std::array<float, kFftLengthBy2Plus1>& new_gain);
 
   class LowNoiseRenderDetector {
    public:
@@ -54,15 +69,23 @@ class SuppressionGain {
     float average_power_ = 32768.f * 32768.f;
   };
 
+  static int instance_count_;
+  std::unique_ptr<ApmDataDumper> data_dumper_;
   const Aec3Optimization optimization_;
+  const EchoCanceller3Config config_;
+  const int state_change_duration_blocks_;
+  float one_by_state_change_duration_blocks_;
   std::array<float, kFftLengthBy2Plus1> last_gain_;
   std::array<float, kFftLengthBy2Plus1> last_masker_;
   std::array<float, kFftLengthBy2Plus1> gain_increase_;
+  std::array<float, kFftLengthBy2Plus1> last_nearend_;
   std::array<float, kFftLengthBy2Plus1> last_echo_;
-
   LowNoiseRenderDetector low_render_detector_;
-  size_t no_saturation_counter_ = 0;
-  const AudioProcessing::Config::EchoCanceller3 config_;
+  bool initial_state_ = true;
+  int initial_state_change_counter_ = 0;
+  CoherenceGain coherence_gain_;
+  const bool enable_transparency_improvements_;
+
   RTC_DISALLOW_COPY_AND_ASSIGN(SuppressionGain);
 };
 

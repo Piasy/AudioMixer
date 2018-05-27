@@ -17,7 +17,6 @@
 #include "call/rtp_packet_sink_interface.h"
 #include "call/syncable.h"
 #include "call/video_receive_stream.h"
-#include "common_video/include/incoming_video_stream.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "modules/rtp_rtcp/include/flexfec_receiver.h"
 #include "modules/video_coding/frame_buffer2.h"
@@ -102,7 +101,7 @@ class VideoReceiveStream : public webrtc::VideoReceiveStream,
 
   // Implements video_coding::OnCompleteFrameCallback.
   void OnCompleteFrame(
-      std::unique_ptr<video_coding::FrameObject> frame) override;
+      std::unique_ptr<video_coding::EncodedFrame> frame) override;
 
   // Implements CallStatsObserver::OnRttUpdate
   void OnRttUpdate(int64_t avg_rtt_ms, int64_t max_rtt_ms) override;

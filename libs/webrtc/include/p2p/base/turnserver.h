@@ -16,6 +16,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "p2p/base/portinterface.h"
@@ -73,7 +74,7 @@ class TurnServerAllocation : public rtc::MessageHandler,
                        const TurnServerConnection& conn,
                        rtc::AsyncPacketSocket* server_socket,
                        const std::string& key);
-  virtual ~TurnServerAllocation();
+  ~TurnServerAllocation() override;
 
   TurnServerConnection* conn() { return &conn_; }
   const std::string& key() const { return key_; }
@@ -123,7 +124,7 @@ class TurnServerAllocation : public rtc::MessageHandler,
 
   void OnPermissionDestroyed(Permission* perm);
   void OnChannelDestroyed(Channel* channel);
-  virtual void OnMessage(rtc::Message* msg);
+  void OnMessage(rtc::Message* msg) override;
 
   TurnServer* server_;
   rtc::Thread* thread_;
@@ -174,7 +175,7 @@ class TurnServer : public sigslot::has_slots<> {
       AllocationMap;
 
   explicit TurnServer(rtc::Thread* thread);
-  ~TurnServer();
+  ~TurnServer() override;
 
   // Gets/sets the realm value to use for the server.
   const std::string& realm() const { return realm_; }

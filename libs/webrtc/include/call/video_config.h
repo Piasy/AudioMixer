@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "api/optional.h"
+#include "api/video_codecs/sdp_video_format.h"
 #include "common_types.h"  // NOLINT(build/include)
 #include "rtc_base/basictypes.h"
 #include "rtc_base/refcount.h"
@@ -26,6 +27,7 @@ namespace webrtc {
 struct VideoStream {
   VideoStream();
   ~VideoStream();
+  VideoStream(const VideoStream& other);
   std::string ToString() const;
 
   size_t width;
@@ -35,20 +37,14 @@ struct VideoStream {
   int min_bitrate_bps;
   int target_bitrate_bps;
   int max_bitrate_bps;
-
   int max_qp;
 
-  // Bitrate thresholds for enabling additional temporal layers. Since these are
-  // thresholds in between layers, we have one additional layer. One threshold
-  // gives two temporal layers, one below the threshold and one above, two give
-  // three, and so on.
-  // The VideoEncoder may redistribute bitrates over the temporal layers so a
-  // bitrate threshold of 100k and an estimate of 105k does not imply that we
-  // get 100k in one temporal layer and 5k in the other, just that the bitrate
-  // in the first temporal layer should not exceed 100k.
-  // TODO(kthelgason): Apart from a special case for two-layer screencast these
-  // thresholds are not propagated to the VideoEncoder. To be implemented.
-  std::vector<int> temporal_layer_thresholds_bps;
+  rtc::Optional<size_t> num_temporal_layers;
+
+  rtc::Optional<double> bitrate_priority;
+
+  // TODO(bugs.webrtc.org/8653): Support active per-simulcast layer.
+  bool active;
 };
 
 class VideoEncoderConfig {
@@ -131,6 +127,10 @@ class VideoEncoderConfig {
   ~VideoEncoderConfig();
   std::string ToString() const;
 
+  // TODO(nisse): Consolidate on one of these.
+  VideoCodecType codec_type;
+  SdpVideoFormat video_format;
+
   rtc::scoped_refptr<VideoStreamFactoryInterface> video_stream_factory;
   std::vector<SpatialLayer> spatial_layers;
   ContentType content_type;
@@ -142,6 +142,13 @@ class VideoEncoderConfig {
   // unless the estimated bandwidth indicates that the link can handle it.
   int min_transmit_bitrate_bps;
   int max_bitrate_bps;
+  // The bitrate priority used for all VideoStreams.
+  double bitrate_priority;
+
+  // The simulcast layer's configurations set by the application for this video
+  // sender. These are modified by the video_stream_factory before being passed
+  // down to lower layers for the video encoding.
+  std::vector<VideoStream> simulcast_layers;
 
   // Max number of encoded VideoStreams to produce.
   size_t number_of_streams;

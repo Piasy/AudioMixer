@@ -21,7 +21,9 @@
 #include "api/mediastreaminterface.h"
 #include "api/mediatypes.h"
 #include "api/proxy.h"
+#include "api/rtcerror.h"
 #include "api/rtpparameters.h"
+#include "rtc_base/deprecation.h"
 #include "rtc_base/refcount.h"
 #include "rtc_base/scoped_ref_ptr.h"
 
@@ -47,14 +49,21 @@ class RtpSenderInterface : public rtc::RefCountInterface {
   // to uniquely identify a receiver until we implement Unified Plan SDP.
   virtual std::string id() const = 0;
 
-  // Returns a list of streams associated with this sender's track. Although we
-  // only support one track per stream, in theory the API allows for multiple.
+  // Returns a list of media stream ids associated with this sender's track.
+  // These are signalled in the SDP so that the remote side can associate
+  // tracks.
   virtual std::vector<std::string> stream_ids() const = 0;
 
-  virtual RtpParameters GetParameters() const = 0;
+  // TODO(orphis): Transitional implementation
+  // Remove the const implementation and make the non-const pure virtual once
+  // when external code depending on this has updated
+  virtual RtpParameters GetParameters() { return RtpParameters(); }
+  RTC_DEPRECATED virtual RtpParameters GetParameters() const {
+    return const_cast<RtpSenderInterface*>(this)->GetParameters();
+  }
   // Note that only a subset of the parameters can currently be changed. See
   // rtpparameters.h
-  virtual bool SetParameters(const RtpParameters& parameters) = 0;
+  virtual RTCError SetParameters(const RtpParameters& parameters) = 0;
 
   // Returns null for a video sender.
   virtual rtc::scoped_refptr<DtmfSenderInterface> GetDtmfSender() const = 0;
@@ -74,10 +83,10 @@ BEGIN_SIGNALING_PROXY_MAP(RtpSender)
   PROXY_CONSTMETHOD0(cricket::MediaType, media_type)
   PROXY_CONSTMETHOD0(std::string, id)
   PROXY_CONSTMETHOD0(std::vector<std::string>, stream_ids)
-  PROXY_CONSTMETHOD0(RtpParameters, GetParameters);
-  PROXY_METHOD1(bool, SetParameters, const RtpParameters&)
+  PROXY_METHOD0(RtpParameters, GetParameters);
+  PROXY_METHOD1(RTCError, SetParameters, const RtpParameters&)
   PROXY_CONSTMETHOD0(rtc::scoped_refptr<DtmfSenderInterface>, GetDtmfSender);
-END_PROXY_MAP()
+  END_PROXY_MAP()
 
 }  // namespace webrtc
 

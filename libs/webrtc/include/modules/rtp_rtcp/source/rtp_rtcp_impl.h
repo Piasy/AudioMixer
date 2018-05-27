@@ -13,10 +13,12 @@
 
 #include <memory>
 #include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "api/optional.h"
+#include "api/video/video_bitrate_allocation.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
 #include "modules/rtp_rtcp/source/packet_loss_stats.h"
@@ -31,6 +33,7 @@ namespace webrtc {
 class ModuleRtpRtcpImpl : public RtpRtcp, public RTCPReceiver::ModuleRtpRtcp {
  public:
   explicit ModuleRtpRtcpImpl(const RtpRtcp::Configuration& configuration);
+  ~ModuleRtpRtcpImpl() override;
 
   // Returns the number of milliseconds until the module want a worker thread to
   // call Process.
@@ -50,8 +53,6 @@ class ModuleRtpRtcpImpl : public RtpRtcp, public RTCPReceiver::ModuleRtpRtcp {
   // Sender part.
 
   int32_t RegisterSendPayload(const CodecInst& voice_codec) override;
-
-  int32_t RegisterSendPayload(const VideoCodec& video_codec) override;
 
   void RegisterVideoSendPayload(int payload_type,
                                 const char* payload_name) override;
@@ -86,6 +87,8 @@ class ModuleRtpRtcpImpl : public RtpRtcp, public RTCPReceiver::ModuleRtpRtcp {
 
   // Configure SSRC, default is a random number.
   void SetSSRC(uint32_t ssrc) override;
+
+  void SetMid(const std::string& mid) override;
 
   void SetCsrcs(const std::vector<uint32_t>& csrcs) override;
 
@@ -192,12 +195,8 @@ class ModuleRtpRtcpImpl : public RtpRtcp, public RTCPReceiver::ModuleRtpRtcp {
       std::vector<RTCPReportBlock>* receive_blocks) const override;
 
   // (REMB) Receiver Estimated Max Bitrate.
-  bool REMB() const override;
-
-  void SetREMBStatus(bool enable) override;
-
-  void SetREMBData(uint32_t bitrate,
-                   const std::vector<uint32_t>& ssrcs) override;
+  void SetRemb(int64_t bitrate_bps, std::vector<uint32_t> ssrcs) override;
+  void UnsetRemb() override;
 
   // (TMMBR) Temporary Max Media Bit Rate.
   bool TMMBR() const override;
@@ -294,7 +293,8 @@ class ModuleRtpRtcpImpl : public RtpRtcp, public RTCPReceiver::ModuleRtpRtcp {
       const ReportBlockList& report_blocks) override;
   void OnRequestSendReport() override;
 
-  void SetVideoBitrateAllocation(const BitrateAllocation& bitrate) override;
+  void SetVideoBitrateAllocation(
+      const VideoBitrateAllocation& bitrate) override;
 
  protected:
   bool UpdateRTCPReceiveInformationTimers();
@@ -345,7 +345,7 @@ class ModuleRtpRtcpImpl : public RtpRtcp, public RTCPReceiver::ModuleRtpRtcp {
 
   RemoteBitrateEstimator* remote_bitrate_;
 
-  RtcpRttStats* rtt_stats_;
+  RtcpRttStats* const rtt_stats_;
 
   PacketLossStats send_loss_stats_;
   PacketLossStats receive_loss_stats_;

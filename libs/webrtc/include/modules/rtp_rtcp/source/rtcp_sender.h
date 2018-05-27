@@ -20,6 +20,7 @@
 
 #include "api/call/transport.h"
 #include "api/optional.h"
+#include "api/video/video_bitrate_allocation.h"
 #include "modules/remote_bitrate_estimator/include/bwe_defines.h"
 #include "modules/remote_bitrate_estimator/include/remote_bitrate_estimator.h"
 #include "modules/rtp_rtcp/include/receive_statistics.h"
@@ -59,6 +60,10 @@ class RTCPSender {
  public:
   struct FeedbackState {
     FeedbackState();
+    FeedbackState(const FeedbackState&);
+    FeedbackState(FeedbackState&&);
+
+    ~FeedbackState();
 
     uint32_t packets_sent;
     size_t media_bytes_sent;
@@ -68,8 +73,7 @@ class RTCPSender {
     uint32_t last_rr_ntp_frac;
     uint32_t remote_sr;
 
-    bool has_last_xr_rr;
-    rtcp::ReceiveTimeInfo last_xr_rr;
+    std::vector<rtcp::ReceiveTimeInfo> last_xr_rtis;
 
     // Used when generating TMMBR.
     ModuleRtpRtcpImpl* module;
@@ -80,7 +84,8 @@ class RTCPSender {
              ReceiveStatisticsProvider* receive_statistics,
              RtcpPacketTypeCounterObserver* packet_type_counter_observer,
              RtcEventLog* event_log,
-             Transport* outgoing_transport);
+             Transport* outgoing_transport,
+             RtcpIntervalConfig interval_config);
   virtual ~RTCPSender();
 
   RtcpMode Status() const;
@@ -120,11 +125,9 @@ class RTCPSender {
                            int32_t nackSize = 0,
                            const uint16_t* nackList = 0);
 
-  bool REMB() const;
+  void SetRemb(int64_t bitrate_bps, std::vector<uint32_t> ssrcs);
 
-  void SetREMBStatus(bool enable);
-
-  void SetREMBData(uint32_t bitrate, const std::vector<uint32_t>& ssrcs);
+  void UnsetRemb();
 
   bool TMMBR() const;
 
@@ -147,8 +150,11 @@ class RTCPSender {
   void SetCsrcs(const std::vector<uint32_t>& csrcs);
 
   void SetTargetBitrate(unsigned int target_bitrate);
-  void SetVideoBitrateAllocation(const BitrateAllocation& bitrate);
+  void SetVideoBitrateAllocation(const VideoBitrateAllocation& bitrate);
   bool SendFeedbackPacket(const rtcp::TransportFeedback& packet);
+
+  int64_t RtcpAudioReportInverval() const;
+  int64_t RtcpVideoReportInverval() const;
 
  private:
   class RtcpContext;
@@ -196,10 +202,11 @@ class RTCPSender {
   RtcEventLog* const event_log_;
   Transport* const transport_;
 
+  const RtcpIntervalConfig interval_config_;
+
   rtc::CriticalSection critical_section_rtcp_sender_;
   bool using_nack_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
   bool sending_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
-  bool remb_enabled_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
   int64_t next_time_to_send_rtcp_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
@@ -224,7 +231,7 @@ class RTCPSender {
   uint8_t sequence_number_fir_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
   // REMB
-  uint32_t remb_bitrate_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
+  int64_t remb_bitrate_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
   std::vector<uint32_t> remb_ssrcs_
       RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
@@ -255,7 +262,7 @@ class RTCPSender {
 
   RtcpNackStats nack_stats_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
-  rtc::Optional<BitrateAllocation> video_bitrate_allocation_
+  rtc::Optional<VideoBitrateAllocation> video_bitrate_allocation_
       RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
   void SetFlag(uint32_t type, bool is_volatile)

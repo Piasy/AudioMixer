@@ -11,6 +11,7 @@
 #ifndef API_STATS_RTCSTATS_OBJECTS_H_
 #define API_STATS_RTCSTATS_OBJECTS_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -58,6 +59,17 @@ struct RTCDtlsTransportState {
 struct RTCMediaStreamTrackKind {
   static const char* const kAudio;
   static const char* const kVideo;
+};
+
+// https://w3c.github.io/webrtc-stats/#dom-rtcnetworktype
+struct RTCNetworkType {
+  static const char* const kBluetooth;
+  static const char* const kCellular;
+  static const char* const kEthernet;
+  static const char* const kWifi;
+  static const char* const kWimax;
+  static const char* const kVpn;
+  static const char* const kUnknown;
 };
 
 // https://w3c.github.io/webrtc-stats/#certificatestats-dict*
@@ -172,6 +184,8 @@ class RTCIceCandidatePairStats final : public RTCStats {
 // TODO(hbos): |RTCStatsCollector| only collects candidates that are part of
 // ice candidate pairs, but there could be candidates not paired with anything.
 // crbug.com/632723
+// TODO(qingsi): Add the stats of STUN binding requests (keepalives) and collect
+// them in the new PeerConnection::GetStats.
 class RTCIceCandidateStats : public RTCStats {
  public:
   WEBRTC_RTCSTATS_DECL();
@@ -181,6 +195,7 @@ class RTCIceCandidateStats : public RTCStats {
 
   RTCStatsMember<std::string> transport_id;
   RTCStatsMember<bool> is_remote;
+  RTCStatsMember<std::string> network_type;
   RTCStatsMember<std::string> ip;
   RTCStatsMember<int32_t> port;
   RTCStatsMember<std::string> protocol;
@@ -203,11 +218,13 @@ class RTCIceCandidateStats : public RTCStats {
 // But here we define them as subclasses of |RTCIceCandidateStats| because the
 // |kType| need to be different ("RTCStatsType type") in the local/remote case.
 // https://w3c.github.io/webrtc-stats/#rtcstatstype-str*
+// This forces us to have to override copy() and type().
 class RTCLocalIceCandidateStats final : public RTCIceCandidateStats {
  public:
   static const char kType[];
   RTCLocalIceCandidateStats(const std::string& id, int64_t timestamp_us);
   RTCLocalIceCandidateStats(std::string&& id, int64_t timestamp_us);
+  std::unique_ptr<RTCStats> copy() const override;
   const char* type() const override;
 };
 
@@ -216,6 +233,7 @@ class RTCRemoteIceCandidateStats final : public RTCIceCandidateStats {
   static const char kType[];
   RTCRemoteIceCandidateStats(const std::string& id, int64_t timestamp_us);
   RTCRemoteIceCandidateStats(std::string&& id, int64_t timestamp_us);
+  std::unique_ptr<RTCStats> copy() const override;
   const char* type() const override;
 };
 
@@ -265,6 +283,7 @@ class RTCMediaStreamTrackStats final : public RTCStats {
   // TODO(hbos): Not collected by |RTCStatsCollector|. crbug.com/659137
   RTCStatsMember<double> frames_per_second;
   RTCStatsMember<uint32_t> frames_sent;
+  RTCStatsMember<uint32_t> huge_frames_sent;
   RTCStatsMember<uint32_t> frames_received;
   RTCStatsMember<uint32_t> frames_decoded;
   RTCStatsMember<uint32_t> frames_dropped;
@@ -349,7 +368,7 @@ class RTCInboundRTPStreamStats final : public RTCRTPStreamStats {
 
   RTCStatsMember<uint32_t> packets_received;
   RTCStatsMember<uint64_t> bytes_received;
-  RTCStatsMember<uint32_t> packets_lost;
+  RTCStatsMember<int32_t> packets_lost;  // Signed per RFC 3550
   // TODO(hbos): Collect and populate this value for both "audio" and "video",
   // currently not collected for "video". https://bugs.webrtc.org/7065
   RTCStatsMember<double> jitter;

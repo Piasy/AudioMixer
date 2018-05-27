@@ -19,7 +19,7 @@
 #include "api/audio_codecs/audio_format.h"
 #include "common_types.h"  // NOLINT(build/include)  // NULL
 #include "modules/audio_coding/codecs/cng/webrtc_cng.h"
-#include "modules/audio_coding/neteq/audio_decoder_impl.h"
+#include "modules/audio_coding/neteq/neteq_decoder_enum.h"
 #include "modules/audio_coding/neteq/packet.h"
 #include "rtc_base/constructormagic.h"
 #include "rtc_base/scoped_ref_ptr.h"
@@ -43,17 +43,24 @@ class DecoderDatabase {
   class DecoderInfo {
    public:
     DecoderInfo(const SdpAudioFormat& audio_format,
+                rtc::Optional<AudioCodecPairId> codec_pair_id,
                 AudioDecoderFactory* factory,
                 const std::string& codec_name);
     explicit DecoderInfo(const SdpAudioFormat& audio_format,
+                         rtc::Optional<AudioCodecPairId> codec_pair_id,
                          AudioDecoderFactory* factory = nullptr);
     explicit DecoderInfo(NetEqDecoder ct,
+                         rtc::Optional<AudioCodecPairId> codec_pair_id,
                          AudioDecoderFactory* factory = nullptr);
     DecoderInfo(const SdpAudioFormat& audio_format,
                 AudioDecoder* ext_dec,
                 const std::string& codec_name);
     DecoderInfo(DecoderInfo&&);
     ~DecoderInfo();
+
+    // Was this info object created with a specification that allows us to
+    // actually produce a decoder?
+    bool CanGetDecoder() const;
 
     // Get the AudioDecoder object, creating it first if necessary.
     AudioDecoder* GetDecoder() const;
@@ -104,6 +111,7 @@ class DecoderDatabase {
     const std::string name_;
 
     const SdpAudioFormat audio_format_;
+    const rtc::Optional<AudioCodecPairId> codec_pair_id_;
     AudioDecoderFactory* const factory_;
     mutable std::unique_ptr<AudioDecoder> decoder_;
 
@@ -134,7 +142,8 @@ class DecoderDatabase {
   static const uint8_t kRtpPayloadTypeError = 0xFF;
 
   DecoderDatabase(
-      const rtc::scoped_refptr<AudioDecoderFactory>& decoder_factory);
+      const rtc::scoped_refptr<AudioDecoderFactory>& decoder_factory,
+      rtc::Optional<AudioCodecPairId> codec_pair_id);
 
   virtual ~DecoderDatabase();
 
@@ -238,6 +247,7 @@ class DecoderDatabase {
   int active_cng_decoder_type_;
   mutable std::unique_ptr<ComfortNoiseDecoder> active_cng_decoder_;
   rtc::scoped_refptr<AudioDecoderFactory> decoder_factory_;
+  const rtc::Optional<AudioCodecPairId> codec_pair_id_;
 
   RTC_DISALLOW_COPY_AND_ASSIGN(DecoderDatabase);
 };

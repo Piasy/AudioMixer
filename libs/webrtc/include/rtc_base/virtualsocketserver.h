@@ -103,10 +103,7 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
   void SetSendingBlocked(bool blocked);
 
   // SocketFactory:
-  Socket* CreateSocket(int type) override;
   Socket* CreateSocket(int family, int type) override;
-
-  AsyncSocket* CreateAsyncSocket(int type) override;
   AsyncSocket* CreateAsyncSocket(int family, int type) override;
 
   // SocketServer:
@@ -147,6 +144,10 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
   // its own OnClose invoked.
   bool CloseTcpConnections(const SocketAddress& addr_local,
                            const SocketAddress& addr_remote);
+
+  // Number of packets that clients have attempted to send through this virtual
+  // socket server. Intended to be used for test assertions.
+  uint32_t sent_packets() const { return sent_packets_; }
 
   // For testing purpose only. Fired when a client socket is created.
   sigslot::signal1<VirtualSocket*> SignalSocketCreated;
@@ -281,6 +282,9 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
   uint32_t delay_mean_;
   uint32_t delay_stddev_;
   uint32_t delay_samples_;
+
+  // Used for testing.
+  uint32_t sent_packets_ = 0;
 
   std::map<rtc::IPAddress, int> delay_by_ip_;
   std::map<rtc::IPAddress, rtc::IPAddress> alternative_address_mapping_;

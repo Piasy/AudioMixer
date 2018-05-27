@@ -12,8 +12,11 @@
 #define P2P_BASE_PORTINTERFACE_H_
 
 #include <string>
+#include <vector>
 
-#include "p2p/base/jseptransport.h"
+#include "api/candidate.h"
+#include "api/optional.h"
+#include "p2p/base/transportdescription.h"
 #include "rtc_base/asyncpacketsocket.h"
 #include "rtc_base/socketaddress.h"
 
@@ -26,6 +29,7 @@ namespace cricket {
 class Connection;
 class IceMessage;
 class StunMessage;
+class StunStats;
 
 enum ProtocolType {
   PROTO_UDP,
@@ -40,7 +44,7 @@ enum ProtocolType {
 // the other client. Various types of ports will implement this interface.
 class PortInterface {
  public:
-  virtual ~PortInterface() {}
+  virtual ~PortInterface();
 
   virtual const std::string& Type() const = 0;
   virtual rtc::Network* Network() const = 0;
@@ -123,8 +127,10 @@ class PortInterface {
 
   virtual std::string ToString() const = 0;
 
+  virtual void GetStunStats(rtc::Optional<StunStats>* stats) = 0;
+
  protected:
-  PortInterface() {}
+  PortInterface();
 };
 
 }  // namespace cricket

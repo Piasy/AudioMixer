@@ -32,25 +32,9 @@ class RtcEventLog;
 
 struct CodecInst;
 
-class AudioEncoderOpus final : public AudioEncoder {
+class AudioEncoderOpusImpl final : public AudioEncoder {
  public:
-  static void AppendSupportedEncoders(std::vector<AudioCodecSpec>* specs);
-  static AudioCodecInfo QueryAudioEncoder(const AudioEncoderOpusConfig& config);
-  static std::unique_ptr<AudioEncoder> MakeAudioEncoder(
-      const AudioEncoderOpusConfig&,
-      int payload_type);
-
-  // NOTE: This alias will soon go away. See
-  // https://bugs.chromium.org/p/webrtc/issues/detail?id=7847
-  using Config = AudioEncoderOpusConfig;
-
-  // NOTE: This function will soon go away. See
-  // https://bugs.chromium.org/p/webrtc/issues/detail?id=7847
-  static Config CreateConfig(int payload_type, const SdpAudioFormat& format);
-
   static AudioEncoderOpusConfig CreateConfig(const CodecInst& codec_inst);
-  static rtc::Optional<AudioEncoderOpusConfig> SdpToConfig(
-      const SdpAudioFormat& format);
 
   // Returns empty if the current bitrate falls within the hysteresis window,
   // defined by complexity_threshold_bps +/- complexity_threshold_window_bps.
@@ -59,26 +43,29 @@ class AudioEncoderOpus final : public AudioEncoder {
   static rtc::Optional<int> GetNewComplexity(
       const AudioEncoderOpusConfig& config);
 
+  // Returns OPUS_AUTO if the the current bitrate is above wideband threshold.
+  // Returns empty if it is below, but bandwidth coincides with the desired one.
+  // Otherwise returns the desired bandwidth.
+  static rtc::Optional<int> GetNewBandwidth(
+      const AudioEncoderOpusConfig& config,
+      OpusEncInst* inst);
+
   using AudioNetworkAdaptorCreator =
       std::function<std::unique_ptr<AudioNetworkAdaptor>(const std::string&,
                                                          RtcEventLog*)>;
 
-  // NOTE: This constructor will soon go away. See
-  // https://bugs.chromium.org/p/webrtc/issues/detail?id=7847
-  AudioEncoderOpus(const AudioEncoderOpusConfig& config);
-
-  AudioEncoderOpus(const AudioEncoderOpusConfig& config, int payload_type);
+  AudioEncoderOpusImpl(const AudioEncoderOpusConfig& config, int payload_type);
 
   // Dependency injection for testing.
-  AudioEncoderOpus(
+  AudioEncoderOpusImpl(
       const AudioEncoderOpusConfig& config,
       int payload_type,
       const AudioNetworkAdaptorCreator& audio_network_adaptor_creator,
       std::unique_ptr<SmoothingFilter> bitrate_smoother);
 
-  explicit AudioEncoderOpus(const CodecInst& codec_inst);
-  AudioEncoderOpus(int payload_type, const SdpAudioFormat& format);
-  ~AudioEncoderOpus() override;
+  explicit AudioEncoderOpusImpl(const CodecInst& codec_inst);
+  AudioEncoderOpusImpl(int payload_type, const SdpAudioFormat& format);
+  ~AudioEncoderOpusImpl() override;
 
   // Static interface for use by BuiltinAudioEncoderFactory.
   static constexpr const char* GetPayloadName() { return "opus"; }
@@ -138,6 +125,14 @@ class AudioEncoderOpus final : public AudioEncoder {
  private:
   class PacketLossFractionSmoother;
 
+  static rtc::Optional<AudioEncoderOpusConfig> SdpToConfig(
+      const SdpAudioFormat& format);
+  static void AppendSupportedEncoders(std::vector<AudioCodecSpec>* specs);
+  static AudioCodecInfo QueryAudioEncoder(const AudioEncoderOpusConfig& config);
+  static std::unique_ptr<AudioEncoder> MakeAudioEncoder(
+      const AudioEncoderOpusConfig&,
+      int payload_type);
+
   size_t Num10msFramesPerPacket() const;
   size_t SamplesPer10msFrame() const;
   size_t SufficientOutputBufferSize() const;
@@ -160,6 +155,8 @@ class AudioEncoderOpus final : public AudioEncoder {
   AudioEncoderOpusConfig config_;
   const int payload_type_;
   const bool send_side_bwe_with_overhead_;
+  const bool adjust_bandwidth_;
+  bool bitrate_changed_;
   float packet_loss_rate_;
   std::vector<int16_t> input_buffer_;
   OpusEncInst* inst_;
@@ -173,8 +170,10 @@ class AudioEncoderOpus final : public AudioEncoder {
   rtc::Optional<size_t> overhead_bytes_per_packet_;
   const std::unique_ptr<SmoothingFilter> bitrate_smoother_;
   rtc::Optional<int64_t> bitrate_smoother_last_update_time_;
+  int consecutive_dtx_frames_;
 
-  RTC_DISALLOW_COPY_AND_ASSIGN(AudioEncoderOpus);
+  friend struct AudioEncoderOpus;
+  RTC_DISALLOW_COPY_AND_ASSIGN(AudioEncoderOpusImpl);
 };
 
 }  // namespace webrtc

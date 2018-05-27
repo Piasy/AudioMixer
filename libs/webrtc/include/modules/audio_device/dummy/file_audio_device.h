@@ -18,8 +18,8 @@
 
 #include "modules/audio_device/audio_device_generic.h"
 #include "rtc_base/criticalsection.h"
+#include "rtc_base/system/file_wrapper.h"
 #include "rtc_base/timeutils.h"
-#include "system_wrappers/include/file_wrapper.h"
 
 namespace rtc {
 class PlatformThread;
@@ -38,8 +38,7 @@ class FileAudioDevice : public AudioDeviceGeneric {
   // The input file should be a readable 48k stereo raw file, and the output
   // file should point to a writable location. The output format will also be
   // 48k stereo raw audio.
-  FileAudioDevice(const int32_t id,
-                  const char* inputFilename,
+  FileAudioDevice(const char* inputFilename,
                   const char* outputFilename);
   virtual ~FileAudioDevice();
 
@@ -86,10 +85,6 @@ class FileAudioDevice : public AudioDeviceGeneric {
   int32_t StopRecording() override;
   bool Recording() const override;
 
-  // Microphone Automatic Gain Control (AGC)
-  int32_t SetAGC(bool enable) override;
-  bool AGC() const override;
-
   // Audio mixer initialization
   int32_t InitSpeaker() override;
   bool SpeakerIsInitialized() const override;
@@ -130,7 +125,6 @@ class FileAudioDevice : public AudioDeviceGeneric {
 
   // Delay information and control
   int32_t PlayoutDelay(uint16_t& delayMS) const override;
-  int32_t RecordingDelay(uint16_t& delayMS) const override;
 
   void AttachAudioBuffer(AudioDeviceBuffer* audioBuffer) override;
 

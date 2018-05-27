@@ -11,6 +11,8 @@
 #ifndef P2P_BASE_BASICPACKETSOCKETFACTORY_H_
 #define P2P_BASE_BASICPACKETSOCKETFACTORY_H_
 
+#include <string>
+
 #include "p2p/base/packetsocketfactory.h"
 
 namespace rtc {
@@ -37,12 +39,7 @@ class BasicPacketSocketFactory : public PacketSocketFactory {
                                            const SocketAddress& remote_address,
                                            const ProxyInfo& proxy_info,
                                            const std::string& user_agent,
-                                           int opts) override {
-    PacketSocketTcpOptions tcp_options;
-    tcp_options.opts = opts;
-    return CreateClientTcpSocket(local_address, remote_address, proxy_info,
-                                 user_agent, tcp_options);
-  }
+                                           int opts) override;
   AsyncPacketSocket* CreateClientTcpSocket(
       const SocketAddress& local_address,
       const SocketAddress& remote_address,

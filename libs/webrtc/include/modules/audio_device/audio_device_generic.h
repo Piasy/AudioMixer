@@ -71,10 +71,6 @@ class AudioDeviceGeneric {
   virtual int32_t StopRecording() = 0;
   virtual bool Recording() const = 0;
 
-  // Microphone Automatic Gain Control (AGC)
-  virtual int32_t SetAGC(bool enable) = 0;
-  virtual bool AGC() const = 0;
-
   // Audio mixer initialization
   virtual int32_t InitSpeaker() = 0;
   virtual bool SpeakerIsInitialized() const = 0;
@@ -115,15 +111,6 @@ class AudioDeviceGeneric {
 
   // Delay information and control
   virtual int32_t PlayoutDelay(uint16_t& delayMS) const = 0;
-  virtual int32_t RecordingDelay(uint16_t& delayMS) const = 0;
-
-  // Native sample rate controls (samples/sec)
-  virtual int32_t SetRecordingSampleRate(const uint32_t samplesPerSec);
-  virtual int32_t SetPlayoutSampleRate(const uint32_t samplesPerSec);
-
-  // Speaker audio routing (for mobile devices)
-  virtual int32_t SetLoudspeakerStatus(bool enable);
-  virtual int32_t GetLoudspeakerStatus(bool& enable) const;
 
   // Android only
   virtual bool BuiltInAECIsAvailable() const;

@@ -11,16 +11,26 @@
 #ifndef P2P_BASE_PACKETSOCKETFACTORY_H_
 #define P2P_BASE_PACKETSOCKETFACTORY_H_
 
+#include <string>
+#include <vector>
+
 #include "rtc_base/constructormagic.h"
 #include "rtc_base/proxyinfo.h"
+#include "rtc_base/sslcertificate.h"
 
 namespace rtc {
 
 // This structure contains options required to create TCP packet sockets.
 struct PacketSocketTcpOptions {
-  int opts;
+  PacketSocketTcpOptions();
+  ~PacketSocketTcpOptions();
+
+  int opts = 0;
   std::vector<std::string> tls_alpn_protocols;
   std::vector<std::string> tls_elliptic_curves;
+  // An optional custom SSL certificate verifier that an API user can provide to
+  // inject their own certificate verification logic.
+  SSLCertificateVerifier* tls_cert_verifier = nullptr;
 };
 
 class AsyncPacketSocket;
@@ -41,7 +51,7 @@ class PacketSocketFactory {
   };
 
   PacketSocketFactory() { }
-  virtual ~PacketSocketFactory() { }
+  virtual ~PacketSocketFactory() = default;
 
   virtual AsyncPacketSocket* CreateUdpSocket(const SocketAddress& address,
                                              uint16_t min_port,
@@ -70,10 +80,7 @@ class PacketSocketFactory {
       const SocketAddress& remote_address,
       const ProxyInfo& proxy_info,
       const std::string& user_agent,
-      const PacketSocketTcpOptions& tcp_options) {
-    return CreateClientTcpSocket(local_address, remote_address, proxy_info,
-                                 user_agent, tcp_options.opts);
-  }
+      const PacketSocketTcpOptions& tcp_options);
 
   virtual AsyncResolverInterface* CreateAsyncResolver() = 0;
 

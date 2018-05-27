@@ -29,7 +29,7 @@ class StreamStatisticianImpl : public StreamStatistician {
                          Clock* clock,
                          RtcpStatisticsCallback* rtcp_callback,
                          StreamDataCountersCallback* rtp_callback);
-  virtual ~StreamStatisticianImpl() {}
+  ~StreamStatisticianImpl() override;
 
   // |reset| here and in next method restarts calculation of fraction_lost stat.
   bool GetStatistics(RtcpStatistics* statistics, bool reset) override;
@@ -67,12 +67,10 @@ class StreamStatisticianImpl : public StreamStatistician {
   // Stats on received RTP packets.
   uint32_t jitter_q4_;
   uint32_t cumulative_loss_;
-  uint32_t jitter_q4_transmission_time_offset_;
 
   int64_t last_receive_time_ms_;
   NtpTime last_receive_time_ntp_;
   uint32_t last_received_timestamp_;
-  int32_t last_received_transmission_time_offset_;
   uint16_t received_seq_first_;
   uint16_t received_seq_max_;
   uint16_t received_seq_wraps_;
@@ -98,7 +96,7 @@ class ReceiveStatisticsImpl : public ReceiveStatistics,
  public:
   explicit ReceiveStatisticsImpl(Clock* clock);
 
-  ~ReceiveStatisticsImpl();
+  ~ReceiveStatisticsImpl() override;
 
   // Implement ReceiveStatisticsProvider.
   std::vector<rtcp::ReportBlock> RtcpReportBlocks(size_t max_blocks) override;
@@ -127,6 +125,7 @@ class ReceiveStatisticsImpl : public ReceiveStatistics,
 
   Clock* const clock_;
   rtc::CriticalSection receive_statistics_lock_;
+  uint32_t last_returned_ssrc_;
   std::map<uint32_t, StreamStatisticianImpl*> statisticians_;
 
   RtcpStatisticsCallback* rtcp_stats_callback_;

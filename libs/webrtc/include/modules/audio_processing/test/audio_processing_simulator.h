@@ -41,7 +41,7 @@ struct SimulationSettings {
   rtc::Optional<int> reverse_output_sample_rate_hz;
   rtc::Optional<int> reverse_output_num_channels;
   rtc::Optional<std::string> microphone_positions;
-  int target_angle_degrees = 90;
+  float target_angle_degrees = 90.f;
   rtc::Optional<std::string> output_filename;
   rtc::Optional<std::string> reverse_output_filename;
   rtc::Optional<std::string> input_filename;
@@ -53,6 +53,7 @@ struct SimulationSettings {
   rtc::Optional<std::string> ed_graph_output_filename;
   rtc::Optional<bool> use_agc;
   rtc::Optional<bool> use_agc2;
+  rtc::Optional<bool> use_pre_amplifier;
   rtc::Optional<bool> use_hpf;
   rtc::Optional<bool> use_ns;
   rtc::Optional<bool> use_ts;
@@ -66,7 +67,6 @@ struct SimulationSettings {
   rtc::Optional<bool> use_extended_filter;
   rtc::Optional<bool> use_drift_compensation;
   rtc::Optional<bool> use_aec3;
-  rtc::Optional<bool> use_lc;
   rtc::Optional<bool> use_experimental_agc;
   rtc::Optional<int> aecm_routing_mode;
   rtc::Optional<bool> use_aecm_comfort_noise;
@@ -74,6 +74,8 @@ struct SimulationSettings {
   rtc::Optional<int> agc_target_level;
   rtc::Optional<bool> use_agc_limiter;
   rtc::Optional<int> agc_compression_gain;
+  float agc2_fixed_gain_db;
+  float pre_amplifier_gain_factor;
   rtc::Optional<int> vad_likelihood;
   rtc::Optional<int> ns_level;
   rtc::Optional<bool> use_refined_adaptive_filter;
@@ -89,6 +91,7 @@ struct SimulationSettings {
   bool fixed_interface = false;
   bool store_intermediate_output = false;
   rtc::Optional<std::string> custom_call_order_filename;
+  rtc::Optional<std::string> aec3_settings_filename;
 };
 
 // Holds a few statistics about a series of TickIntervals.
@@ -107,7 +110,8 @@ class AudioProcessingSimulator {
  public:
   static const int kChunksPerSecond = 1000 / AudioProcessing::kChunkSizeMs;
 
-  explicit AudioProcessingSimulator(const SimulationSettings& settings);
+  AudioProcessingSimulator(const SimulationSettings& settings,
+                           std::unique_ptr<AudioProcessingBuilder> ap_builder);
   virtual ~AudioProcessingSimulator();
 
   // Processes the data in the input.
@@ -156,6 +160,7 @@ class AudioProcessingSimulator {
 
   const SimulationSettings settings_;
   std::unique_ptr<AudioProcessing> ap_;
+  std::unique_ptr<AudioProcessingBuilder> ap_builder_;
 
   std::unique_ptr<ChannelBuffer<float>> in_buf_;
   std::unique_ptr<ChannelBuffer<float>> out_buf_;

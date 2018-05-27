@@ -16,7 +16,6 @@
 
 #include "rtc_base/logging.h"
 #include "rtc_base/thread.h"
-#include "sdk/android/src/jni/classreferenceholder.h"
 #include "sdk/android/src/jni/jni_helpers.h"
 
 namespace webrtc {
@@ -75,7 +74,7 @@ static inline void AllowBlockingCalls() {
 // currently thrown exception.
 static inline bool CheckException(JNIEnv* jni) {
   if (jni->ExceptionCheck()) {
-    LOG_TAG(rtc::LS_ERROR, TAG_COMMON) << "Java JNI exception.";
+    RTC_LOG_TAG(rtc::LS_ERROR, TAG_COMMON) << "Java JNI exception.";
     jni->ExceptionDescribe();
     jni->ExceptionClear();
     return true;

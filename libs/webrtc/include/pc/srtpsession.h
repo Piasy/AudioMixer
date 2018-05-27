@@ -13,7 +13,9 @@
 
 #include <vector>
 
+#include "api/umametrics.h"
 #include "rtc_base/basictypes.h"
+#include "rtc_base/scoped_ref_ptr.h"
 #include "rtc_base/thread_checker.h"
 
 // Forward declaration to avoid pulling in libsrtp headers here
@@ -30,16 +32,25 @@ class SrtpSession {
 
   // Configures the session for sending data using the specified
   // cipher-suite and key. Receiving must be done by a separate session.
-  bool SetSend(int cs, const uint8_t* key, size_t len);
-  bool UpdateSend(int cs, const uint8_t* key, size_t len);
+  bool SetSend(int cs,
+               const uint8_t* key,
+               size_t len,
+               const std::vector<int>& extension_ids);
+  bool UpdateSend(int cs,
+                  const uint8_t* key,
+                  size_t len,
+                  const std::vector<int>& extension_ids);
 
   // Configures the session for receiving data using the specified
   // cipher-suite and key. Sending must be done by a separate session.
-  bool SetRecv(int cs, const uint8_t* key, size_t len);
-  bool UpdateRecv(int cs, const uint8_t* key, size_t len);
-
-  void SetEncryptedHeaderExtensionIds(
-      const std::vector<int>& encrypted_header_extension_ids);
+  bool SetRecv(int cs,
+               const uint8_t* key,
+               size_t len,
+               const std::vector<int>& extension_ids);
+  bool UpdateRecv(int cs,
+                  const uint8_t* key,
+                  size_t len,
+                  const std::vector<int>& extension_ids);
 
   // Encrypts/signs an individual RTP/RTCP packet, in-place.
   // If an HMAC is used, this will increase the packet size.
@@ -74,20 +85,36 @@ class SrtpSession {
   // been set.
   bool IsExternalAuthActive() const;
 
-  // Calls srtp_shutdown if it's initialized.
-  static void Terminate();
+  void SetMetricsObserver(
+      rtc::scoped_refptr<webrtc::MetricsObserverInterface> metrics_observer);
 
  private:
-  bool DoSetKey(int type, int cs, const uint8_t* key, size_t len);
-  bool SetKey(int type, int cs, const uint8_t* key, size_t len);
-  bool UpdateKey(int type, int cs, const uint8_t* key, size_t len);
-  bool SetEncryptedHeaderExtensionIds(
-      int type,
-      const std::vector<int>& encrypted_header_extension_ids);
+  bool DoSetKey(int type,
+                int cs,
+                const uint8_t* key,
+                size_t len,
+                const std::vector<int>& extension_ids);
+  bool SetKey(int type,
+              int cs,
+              const uint8_t* key,
+              size_t len,
+              const std::vector<int>& extension_ids);
+  bool UpdateKey(int type,
+                 int cs,
+                 const uint8_t* key,
+                 size_t len,
+                 const std::vector<int>& extension_ids);
   // Returns send stream current packet index from srtp db.
   bool GetSendStreamPacketIndex(void* data, int in_len, int64_t* index);
 
-  static bool Init();
+  // These methods are responsible for initializing libsrtp (if the usage count
+  // is incremented from 0 to 1) or deinitializing it (when decremented from 1
+  // to 0).
+  //
+  // Returns true if successful (will always be successful if already inited).
+  static bool IncrementLibsrtpUsageCountAndMaybeInit();
+  static void DecrementLibsrtpUsageCountAndMaybeDeinit();
+
   void HandleEvent(const srtp_event_data_t* ev);
   static void HandleEventThunk(srtp_event_data_t* ev);
 
@@ -95,12 +122,12 @@ class SrtpSession {
   srtp_ctx_t_* session_ = nullptr;
   int rtp_auth_tag_len_ = 0;
   int rtcp_auth_tag_len_ = 0;
-  static bool inited_;
+  bool inited_ = false;
   static rtc::GlobalLockPod lock_;
   int last_send_seq_num_ = -1;
   bool external_auth_active_ = false;
   bool external_auth_enabled_ = false;
-  std::vector<int> encrypted_header_extension_ids_;
+  rtc::scoped_refptr<webrtc::MetricsObserverInterface> metrics_observer_;
   RTC_DISALLOW_COPY_AND_ASSIGN(SrtpSession);
 };
 

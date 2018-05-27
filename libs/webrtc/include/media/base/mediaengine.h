@@ -16,6 +16,8 @@
 #endif
 
 #include <string>
+#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "api/audio_codecs/audio_decoder_factory.h"
@@ -27,10 +29,6 @@
 #include "media/base/videocommon.h"
 #include "rtc_base/platform_file.h"
 
-#if defined(GOOGLE_CHROME_BUILD) || defined(CHROMIUM_BUILD)
-#define DISABLE_MEDIA_ENGINE_FACTORY
-#endif
-
 namespace webrtc {
 class AudioDeviceModule;
 class AudioMixer;
@@ -41,6 +39,8 @@ class Call;
 namespace cricket {
 
 struct RtpCapabilities {
+  RtpCapabilities();
+  ~RtpCapabilities();
   std::vector<webrtc::RtpExtension> header_extensions;
 };
 
@@ -70,9 +70,6 @@ class MediaEngineInterface {
       const MediaConfig& config,
       const VideoOptions& options) = 0;
 
-  // Gets the current microphone level, as a value between 0 and 10.
-  virtual int GetInputLevel() = 0;
-
   virtual const std::vector<AudioCodec>& audio_send_codecs() = 0;
   virtual const std::vector<AudioCodec>& audio_recv_codecs() = 0;
   virtual RtpCapabilities GetAudioCapabilities() = 0;
@@ -88,24 +85,6 @@ class MediaEngineInterface {
   virtual void StopAecDump() = 0;
 };
 
-
-#if !defined(DISABLE_MEDIA_ENGINE_FACTORY)
-class MediaEngineFactory {
- public:
-  typedef cricket::MediaEngineInterface* (*MediaEngineCreateFunction)();
-  // Creates a media engine, using either the compiled system default or the
-  // creation function specified in SetCreateFunction, if specified.
-  static MediaEngineInterface* Create();
-  // Sets the function used when calling Create. If unset, the compiled system
-  // default will be used. Returns the old create function, or NULL if one
-  // wasn't set. Likewise, NULL can be used as the |function| parameter to
-  // reset to the default behavior.
-  static MediaEngineCreateFunction SetCreateFunction(
-      MediaEngineCreateFunction function);
- private:
-  static MediaEngineCreateFunction create_function_;
-};
-#endif
 
 // CompositeMediaEngine constructs a MediaEngine from separate
 // voice and video engine classes.
@@ -139,7 +118,6 @@ class CompositeMediaEngine : public MediaEngineInterface {
     return video().CreateChannel(call, config, options);
   }
 
-  virtual int GetInputLevel() { return voice().GetInputLevel(); }
   virtual const std::vector<AudioCodec>& audio_send_codecs() {
     return voice().send_codecs();
   }
@@ -170,7 +148,7 @@ class CompositeMediaEngine : public MediaEngineInterface {
   std::pair<VOICE, VIDEO> engines_;
 };
 
-enum DataChannelType { DCT_NONE = 0, DCT_RTP = 1, DCT_SCTP = 2, DCT_QUIC = 3 };
+enum DataChannelType { DCT_NONE = 0, DCT_RTP = 1, DCT_SCTP = 2 };
 
 class DataEngineInterface {
  public:
@@ -180,6 +158,7 @@ class DataEngineInterface {
 };
 
 webrtc::RtpParameters CreateRtpParametersWithOneEncoding();
+webrtc::RtpParameters CreateRtpParametersWithEncodings(StreamParams sp);
 
 }  // namespace cricket
 

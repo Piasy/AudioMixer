@@ -38,25 +38,30 @@ class OwnedFactoryAndThreads {
   OwnedFactoryAndThreads(std::unique_ptr<Thread> network_thread,
                          std::unique_ptr<Thread> worker_thread,
                          std::unique_ptr<Thread> signaling_thread,
-                         WebRtcVideoEncoderFactory* encoder_factory,
-                         WebRtcVideoDecoderFactory* decoder_factory,
+                         WebRtcVideoEncoderFactory* legacy_encoder_factory,
+                         WebRtcVideoDecoderFactory* legacy_decoder_factory,
                          rtc::NetworkMonitorFactory* network_monitor_factory,
                          PeerConnectionFactoryInterface* factory)
       : network_thread_(std::move(network_thread)),
         worker_thread_(std::move(worker_thread)),
         signaling_thread_(std::move(signaling_thread)),
-        encoder_factory_(encoder_factory),
-        decoder_factory_(decoder_factory),
+        legacy_encoder_factory_(legacy_encoder_factory),
+        legacy_decoder_factory_(legacy_decoder_factory),
         network_monitor_factory_(network_monitor_factory),
         factory_(factory) {}
 
   ~OwnedFactoryAndThreads();
 
   PeerConnectionFactoryInterface* factory() { return factory_; }
+  Thread* network_thread() { return network_thread_.get(); }
   Thread* signaling_thread() { return signaling_thread_.get(); }
   Thread* worker_thread() { return worker_thread_.get(); }
-  WebRtcVideoEncoderFactory* encoder_factory() { return encoder_factory_; }
-  WebRtcVideoDecoderFactory* decoder_factory() { return decoder_factory_; }
+  WebRtcVideoEncoderFactory* legacy_encoder_factory() {
+    return legacy_encoder_factory_;
+  }
+  WebRtcVideoDecoderFactory* legacy_decoder_factory() {
+    return legacy_decoder_factory_;
+  }
   rtc::NetworkMonitorFactory* network_monitor_factory() {
     return network_monitor_factory_;
   }
@@ -64,13 +69,11 @@ class OwnedFactoryAndThreads {
   void InvokeJavaCallbacksOnFactoryThreads();
 
  private:
-  void JavaCallbackOnFactoryThreads();
-
   const std::unique_ptr<Thread> network_thread_;
   const std::unique_ptr<Thread> worker_thread_;
   const std::unique_ptr<Thread> signaling_thread_;
-  WebRtcVideoEncoderFactory* encoder_factory_;
-  WebRtcVideoDecoderFactory* decoder_factory_;
+  WebRtcVideoEncoderFactory* legacy_encoder_factory_;
+  WebRtcVideoDecoderFactory* legacy_decoder_factory_;
   rtc::NetworkMonitorFactory* network_monitor_factory_;
   PeerConnectionFactoryInterface* factory_;  // Const after ctor except dtor.
 };

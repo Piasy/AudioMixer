@@ -13,8 +13,8 @@
 
 #include "api/mediastreaminterface.h"
 #include "api/notifier.h"
+#include "api/video/video_sink_interface.h"
 #include "media/base/mediachannel.h"
-#include "media/base/videosinkinterface.h"
 #include "rtc_base/thread_checker.h"
 
 // VideoTrackSource implements VideoTrackSourceInterface.
@@ -33,8 +33,7 @@ class VideoTrackSource : public Notifier<VideoTrackSourceInterface> {
   bool remote() const override { return remote_; }
 
   bool is_screencast() const override { return false; }
-  rtc::Optional<bool> needs_denoising() const override {
-    return rtc::Optional<bool>(); }
+  rtc::Optional<bool> needs_denoising() const override { return rtc::nullopt; }
 
   bool GetStats(Stats* stats) override { return false; }
 

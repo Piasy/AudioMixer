@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "api/audio_codecs/audio_codec_pair_id.h"
 #include "api/audio_codecs/audio_encoder.h"
 #include "api/audio_codecs/audio_encoder_factory.h"
 #include "api/audio_codecs/audio_format.h"
@@ -22,15 +23,13 @@
 #include "api/optional.h"
 #include "api/rtpparameters.h"
 #include "call/rtp_config.h"
+#include "modules/audio_processing/include/audio_processing_statistics.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "typedefs.h"  // NOLINT(build/include)
 
 namespace webrtc {
 
-// WORK IN PROGRESS
-// This class is under development and is not yet intended for for use outside
-// of WebRtc/Libjingle. Please use the VoiceEngine API instead.
-// See: https://bugs.chromium.org/p/webrtc/issues/detail?id=4690
+class AudioFrame;
 
 class AudioSendStream {
  public:
@@ -54,15 +53,10 @@ class AudioSendStream {
     // https://w3c.github.io/webrtc-stats/#dom-rtcmediastreamtrackstats-totalaudioenergy
     double total_input_energy = 0.0;
     double total_input_duration = 0.0;
-    float aec_quality_min = -1.0f;
-    int32_t echo_delay_median_ms = -1;
-    int32_t echo_delay_std_ms = -1;
-    int32_t echo_return_loss = -100;
-    int32_t echo_return_loss_enhancement = -100;
-    float residual_echo_likelihood = -1.0f;
-    float residual_echo_likelihood_recent_max = -1.0f;
     bool typing_noise_detected = false;
+
     ANAStats ana_statistics;
+    AudioProcessingStats apm_statistics;
   };
 
   struct Config {
@@ -80,6 +74,10 @@ class AudioSendStream {
       // Sender SSRC.
       uint32_t ssrc = 0;
 
+      // The value to send in the MID RTP header extension if the extension is
+      // included in the list of extensions.
+      std::string mid;
+
       // RTP header extensions used for the sent stream.
       std::vector<RtpExtension> extensions;
 
@@ -94,17 +92,13 @@ class AudioSendStream {
     // the entire life of the AudioSendStream and is owned by the API client.
     Transport* send_transport = nullptr;
 
-    // Underlying VoiceEngine handle, used to map AudioSendStream to lower-level
-    // components.
-    // TODO(solenberg): Remove when VoiceEngine channels are created outside
-    // of Call.
-    int voe_channel_id = -1;
-
     // Bitrate limits used for variable audio bitrate streams. Set both to -1 to
     // disable audio bitrate adaptation.
     // Note: This is still an experimental feature and not ready for real usage.
     int min_bitrate_bps = -1;
     int max_bitrate_bps = -1;
+
+    double bitrate_priority = 1.0;
 
     // Defines whether to turn on audio network adaptor, and defines its config
     // string.
@@ -131,6 +125,10 @@ class AudioSendStream {
 
     rtc::Optional<SendCodecSpec> send_codec_spec;
     rtc::scoped_refptr<AudioEncoderFactory> encoder_factory;
+    rtc::Optional<AudioCodecPairId> codec_pair_id;
+
+    // Track ID as specified during track creation.
+    std::string track_id;
   };
 
   virtual ~AudioSendStream() = default;
@@ -147,6 +145,10 @@ class AudioSendStream {
   // When a stream is stopped, it can't receive, process or deliver packets.
   virtual void Stop() = 0;
 
+  // Encode and send audio.
+  virtual void SendAudioData(
+      std::unique_ptr<webrtc::AudioFrame> audio_frame) = 0;
+
   // TODO(solenberg): Make payload_type a config property instead.
   virtual bool SendTelephoneEvent(int payload_type, int payload_frequency,
                                   int event, int duration_ms) = 0;
@@ -154,6 +156,7 @@ class AudioSendStream {
   virtual void SetMuted(bool muted) = 0;
 
   virtual Stats GetStats() const = 0;
+  virtual Stats GetStats(bool has_remote_tracks) const = 0;
 };
 }  // namespace webrtc
 

@@ -11,10 +11,11 @@
 #ifndef MEDIA_ENGINE_APM_HELPERS_H_
 #define MEDIA_ENGINE_APM_HELPERS_H_
 
+#include <cstdint>
+
 namespace webrtc {
 
 class AudioProcessing;
-class AudioDeviceModule;
 
 enum EcModes {
   kEcConference,     // Conferencing default (aggressive AEC).
@@ -22,18 +23,18 @@ enum EcModes {
 };
 
 struct AgcConfig {
-  unsigned short targetLeveldBOv;
-  unsigned short digitalCompressionGaindB;
+  uint16_t targetLeveldBOv;
+  uint16_t digitalCompressionGaindB;
   bool limiterEnable;
 };
 
 namespace apm_helpers {
 
+void Init(AudioProcessing* apm);
 AgcConfig GetAgcConfig(AudioProcessing* apm);
 void SetAgcConfig(AudioProcessing* apm,
                   const AgcConfig& config);
 void SetAgcStatus(AudioProcessing* apm,
-                  AudioDeviceModule* adm,
                   bool enable);
 void SetEcStatus(AudioProcessing* apm,
                  bool enable,

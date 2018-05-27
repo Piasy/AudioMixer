@@ -28,6 +28,7 @@ class CommonHeader;
 class ExtendedReports : public RtcpPacket {
  public:
   static constexpr uint8_t kPacketType = 207;
+  static constexpr size_t kMaxNumberOfDlrrItems = 50;
 
   ExtendedReports();
   ~ExtendedReports() override;
@@ -38,7 +39,7 @@ class ExtendedReports : public RtcpPacket {
   void SetSenderSsrc(uint32_t ssrc) { sender_ssrc_ = ssrc; }
 
   void SetRrtr(const Rrtr& rrtr);
-  void AddDlrrItem(const ReceiveTimeInfo& time_info);
+  bool AddDlrrItem(const ReceiveTimeInfo& time_info);
   void SetVoipMetric(const VoipMetric& voip_metric);
   void SetTargetBitrate(const TargetBitrate& target_bitrate);
 
@@ -57,7 +58,7 @@ class ExtendedReports : public RtcpPacket {
   bool Create(uint8_t* packet,
               size_t* index,
               size_t max_length,
-              RtcpPacket::PacketReadyCallback* callback) const override;
+              PacketReadyCallback callback) const override;
 
  private:
   static constexpr size_t kXrBaseLength = 4;

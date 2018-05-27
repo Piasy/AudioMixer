@@ -21,7 +21,6 @@
 #include "common_types.h"  // NOLINT(build/include)
 #include "modules/audio_coding/include/audio_coding_module_typedefs.h"
 #include "modules/audio_coding/neteq/include/neteq.h"
-#include "modules/include/module.h"
 #include "rtc_base/deprecation.h"
 #include "rtc_base/function_view.h"
 #include "system_wrappers/include/clock.h"
@@ -66,7 +65,8 @@ class AudioCodingModule {
 
  public:
   struct Config {
-    Config();
+    explicit Config(
+        rtc::scoped_refptr<AudioDecoderFactory> decoder_factory = nullptr);
     Config(const Config&);
     ~Config();
 
@@ -75,17 +75,6 @@ class AudioCodingModule {
     rtc::scoped_refptr<AudioDecoderFactory> decoder_factory;
   };
 
-  ///////////////////////////////////////////////////////////////////////////
-  // Creation and destruction of a ACM.
-  //
-  // The second method is used for testing where a simulated clock can be
-  // injected into ACM. ACM will take the ownership of the object clock and
-  // delete it when destroyed.
-  //
-  // TODO(solenberg): Remove once downstream projects are updated.
-  RTC_DEPRECATED static AudioCodingModule* Create(int id);
-  static AudioCodingModule* Create();
-  static AudioCodingModule* Create(Clock* clock);
   static AudioCodingModule* Create(const Config& config);
   virtual ~AudioCodingModule() = default;
 
@@ -288,9 +277,7 @@ class AudioCodingModule {
   //
   // Input:
   //   -audio_frame        : the input audio frame, containing raw audio
-  //                         sampling frequency etc.,
-  //                         c.f. module_common_types.h for definition of
-  //                         AudioFrame.
+  //                         sampling frequency etc.
   //
   // Return value:
   //   >= 0   number of bytes encoded.
@@ -656,6 +643,12 @@ class AudioCodingModule {
   virtual int FilteredCurrentDelayMs() const = 0;
 
   ///////////////////////////////////////////////////////////////////////////
+  // int FilteredCurrentDelayMs()
+  // Returns the current target delay for NetEq in ms.
+  //
+  virtual int TargetDelayMs() const = 0;
+
+  ///////////////////////////////////////////////////////////////////////////
   // int32_t PlayoutData10Ms(
   // Get 10 milliseconds of raw audio data for playout, at the given sampling
   // frequency. ACM will perform a resampling if required.
@@ -667,9 +660,7 @@ class AudioCodingModule {
   //
   // Output:
   //   -audio_frame        : output audio frame which contains raw audio data
-  //                         and other relevant parameters, c.f.
-  //                         module_common_types.h for the definition of
-  //                         AudioFrame.
+  //                         and other relevant parameters.
   //   -muted              : if true, the sample data in audio_frame is not
   //                         populated, and must be interpreted as all zero.
   //

@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "api/optional.h"
+#include "api/video/video_bitrate_allocation.h"
 #include "api/video/video_frame.h"
 #include "common_types.h"  // NOLINT(build/include)
 #include "common_video/include/video_frame.h"
@@ -56,13 +57,25 @@ class EncodedImageCallback {
     bool drop_next_frame = false;
   };
 
+  // Used to signal the encoder about reason a frame is dropped.
+  // kDroppedByMediaOptimizations - dropped by MediaOptimizations (for rate
+  // limiting purposes).
+  // kDroppedByEncoder - dropped by encoder's internal rate limiter.
+  enum class DropReason : uint8_t {
+    kDroppedByMediaOptimizations,
+    kDroppedByEncoder
+  };
+
   // Callback function which is called when an image has been encoded.
   virtual Result OnEncodedImage(
       const EncodedImage& encoded_image,
       const CodecSpecificInfo* codec_specific_info,
       const RTPFragmentationHeader* fragmentation) = 0;
 
+  // Deprecated. TODO(ilnik): Remove this in few weeks.
   virtual void OnDroppedFrame() {}
+
+  virtual void OnDroppedFrame(DropReason reason) {}
 };
 
 class VideoEncoder {
@@ -73,15 +86,27 @@ class VideoEncoder {
     int low;
     int high;
   };
+  // Quality scaling is enabled if thresholds are provided.
   struct ScalingSettings {
-    ScalingSettings(bool on, int low, int high);
-    ScalingSettings(bool on, int low, int high, int min_pixels);
-    ScalingSettings(bool on, int min_pixels);
-    explicit ScalingSettings(bool on);
+   private:
+    // Private magic type for kOff, implicitly convertible to
+    // ScalingSettings.
+    struct KOff {};
+
+   public:
+    // TODO(nisse): Would be nicer if kOff were a constant ScalingSettings
+    // rather than a magic value. However, rtc::Optional is not trivially copy
+    // constructible, and hence a constant ScalingSettings needs a static
+    // initializer, which is strongly discouraged in Chrome. We can hopefully
+    // fix this when we switch to absl::optional or std::optional.
+    static constexpr KOff kOff = {};
+
+    ScalingSettings(int low, int high);
+    ScalingSettings(int low, int high, int min_pixels);
     ScalingSettings(const ScalingSettings&);
+    ScalingSettings(KOff);  // NOLINT(runtime/explicit)
     ~ScalingSettings();
 
-    const bool enabled;
     const rtc::Optional<QpThresholds> thresholds;
 
     // We will never ask for a resolution lower than this.
@@ -89,6 +114,11 @@ class VideoEncoder {
     // on MediaCodec and fallback implementations are in place.
     // See https://bugs.chromium.org/p/webrtc/issues/detail?id=7206
     const int min_pixels_per_frame = 320 * 180;
+
+   private:
+    // Private constructor; to get an object without thresholds, use
+    // the magic constant ScalingSettings::kOff.
+    ScalingSettings();
   };
 
   static VideoCodecVP8 GetDefaultVp8Settings();
@@ -168,14 +198,13 @@ class VideoEncoder {
 
   // Default fallback: Just use the sum of bitrates as the single target rate.
   // TODO(sprang): Remove this default implementation when we remove SetRates().
-  virtual int32_t SetRateAllocation(const BitrateAllocation& allocation,
+  virtual int32_t SetRateAllocation(const VideoBitrateAllocation& allocation,
                                     uint32_t framerate);
 
   // Any encoder implementation wishing to use the WebRTC provided
   // quality scaler must implement this method.
   virtual ScalingSettings GetScalingSettings() const;
 
-  virtual int32_t SetPeriodicKeyFrames(bool enable);
   virtual bool SupportsNativeHandle() const;
   virtual const char* ImplementationName() const;
 };

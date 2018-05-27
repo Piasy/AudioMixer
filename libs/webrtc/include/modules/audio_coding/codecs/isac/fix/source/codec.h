@@ -19,7 +19,7 @@
 #ifndef MODULES_AUDIO_CODING_CODECS_ISAC_FIX_SOURCE_CODEC_H_
 #define MODULES_AUDIO_CODING_CODECS_ISAC_FIX_SOURCE_CODEC_H_
 
-#include "structs.h"
+#include "modules/audio_coding/codecs/isac/fix/source/structs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,7 +67,7 @@ void WebRtcIsacfix_InitPlc(PLCstr* State);
 
 /* transform functions */
 
-void WebRtcIsacfix_InitTransform();
+void WebRtcIsacfix_InitTransform(void);
 
 typedef void (*Time2Spec)(int16_t* inre1Q9,
                           int16_t* inre2Q9,

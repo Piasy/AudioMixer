@@ -26,7 +26,7 @@ file(GLOB audio_mixer_sources
 )
 
 file(GLOB audio_mixer_deps
-    ../../libs/jniLibs/${ANDROID_ABI}/*.so
+    ../../libs/ffmpeg/lib/${ANDROID_ABI}/*.so
     ../../libs/webrtc/lib/${ANDROID_ABI}/libwebrtc.a
 )
 

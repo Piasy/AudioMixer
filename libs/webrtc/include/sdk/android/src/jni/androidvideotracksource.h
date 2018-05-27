@@ -20,8 +20,7 @@
 #include "rtc_base/checks.h"
 #include "rtc_base/thread_checker.h"
 #include "rtc_base/timestampaligner.h"
-#include "sdk/android/src/jni/native_handle_impl.h"
-#include "sdk/android/src/jni/surfacetexturehelper_jni.h"
+#include "sdk/android/src/jni/videoframe.h"
 
 namespace webrtc {
 namespace jni {
@@ -30,24 +29,22 @@ class AndroidVideoTrackSource : public rtc::AdaptedVideoTrackSource {
  public:
   AndroidVideoTrackSource(rtc::Thread* signaling_thread,
                           JNIEnv* jni,
-                          jobject j_surface_texture_helper,
                           bool is_screencast = false);
+  ~AndroidVideoTrackSource() override;
 
-  bool is_screencast() const override { return is_screencast_; }
+  bool is_screencast() const override;
 
   // Indicates that the encoder should denoise video before encoding it.
   // If it is not set, the default configuration is used which is different
   // depending on video codec.
-  rtc::Optional<bool> needs_denoising() const override {
-    return rtc::Optional<bool>(false);
-  }
+  rtc::Optional<bool> needs_denoising() const override;
 
   // Called by the native capture observer
   void SetState(SourceState state);
 
-  SourceState state() const override { return state_; }
+  SourceState state() const override;
 
-  bool remote() const override { return false; }
+  bool remote() const override;
 
   void OnByteBufferFrameCaptured(const void* frame_data,
                                  int length,
@@ -67,13 +64,9 @@ class AndroidVideoTrackSource : public rtc::AdaptedVideoTrackSource {
                        int height,
                        int64_t timestamp_ns,
                        VideoRotation rotation,
-                       jobject j_video_frame_buffer);
+                       const JavaRef<jobject>& j_video_frame_buffer);
 
   void OnOutputFormatRequest(int width, int height, int fps);
-
-  rtc::scoped_refptr<SurfaceTextureHelper> surface_texture_helper() {
-    return surface_texture_helper_;
-  }
 
  private:
   rtc::Thread* signaling_thread_;
@@ -81,13 +74,7 @@ class AndroidVideoTrackSource : public rtc::AdaptedVideoTrackSource {
   rtc::ThreadChecker camera_thread_checker_;
   SourceState state_;
   rtc::TimestampAligner timestamp_aligner_;
-  NV12ToI420Scaler nv12toi420_scaler_;
-  I420BufferPool buffer_pool_;
-  rtc::scoped_refptr<SurfaceTextureHelper> surface_texture_helper_;
-  AndroidVideoBufferFactory video_buffer_factory_;
   const bool is_screencast_;
-
-  jmethodID j_crop_and_scale_id_;
 };
 
 }  // namespace jni

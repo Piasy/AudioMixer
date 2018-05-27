@@ -2,6 +2,8 @@
 // Created by Piasy on 29/10/2017.
 //
 
+#include <rtc_base/checks.h>
+
 #include "audio_mixer_global.h"
 #include "audio_file_source.h"
 

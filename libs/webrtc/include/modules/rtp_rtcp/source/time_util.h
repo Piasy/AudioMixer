@@ -17,6 +17,13 @@
 
 namespace webrtc {
 
+// Converts time obtained using rtc::TimeMicros to ntp format.
+// TimeMicrosToNtp guarantees difference of the returned values matches
+// difference of the passed values.
+// As a result TimeMicrosToNtp(rtc::TimeMicros()) doesn't guarantee to match
+// system time.
+NtpTime TimeMicrosToNtp(int64_t time_us);
+
 // Converts NTP timestamp to RTP timestamp.
 inline uint32_t NtpToRtp(NtpTime ntp, uint32_t freq) {
   uint32_t tmp = (static_cast<uint64_t>(ntp.fractions()) * freq) >> 32;
@@ -34,6 +41,11 @@ inline uint32_t NtpToRtp(NtpTime ntp, uint32_t freq) {
 inline uint32_t CompactNtp(NtpTime ntp) {
   return (ntp.seconds() << 16) | (ntp.fractions() >> 16);
 }
+
+// Converts interval in microseconds to compact ntp (1/2^16 seconds) resolution.
+// Negative values converted to 0, Overlarge values converted to max uint32_t.
+uint32_t SaturatedUsToCompactNtp(int64_t us);
+
 // Converts interval between compact ntp timestamps to milliseconds.
 // This interval can be up to ~9.1 hours (2^15 seconds).
 // Values close to 2^16 seconds consider negative and result in minimum rtt = 1.

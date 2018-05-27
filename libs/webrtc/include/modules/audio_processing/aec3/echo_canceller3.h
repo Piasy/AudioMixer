@@ -11,12 +11,12 @@
 #ifndef MODULES_AUDIO_PROCESSING_AEC3_ECHO_CANCELLER3_H_
 #define MODULES_AUDIO_PROCESSING_AEC3_ECHO_CANCELLER3_H_
 
+#include "api/audio/echo_canceller3_config.h"
 #include "modules/audio_processing/aec3/block_framer.h"
 #include "modules/audio_processing/aec3/block_processor.h"
 #include "modules/audio_processing/aec3/cascaded_biquad_filter.h"
 #include "modules/audio_processing/aec3/frame_blocker.h"
 #include "modules/audio_processing/audio_buffer.h"
-#include "modules/audio_processing/include/audio_processing.h"
 #include "modules/audio_processing/logging/apm_data_dumper.h"
 #include "rtc_base/constructormagic.h"
 #include "rtc_base/race_checker.h"
@@ -63,11 +63,12 @@ class Aec3RenderQueueItemVerifier {
 class EchoCanceller3 : public EchoControl {
  public:
   // Normal c-tor to use.
-  EchoCanceller3(const AudioProcessing::Config::EchoCanceller3& config,
+  EchoCanceller3(const EchoCanceller3Config& config,
                  int sample_rate_hz,
                  bool use_highpass_filter);
   // Testing c-tor that is used only for testing purposes.
-  EchoCanceller3(int sample_rate_hz,
+  EchoCanceller3(const EchoCanceller3Config& config,
+                 int sample_rate_hz,
                  bool use_highpass_filter,
                  std::unique_ptr<BlockProcessor> block_processor);
   ~EchoCanceller3() override;
@@ -79,6 +80,10 @@ class EchoCanceller3 : public EchoControl {
   // Processes the split-band domain capture signal in order to remove any echo
   // present in the signal.
   void ProcessCapture(AudioBuffer* capture, bool level_change) override;
+  // Collect current metrics from the echo canceller.
+  Metrics GetMetrics() const override;
+  // Provides an optional external estimate of the audio buffer delay.
+  void SetAudioBufferDelay(size_t delay_ms) override;
 
   // Signals whether an external detector has detected echo leakage from the
   // echo canceller.
@@ -88,12 +93,6 @@ class EchoCanceller3 : public EchoControl {
     RTC_DCHECK_RUNS_SERIALIZED(&capture_race_checker_);
     block_processor_->UpdateEchoLeakageStatus(leakage_detected);
   }
-
-  // Validates a config.
-  static bool Validate(const AudioProcessing::Config::EchoCanceller3& config);
-  // Dumps a config to a string.
-  static std::string ToString(
-      const AudioProcessing::Config::EchoCanceller3& config);
 
  private:
   class RenderWriter;

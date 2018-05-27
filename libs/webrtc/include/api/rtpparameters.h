@@ -66,13 +66,30 @@ enum class DtxStatus {
   ENABLED,
 };
 
+// Based on the spec in
+// https://w3c.github.io/webrtc-pc/#idl-def-rtcdegradationpreference.
+// These options are enforced on a best-effort basis. For instance, all of
+// these options may suffer some frame drops in order to avoid queuing.
+// TODO(sprang): Look into possibility of more strictly enforcing the
+// maintain-framerate option.
+// TODO(deadbeef): Default to "balanced", as the spec indicates?
 enum class DegradationPreference {
+  // Don't take any actions based on over-utilization signals. Not part of the
+  // web API.
+  DISABLED,
+  // On over-use, request lower frame rate, possibly causing frame drops.
   MAINTAIN_FRAMERATE,
+  // On over-use, request lower resolution, possibly causing down-scaling.
   MAINTAIN_RESOLUTION,
+  // Try to strike a "pleasing" balance between frame rate or resolution.
   BALANCED,
+  // TODO(deadbeef): Remove once downstream code referencing
+  // "webrtc::VideoSendStream::DegradationPreference::kMaintainResolution" is
+  // updated.
+  kMaintainResolution = MAINTAIN_RESOLUTION
 };
 
-enum class PriorityType { VERY_LOW, LOW, MEDIUM, HIGH };
+extern const double kDefaultBitratePriority;
 
 struct RtcpFeedback {
   RtcpFeedbackType type = RtcpFeedbackType::CCM;
@@ -276,6 +293,11 @@ struct RtpExtension {
   static const char kPlayoutDelayUri[];
   static const int kPlayoutDelayDefaultId;
 
+  // Header extension for identifying media section within a transport.
+  // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-49#section-15
+  static const char kMidUri[];
+  static const int kMidDefaultId;
+
   // Encryption of Header Extensions, see RFC 6904 for details:
   // https://tools.ietf.org/html/rfc6904
   static const char kEncryptHeaderExtensionsUri[];
@@ -361,13 +383,35 @@ struct RtpEncodingParameters {
   // codec as long as it's present.
   rtc::Optional<DtxStatus> dtx;
 
-  // The relative priority of this encoding.
-  // TODO(deadbeef): Not implemented.
-  rtc::Optional<PriorityType> priority;
+  // The relative bitrate priority of this encoding. Currently this is
+  // implemented for the entire rtp sender by using the value of the first
+  // encoding parameter.
+  // TODO(webrtc.bugs.org/8630): Implement this per encoding parameter.
+  // Currently there is logic for how bitrate is distributed per simulcast layer
+  // in the VideoBitrateAllocator. This must be updated to incorporate relative
+  // bitrate priority.
+  double bitrate_priority = kDefaultBitratePriority;
+
+  // Indicates the preferred duration of media represented by a packet in
+  // milliseconds for this encoding. If set, this will take precedence over the
+  // ptime set in the RtpCodecParameters. This could happen if SDP negotiation
+  // creates a ptime for a specific codec, which is later changed in the
+  // RtpEncodingParameters by the application.
+  // TODO(bugs.webrtc.org/8819): Not implemented.
+  rtc::Optional<int> ptime;
 
   // If set, this represents the Transport Independent Application Specific
   // maximum bandwidth defined in RFC3890. If unset, there is no maximum
-  // bitrate.
+  // bitrate. Currently this is implemented for the entire rtp sender by using
+  // the value of the first encoding parameter.
+  //
+  // TODO(webrtc.bugs.org/8655): Implement this per encoding parameter.
+  // Current implementation for a sender:
+  // The max bitrate is decided by taking the minimum of the first encoding
+  // parameter's max_bitrate_bps and the max bitrate specified by the sdp with
+  // the b=AS attribute. In the case of simulcast video, default values are used
+  // for each simulcast layer, and if there is some bitrate left over from the
+  // sender's max bitrate then it will roll over into the highest quality layer.
   //
   // Just called "maxBitrate" in ORTC spec.
   //
@@ -388,10 +432,12 @@ struct RtpEncodingParameters {
   // TODO(deadbeef): Not implemented.
   double scale_framerate_down_by = 1.0;
 
-  // For an RtpSender, set to true to cause this encoding to be sent, and false
-  // for it not to be sent. For an RtpReceiver, set to true to cause the
-  // encoding to be decoded, and false for it to be ignored.
-  // TODO(deadbeef): Not implemented for PeerConnection RtpReceivers.
+  // For an RtpSender, set to true to cause this encoding to be encoded and
+  // sent, and false for it not to be encoded and sent. This allows control
+  // across multiple encodings of a sender for turning simulcast layers on and
+  // off.
+  // TODO(webrtc.bugs.org/8807): Updating this parameter will trigger an encoder
+  // reset, but this isn't necessarily required.
   bool active = true;
 
   // Value to use for RID RTP header extension.
@@ -407,7 +453,8 @@ struct RtpEncodingParameters {
   bool operator==(const RtpEncodingParameters& o) const {
     return ssrc == o.ssrc && codec_payload_type == o.codec_payload_type &&
            fec == o.fec && rtx == o.rtx && dtx == o.dtx &&
-           priority == o.priority && max_bitrate_bps == o.max_bitrate_bps &&
+           bitrate_priority == o.bitrate_priority && ptime == o.ptime &&
+           max_bitrate_bps == o.max_bitrate_bps &&
            max_framerate == o.max_framerate &&
            scale_resolution_down_by == o.scale_resolution_down_by &&
            scale_framerate_down_by == o.scale_framerate_down_by &&
@@ -468,8 +515,6 @@ struct RtpCodecParameters {
   // Contrary to ORTC, these parameters are named using all lowercase strings.
   // This helps make the mapping to SDP simpler, if an application is using
   // SDP. Boolean values are represented by the string "1".
-  //
-  // TODO(deadbeef): Not implemented with PeerConnection senders/receivers.
   std::unordered_map<std::string, std::string> parameters;
 
   bool operator==(const RtpCodecParameters& o) const {
@@ -516,7 +561,6 @@ struct RtpParameters {
   // Used when calling getParameters/setParameters with a PeerConnection
   // RtpSender, to ensure that outdated parameters are not unintentionally
   // applied successfully.
-  // TODO(deadbeef): Not implemented.
   std::string transaction_id;
 
   // Value to use for MID RTP header extension.

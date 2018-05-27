@@ -35,7 +35,7 @@ class RtpReceiverImpl : public RtpReceiver {
                   RTPPayloadRegistry* rtp_payload_registry,
                   RTPReceiverStrategy* rtp_media_receiver);
 
-  virtual ~RtpReceiverImpl();
+  ~RtpReceiverImpl() override;
 
   int32_t RegisterReceivePayload(int payload_type,
                                  const SdpAudioFormat& audio_format) override;
@@ -74,7 +74,6 @@ class RtpReceiverImpl : public RtpReceiver {
   void CheckCSRC(const WebRtcRTPHeader& rtp_header);
   int32_t CheckPayloadChanged(const RTPHeader& rtp_header,
                               const int8_t first_payload_byte,
-                              bool* is_red,
                               PayloadUnion* payload);
 
   void UpdateSources(const rtc::Optional<uint8_t>& ssrc_audio_level);

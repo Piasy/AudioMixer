@@ -13,52 +13,32 @@
 
 #include <list>
 #include <queue>
+#include <set>
 #include <vector>
 
+#include "modules/pacing/packet_queue_interface.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
 
 namespace webrtc {
 
-class PacketQueue {
+class PacketQueue : public PacketQueueInterface {
  public:
   explicit PacketQueue(const Clock* clock);
-  virtual ~PacketQueue();
+  ~PacketQueue() override;
 
-  struct Packet {
-    Packet(RtpPacketSender::Priority priority,
-           uint32_t ssrc,
-           uint16_t seq_number,
-           int64_t capture_time_ms,
-           int64_t enqueue_time_ms,
-           size_t length_in_bytes,
-           bool retransmission,
-           uint64_t enqueue_order);
+  using Packet = PacketQueueInterface::Packet;
 
-    virtual ~Packet();
-
-    RtpPacketSender::Priority priority;
-    uint32_t ssrc;
-    uint16_t sequence_number;
-    int64_t capture_time_ms;  // Absolute time of frame capture.
-    int64_t enqueue_time_ms;  // Absolute time of pacer queue entry.
-    int64_t sum_paused_ms;  // Sum of time spent in queue while pacer is paused.
-    size_t bytes;
-    bool retransmission;
-    uint64_t enqueue_order;
-    std::list<Packet>::iterator this_it;
-  };
-
-  void Push(const Packet& packet);
-  const Packet& BeginPop();
-  void CancelPop(const Packet& packet);
-  void FinalizePop(const Packet& packet);
-  bool Empty() const;
-  size_t SizeInPackets() const;
-  uint64_t SizeInBytes() const;
-  int64_t OldestEnqueueTimeMs() const;
-  void UpdateQueueTime(int64_t timestamp_ms);
-  void SetPauseState(bool paused, int64_t timestamp_ms);
-  int64_t AverageQueueTimeMs() const;
+  void Push(const Packet& packet) override;
+  const Packet& BeginPop() override;
+  void CancelPop(const Packet& packet) override;
+  void FinalizePop(const Packet& packet) override;
+  bool Empty() const override;
+  size_t SizeInPackets() const override;
+  uint64_t SizeInBytes() const override;
+  int64_t OldestEnqueueTimeMs() const override;
+  void UpdateQueueTime(int64_t timestamp_ms) override;
+  void SetPauseState(bool paused, int64_t timestamp_ms) override;
+  int64_t AverageQueueTimeMs() const override;
 
  private:
   // Try to add a packet to the set of ssrc/seqno identifiers currently in the

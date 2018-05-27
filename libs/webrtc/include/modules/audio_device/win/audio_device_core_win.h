@@ -13,13 +13,15 @@
 
 #if (_MSC_VER >= 1400)  // only include for VS 2005 and higher
 
+#include "rtc_base/win32.h"
+
 #include "modules/audio_device/audio_device_generic.h"
 
 #include <wmcodecdsp.h>      // CLSID_CWMAudioAEC
                              // (must be before audioclient.h)
-#include <Audioclient.h>     // WASAPI
-#include <Audiopolicy.h>
-#include <Mmdeviceapi.h>     // MMDevice
+#include <audioclient.h>     // WASAPI
+#include <audiopolicy.h>
+#include <mmdeviceapi.h>     // MMDevice
 #include <avrt.h>            // Avrt
 #include <endpointvolume.h>
 #include <mediaobj.h>        // IMediaObject
@@ -129,10 +131,6 @@ public:
     virtual int32_t StopRecording();
     virtual bool Recording() const;
 
-    // Microphone Automatic Gain Control (AGC)
-    virtual int32_t SetAGC(bool enable);
-    virtual bool AGC() const;
-
     // Audio mixer initialization
     virtual int32_t InitSpeaker();
     virtual bool SpeakerIsInitialized() const;
@@ -173,7 +171,8 @@ public:
 
     // Delay information and control
     virtual int32_t PlayoutDelay(uint16_t& delayMS) const;
-    virtual int32_t RecordingDelay(uint16_t& delayMS) const;
+
+    virtual bool BuiltInAECIsAvailable() const;
 
     virtual int32_t EnableBuiltInAEC(bool enable);
 
@@ -202,14 +201,8 @@ private:    // thread functions
     static DWORD WINAPI WSAPIRenderThread(LPVOID context);
     DWORD DoRenderThread();
 
-    static DWORD WINAPI GetCaptureVolumeThread(LPVOID context);
-    DWORD DoGetCaptureVolumeThread();
-
-    static DWORD WINAPI SetCaptureVolumeThread(LPVOID context);
-    DWORD DoSetCaptureVolumeThread();
-
-    void _Lock() { _critSect.Enter(); };
-    void _UnLock() { _critSect.Leave(); };
+    void _Lock();
+    void _UnLock();
 
     int SetDMOProperties();
 
@@ -275,17 +268,12 @@ private:    // thread functions
     HANDLE                                  _hCaptureStartedEvent;
     HANDLE                                  _hShutdownCaptureEvent;
 
-    HANDLE                                  _hGetCaptureVolumeThread;
-    HANDLE                                  _hSetCaptureVolumeThread;
-    HANDLE                                  _hSetCaptureVolumeEvent;
-
     HANDLE                                  _hMmTask;
 
     UINT                                    _playAudioFrameSize;
     uint32_t                          _playSampleRate;
     uint32_t                          _devicePlaySampleRate;
-    uint32_t                          _playBlockSizeInFrames;
-    uint32_t                          _playBlockSizeInSamples;
+    uint32_t                          _playBlockSize;
     uint32_t                          _devicePlayBlockSize;
     uint32_t                          _playChannels;
     uint32_t                          _sndCardPlayDelay;
@@ -319,12 +307,6 @@ private:
     AudioDeviceModule::WindowsDeviceType    _outputDevice;
     uint16_t                          _inputDeviceIndex;
     uint16_t                          _outputDeviceIndex;
-
-    bool                                    _AGC;
-
-    uint16_t                          _playBufDelay;
-
-    uint16_t                          _newMicLevel;
 
     mutable char                            _str[512];
 };

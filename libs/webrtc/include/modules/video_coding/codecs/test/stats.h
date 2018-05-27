@@ -11,6 +11,8 @@
 #ifndef MODULES_VIDEO_CODING_CODECS_TEST_STATS_H_
 #define MODULES_VIDEO_CODING_CODECS_TEST_STATS_H_
 
+#include <map>
+#include <string>
 #include <vector>
 
 #include "common_types.h"  // NOLINT(build/include)
@@ -19,37 +21,94 @@ namespace webrtc {
 namespace test {
 
 // Statistics for one processed frame.
-struct FrameStatistic {
-  explicit FrameStatistic(int frame_number) : frame_number(frame_number) {}
-  const int frame_number = 0;
+struct FrameStatistics {
+  FrameStatistics(size_t frame_number, size_t rtp_timestamp)
+      : frame_number(frame_number), rtp_timestamp(rtp_timestamp) {}
+
+  std::string ToString() const;
+
+  size_t frame_number = 0;
+  size_t rtp_timestamp = 0;
 
   // Encoding.
   int64_t encode_start_ns = 0;
   int encode_return_code = 0;
   bool encoding_successful = false;
-  int encode_time_us = 0;
-  int bitrate_kbps = 0;
-  size_t encoded_frame_size_bytes = 0;
+  size_t encode_time_us = 0;
+  size_t target_bitrate_kbps = 0;
+  size_t length_bytes = 0;
   webrtc::FrameType frame_type = kVideoFrameDelta;
 
+  // Layering.
+  size_t spatial_idx = 0;
+  size_t temporal_idx = 0;
+  bool inter_layer_predicted = false;
+  bool non_ref_for_inter_layer_pred = true;
+
   // H264 specific.
-  rtc::Optional<size_t> max_nalu_length;
+  size_t max_nalu_size_bytes = 0;
 
   // Decoding.
   int64_t decode_start_ns = 0;
   int decode_return_code = 0;
   bool decoding_successful = false;
-  int decode_time_us = 0;
-  int decoded_width = 0;
-  int decoded_height = 0;
+  size_t decode_time_us = 0;
+  size_t decoded_width = 0;
+  size_t decoded_height = 0;
 
   // Quantization.
   int qp = -1;
 
-  // How many packets were discarded of the encoded frame data (if any).
-  int packets_dropped = 0;
-  size_t total_packets = 0;
-  size_t manipulated_length = 0;
+  // Quality.
+  float psnr_y = 0.0f;
+  float psnr_u = 0.0f;
+  float psnr_v = 0.0f;
+  float psnr = 0.0f;  // 10 * log10(255^2 / (mse_y + mse_u + mse_v)).
+  float ssim = 0.0f;  // 0.8 * ssim_y + 0.1 * (ssim_u + ssim_v).
+};
+
+struct VideoStatistics {
+  std::string ToString(std::string prefix) const;
+
+  size_t target_bitrate_kbps = 0;
+  float input_framerate_fps = 0.0f;
+
+  size_t spatial_idx = 0;
+  size_t temporal_idx = 0;
+
+  size_t width = 0;
+  size_t height = 0;
+
+  size_t length_bytes = 0;
+  size_t bitrate_kbps = 0;
+  float framerate_fps = 0;
+
+  float enc_speed_fps = 0.0f;
+  float dec_speed_fps = 0.0f;
+
+  float avg_delay_sec = 0.0f;
+  float max_key_frame_delay_sec = 0.0f;
+  float max_delta_frame_delay_sec = 0.0f;
+  float time_to_reach_target_bitrate_sec = 0.0f;
+
+  float avg_key_frame_size_bytes = 0.0f;
+  float avg_delta_frame_size_bytes = 0.0f;
+  float avg_qp = 0.0f;
+
+  float avg_psnr_y = 0.0f;
+  float avg_psnr_u = 0.0f;
+  float avg_psnr_v = 0.0f;
+  float avg_psnr = 0.0f;
+  float min_psnr = 0.0f;
+  float avg_ssim = 0.0f;
+  float min_ssim = 0.0f;
+
+  size_t num_input_frames = 0;
+  size_t num_encoded_frames = 0;
+  size_t num_decoded_frames = 0;
+  size_t num_key_frames = 0;
+  size_t num_spatial_resizes = 0;
+  size_t max_nalu_size_bytes = 0;
 };
 
 // Statistics for a sequence of processed frames. This class is not thread safe.
@@ -58,19 +117,52 @@ class Stats {
   Stats() = default;
   ~Stats() = default;
 
-  // Creates a FrameStatistic for the next frame to be processed.
-  FrameStatistic* AddFrame();
+  // Creates a FrameStatistics for the next frame to be processed.
+  FrameStatistics* AddFrame(size_t timestamp, size_t spatial_idx);
 
-  // Returns the FrameStatistic corresponding to |frame_number|.
-  FrameStatistic* GetFrame(int frame_number);
+  // Returns the FrameStatistics corresponding to |frame_number| or |timestamp|.
+  FrameStatistics* GetFrame(size_t frame_number, size_t spatial_idx);
+  FrameStatistics* GetFrameWithTimestamp(size_t timestamp, size_t spatial_idx);
 
-  size_t size() const;
+  std::vector<VideoStatistics> SliceAndCalcLayerVideoStatistic(
+      size_t first_frame_num,
+      size_t last_frame_num);
 
-  // TODO(brandtr): Add output as CSV.
-  void PrintSummary() const;
+  VideoStatistics SliceAndCalcAggregatedVideoStatistic(size_t first_frame_num,
+                                                       size_t last_frame_num);
+
+  void PrintFrameStatistics();
+
+  size_t Size(size_t spatial_idx);
+
+  void Clear();
 
  private:
-  std::vector<FrameStatistic> stats_;
+  FrameStatistics AggregateFrameStatistic(size_t frame_num,
+                                          size_t spatial_idx,
+                                          bool aggregate_independent_layers);
+
+  size_t CalcLayerTargetBitrateKbps(size_t first_frame_num,
+                                    size_t last_frame_num,
+                                    size_t spatial_idx,
+                                    size_t temporal_idx,
+                                    bool aggregate_independent_layers);
+
+  VideoStatistics SliceAndCalcVideoStatistic(size_t first_frame_num,
+                                             size_t last_frame_num,
+                                             size_t spatial_idx,
+                                             size_t temporal_idx,
+                                             bool aggregate_independent_layers);
+
+  void GetNumberOfEncodedLayers(size_t first_frame_num,
+                                size_t last_frame_num,
+                                size_t* num_encoded_spatial_layers,
+                                size_t* num_encoded_temporal_layers);
+
+  // layer_idx -> stats.
+  std::map<size_t, std::vector<FrameStatistics>> layer_stats_;
+  // layer_idx -> rtp_timestamp -> frame_num.
+  std::map<size_t, std::map<size_t, size_t>> rtp_timestamp_to_frame_num_;
 };
 
 }  // namespace test

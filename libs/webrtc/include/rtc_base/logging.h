@@ -8,40 +8,38 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-//   LOG(...) an ostream target that can be used to send formatted
+// RTC_LOG(...) an ostream target that can be used to send formatted
 // output to a variety of logging targets, such as debugger console, stderr,
 // or any LogSink.
-//   The severity level passed as the first argument to the LOGging
+// The severity level passed as the first argument to the logging
 // functions is used as a filter, to limit the verbosity of the logging.
-//   Static members of LogMessage documented below are used to control the
+// Static members of LogMessage documented below are used to control the
 // verbosity and target of the output.
-//   There are several variations on the LOG macro which facilitate logging
+// There are several variations on the RTC_LOG macro which facilitate logging
 // of common error conditions, detailed below.
 
-// LOG(sev) logs the given stream at severity "sev", which must be a
+// RTC_LOG(sev) logs the given stream at severity "sev", which must be a
 //     compile-time constant of the LoggingSeverity type, without the namespace
 //     prefix.
-// LOG_V(sev) Like LOG(), but sev is a run-time variable of the LoggingSeverity
-//     type (basically, it just doesn't prepend the namespace).
-// LOG_F(sev) Like LOG(), but includes the name of the current function.
-// LOG_T(sev) Like LOG(), but includes the this pointer.
-// LOG_T_F(sev) Like LOG_F(), but includes the this pointer.
-// LOG_GLE(M)(sev [, mod]) attempt to add a string description of the
-//     HRESULT returned by GetLastError.  The "M" variant allows searching of a
-//     DLL's string table for the error description.
-// LOG_ERRNO(sev) attempts to add a string description of an errno-derived
+// RTC_LOG_V(sev) Like RTC_LOG(), but sev is a run-time variable of the
+//     LoggingSeverity type (basically, it just doesn't prepend the namespace).
+// RTC_LOG_F(sev) Like RTC_LOG(), but includes the name of the current function.
+// RTC_LOG_T(sev) Like RTC_LOG(), but includes the this pointer.
+// RTC_LOG_T_F(sev) Like RTC_LOG_F(), but includes the this pointer.
+// RTC_LOG_GLE(sev [, mod]) attempt to add a string description of the
+//     HRESULT returned by GetLastError.
+// RTC_LOG_ERRNO(sev) attempts to add a string description of an errno-derived
 //     error. errno and associated facilities exist on both Windows and POSIX,
 //     but on Windows they only apply to the C/C++ runtime.
-// LOG_ERR(sev) is an alias for the platform's normal error system, i.e. _GLE on
-//     Windows and _ERRNO on POSIX.
+// RTC_LOG_ERR(sev) is an alias for the platform's normal error system, i.e.
+//     _GLE on Windows and _ERRNO on POSIX.
 // (The above three also all have _EX versions that let you specify the error
 // code, rather than using the last one.)
-// LOG_E(sev, ctx, err, ...) logs a detailed error interpreted using the
+// RTC_LOG_E(sev, ctx, err, ...) logs a detailed error interpreted using the
 //     specified context.
-// LOG_CHECK_LEVEL(sev) (and LOG_CHECK_LEVEL_V(sev)) can be used as a test
-//     before performing expensive or sensitive operations whose sole purpose is
-//     to output logging data at the desired level.
-// Lastly, PLOG(sev, err) is an alias for LOG_ERR_EX.
+// RTC_LOG_CHECK_LEVEL(sev) (and RTC_LOG_CHECK_LEVEL_V(sev)) can be used as a
+//     test before performing expensive or sensitive operations whose sole
+//     purpose is to output logging data at the desired level.
 
 #ifndef RTC_BASE_LOGGING_H_
 #define RTC_BASE_LOGGING_H_
@@ -59,32 +57,17 @@
 
 #include "rtc_base/basictypes.h"
 #include "rtc_base/constructormagic.h"
+#include "rtc_base/deprecation.h"
+#include "rtc_base/system/no_inline.h"
 #include "rtc_base/thread_annotations.h"
 
+#if !defined(NDEBUG) || defined(DLOG_ALWAYS_ON)
+#define RTC_DLOG_IS_ON 1
+#else
+#define RTC_DLOG_IS_ON 0
+#endif
+
 namespace rtc {
-
-///////////////////////////////////////////////////////////////////////////////
-// ConstantLabel can be used to easily generate string names from constant
-// values.  This can be useful for logging descriptive names of error messages.
-// Usage:
-//   const ConstantLabel LIBRARY_ERRORS[] = {
-//     KLABEL(SOME_ERROR),
-//     KLABEL(SOME_OTHER_ERROR),
-//     ...
-//     LASTLABEL
-//   }
-//
-//   int err = LibraryFunc();
-//   LOG(LS_ERROR) << "LibraryFunc returned: "
-//                 << ErrorName(err, LIBRARY_ERRORS);
-
-struct ConstantLabel { int value; const char * label; };
-#define KLABEL(x) { x, #x }
-#define TLABEL(x, y) { x, y }
-#define LASTLABEL { 0, 0 }
-
-const char* FindLabel(int value, const ConstantLabel entries[]);
-std::string ErrorName(int err, const ConstantLabel* err_table);
 
 #if defined(WEBRTC_MAC) && !defined(WEBRTC_IOS)
 // Returns a UTF8 description from an OS X Status error.
@@ -139,22 +122,48 @@ class LogSink {
 
 class LogMessage {
  public:
-  LogMessage(const char* file,
-             int line,
-             LoggingSeverity sev,
-             LogErrorContext err_ctx = ERRCTX_NONE,
-             int err = 0,
-             const char* module = nullptr);
+  LogMessage(const char* file, int line, LoggingSeverity sev);
+
+  // Same as the above, but using a compile-time constant for the logging
+  // severity. This saves space at the call site, since passing an empty struct
+  // is generally the same as not passing an argument at all.
+  template <LoggingSeverity S>
+  RTC_NO_INLINE LogMessage(const char* file,
+                           int line,
+                           std::integral_constant<LoggingSeverity, S>)
+      : LogMessage(file, line, S) {}
 
   LogMessage(const char* file,
              int line,
              LoggingSeverity sev,
+             LogErrorContext err_ctx,
+             int err);
+
+#if defined(WEBRTC_ANDROID)
+  LogMessage(const char* file, int line, LoggingSeverity sev, const char* tag);
+#endif
+
+  // DEPRECATED - DO NOT USE - PLEASE USE THE MACROS INSTEAD OF THE CLASS.
+  // Android code should use the 'const char*' version since tags are static
+  // and we want to avoid allocating a std::string copy per log line.
+  RTC_DEPRECATED
+  LogMessage(const char* file, int line, LoggingSeverity sev,
              const std::string& tag);
 
   ~LogMessage();
 
-  static inline bool Loggable(LoggingSeverity sev) { return (sev >= min_sev_); }
-  std::ostream& stream() { return print_stream_; }
+  static bool Loggable(LoggingSeverity sev);
+
+  // Same as the above, but using a template argument instead of a function
+  // argument. (When the logging severity is statically known, passing it as a
+  // template argument instead of as a function argument saves space at the
+  // call site.)
+  template <LoggingSeverity S>
+  RTC_NO_INLINE static bool Loggable() {
+    return Loggable(S);
+  }
+
+  std::ostream& stream();
 
   // Returns the time at which this function was called for the first time.
   // The time will be used as the logging start time.
@@ -176,7 +185,7 @@ class LogMessage {
   // These are the available logging channels
   //  Debug: Debug console on Windows, otherwise stderr
   static void LogToDebug(LoggingSeverity min_sev);
-  static LoggingSeverity GetLogToDebug() { return dbg_sev_; }
+  static LoggingSeverity GetLogToDebug();
 
   // Sets whether logs will be directed to stderr in debug mode.
   static void SetLogToStderr(bool log_to_stderr);
@@ -194,13 +203,14 @@ class LogMessage {
 
   // Testing against MinLogSeverity allows code to avoid potentially expensive
   // logging operations by pre-checking the logging level.
-  static int GetMinLogSeverity() { return min_sev_; }
+  static int GetMinLogSeverity();
 
   // Parses the provided parameter stream to configure the options above.
   // Useful for configuring logging from the command line.
   static void ConfigureLogging(const char* params);
 
  private:
+  friend class LogMessageForTesting;
   typedef std::pair<LogSink*, LoggingSeverity> StreamAndSeverity;
   typedef std::list<StreamAndSeverity> StreamList;
 
@@ -208,9 +218,23 @@ class LogMessage {
   static void UpdateMinLogSeverity();
 
   // These write out the actual log messages.
+#if defined(WEBRTC_ANDROID)
   static void OutputToDebug(const std::string& msg,
                             LoggingSeverity severity,
-                            const std::string& tag);
+                            const char* tag);
+#else
+  static void OutputToDebug(const std::string& msg, LoggingSeverity severity);
+#endif
+
+  // Checks the current global debug severity and if the |streams_| collection
+  // is empty. If |severity| is smaller than the global severity and if the
+  // |streams_| collection is empty, the LogMessage will be considered a noop
+  // LogMessage.
+  static bool IsNoop(LoggingSeverity severity);
+
+  // Called from the dtor (or from a test) to append optional extra error
+  // information to the log stream and a newline character.
+  void FinishPrintStream();
 
   // The ostream that buffers the formatted message before output
   std::ostringstream print_stream_;
@@ -218,19 +242,16 @@ class LogMessage {
   // The severity level of this message
   LoggingSeverity severity_;
 
+#if defined(WEBRTC_ANDROID)
   // The Android debug output tag.
-  std::string tag_;
+  const char* tag_ = "libjingle";
+#endif
 
   // String data generated in the constructor, that should be appended to
   // the message before output.
   std::string extra_;
 
-  // dbg_sev_ is the thresholds for those output targets
-  // min_sev_ is the minimum (most verbose) of those levels, and is used
-  //  as a short-circuit in the logging macros to identify messages that won't
-  //  be logged.
-  // ctx_sev_ is the minimum level at which file context is displayed
-  static LoggingSeverity min_sev_, dbg_sev_, ctx_sev_;
+  const bool is_noop_;
 
   // The output streams and their associated severities
   static StreamList streams_;
@@ -248,22 +269,6 @@ class LogMessage {
 // Logging Helpers
 //////////////////////////////////////////////////////////////////////
 
-class LogMultilineState {
- public:
-  size_t unprintable_count_[2];
-  LogMultilineState() {
-    unprintable_count_[0] = unprintable_count_[1] = 0;
-  }
-};
-
-// When possible, pass optional state variable to track various data across
-// multiple calls to LogMultiline.  Otherwise, pass null.
-void LogMultiline(LoggingSeverity level, const char* label, bool input,
-                  const void* data, size_t len, bool hex_mode,
-                  LogMultilineState* state);
-
-#ifndef LOG
-
 // The following non-obvious technique for implementation of a
 // conditional log stream was stolen from google3/base/logging.h.
 
@@ -279,91 +284,110 @@ class LogMessageVoidify {
   void operator&(std::ostream&) { }
 };
 
-#define LOG_SEVERITY_PRECONDITION(sev) \
+#define RTC_LOG_SEVERITY_PRECONDITION(sev) \
   !(rtc::LogMessage::Loggable(sev)) \
     ? (void) 0 \
     : rtc::LogMessageVoidify() &
 
-#define LOG(sev) \
-  LOG_SEVERITY_PRECONDITION(rtc::sev) \
-    rtc::LogMessage(__FILE__, __LINE__, rtc::sev).stream()
+#define RTC_LOG_SEVERITY_PRECONDITION_C(sev) \
+  !(rtc::LogMessage::Loggable<rtc::sev>()) ? (void)0 : rtc::LogMessageVoidify()&
+#define RTC_LOG(sev)                                                        \
+  RTC_LOG_SEVERITY_PRECONDITION_C(sev)                                      \
+  rtc::LogMessage(__FILE__, __LINE__,                                       \
+                  std::integral_constant<rtc::LoggingSeverity, rtc::sev>()) \
+      .stream()
 
 // The _V version is for when a variable is passed in.  It doesn't do the
-// namespace concatination.
-#define LOG_V(sev) \
-  LOG_SEVERITY_PRECONDITION(sev) \
+// namespace concatenation.
+#define RTC_LOG_V(sev) \
+  RTC_LOG_SEVERITY_PRECONDITION(sev) \
     rtc::LogMessage(__FILE__, __LINE__, sev).stream()
 
 // The _F version prefixes the message with the current function name.
 #if (defined(__GNUC__) && !defined(NDEBUG)) || defined(WANT_PRETTY_LOG_F)
-#define LOG_F(sev) LOG(sev) << __PRETTY_FUNCTION__ << ": "
-#define LOG_T_F(sev) LOG(sev) << this << ": " << __PRETTY_FUNCTION__ << ": "
+#define RTC_LOG_F(sev) RTC_LOG(sev) << __PRETTY_FUNCTION__ << ": "
+#define RTC_LOG_T_F(sev) RTC_LOG(sev) << this << ": " \
+  << __PRETTY_FUNCTION__ << ": "
 #else
-#define LOG_F(sev) LOG(sev) << __FUNCTION__ << ": "
-#define LOG_T_F(sev) LOG(sev) << this << ": " << __FUNCTION__ << ": "
+#define RTC_LOG_F(sev) RTC_LOG(sev) << __FUNCTION__ << ": "
+#define RTC_LOG_T_F(sev) RTC_LOG(sev) << this << ": " << __FUNCTION__ << ": "
 #endif
 
-#define LOG_CHECK_LEVEL(sev) \
+#define RTC_LOG_CHECK_LEVEL(sev) \
   rtc::LogCheckLevel(rtc::sev)
-#define LOG_CHECK_LEVEL_V(sev) \
+#define RTC_LOG_CHECK_LEVEL_V(sev) \
   rtc::LogCheckLevel(sev)
 
 inline bool LogCheckLevel(LoggingSeverity sev) {
   return (LogMessage::GetMinLogSeverity() <= sev);
 }
 
-#define LOG_E(sev, ctx, err, ...) \
-  LOG_SEVERITY_PRECONDITION(rtc::sev) \
-    rtc::LogMessage(__FILE__, __LINE__, rtc::sev, \
-                          rtc::ERRCTX_ ## ctx, err , ##__VA_ARGS__) \
-        .stream()
+#define RTC_LOG_E(sev, ctx, err, ...)                                   \
+  RTC_LOG_SEVERITY_PRECONDITION_C(sev)                                  \
+  rtc::LogMessage(__FILE__, __LINE__, rtc::sev, rtc::ERRCTX_##ctx, err, \
+                  ##__VA_ARGS__)                                        \
+      .stream()
 
-#define LOG_T(sev) LOG(sev) << this << ": "
+#define RTC_LOG_T(sev) RTC_LOG(sev) << this << ": "
 
-#define LOG_ERRNO_EX(sev, err) \
-  LOG_E(sev, ERRNO, err)
-#define LOG_ERRNO(sev) \
-  LOG_ERRNO_EX(sev, errno)
+#define RTC_LOG_ERRNO_EX(sev, err) \
+  RTC_LOG_E(sev, ERRNO, err)
+#define RTC_LOG_ERRNO(sev) \
+  RTC_LOG_ERRNO_EX(sev, errno)
 
 #if defined(WEBRTC_WIN)
-#define LOG_GLE_EX(sev, err) \
-  LOG_E(sev, HRESULT, err)
-#define LOG_GLE(sev) \
-  LOG_GLE_EX(sev, GetLastError())
-#define LOG_GLEM(sev, mod) \
-  LOG_E(sev, HRESULT, GetLastError(), mod)
-#define LOG_ERR_EX(sev, err) \
-  LOG_GLE_EX(sev, err)
-#define LOG_ERR(sev) \
-  LOG_GLE(sev)
-#define LAST_SYSTEM_ERROR \
-  (::GetLastError())
+#define RTC_LOG_GLE_EX(sev, err) \
+  RTC_LOG_E(sev, HRESULT, err)
+#define RTC_LOG_GLE(sev) \
+  RTC_LOG_GLE_EX(sev, GetLastError())
+#define RTC_LOG_ERR_EX(sev, err) \
+  RTC_LOG_GLE_EX(sev, err)
+#define RTC_LOG_ERR(sev) \
+  RTC_LOG_GLE(sev)
 #elif defined(__native_client__) && __native_client__
-#define LOG_ERR_EX(sev, err) \
-  LOG(sev)
-#define LOG_ERR(sev) \
-  LOG(sev)
-#define LAST_SYSTEM_ERROR \
-  (0)
+#define RTC_LOG_ERR_EX(sev, err) \
+  RTC_LOG(sev)
+#define RTC_LOG_ERR(sev) \
+  RTC_LOG(sev)
 #elif defined(WEBRTC_POSIX)
-#define LOG_ERR_EX(sev, err) \
-  LOG_ERRNO_EX(sev, err)
-#define LOG_ERR(sev) \
-  LOG_ERRNO(sev)
-#define LAST_SYSTEM_ERROR \
-  (errno)
+#define RTC_LOG_ERR_EX(sev, err) \
+  RTC_LOG_ERRNO_EX(sev, err)
+#define RTC_LOG_ERR(sev) \
+  RTC_LOG_ERRNO(sev)
 #endif  // WEBRTC_WIN
 
-#define LOG_TAG(sev, tag)        \
-  LOG_SEVERITY_PRECONDITION(sev) \
-  rtc::LogMessage(nullptr, 0, sev, tag).stream()
+#if defined(WEBRTC_ANDROID)
+namespace internal {
+// Inline adapters provided for backwards compatibility for downstream projects.
+inline const char* AdaptString(const char* str) { return str; }
+inline const char* AdaptString(const std::string& str) { return str.c_str(); }
+}  // namespace internal
+#define RTC_LOG_TAG(sev, tag)        \
+  RTC_LOG_SEVERITY_PRECONDITION(sev) \
+  rtc::LogMessage(nullptr, 0, sev, rtc::internal::AdaptString(tag)).stream()
+#else
+// DEPRECATED. This macro is only intended for Android.
+#define RTC_LOG_TAG(sev, tag)        \
+  RTC_LOG_SEVERITY_PRECONDITION(sev) \
+  rtc::LogMessage(nullptr, 0, sev).stream()
+#endif
 
-#define PLOG(sev, err) \
-  LOG_ERR_EX(sev, err)
-
-// TODO(?): Add an "assert" wrapper that logs in the same manner.
-
-#endif  // LOG
+// The RTC_DLOG macros are equivalent to their RTC_LOG counterparts except that
+// they only generate code in debug builds.
+#if RTC_DLOG_IS_ON
+#define RTC_DLOG(sev) RTC_LOG(sev)
+#define RTC_DLOG_V(sev) RTC_LOG_V(sev)
+#define RTC_DLOG_F(sev) RTC_LOG_F(sev)
+#else
+#define RTC_DLOG_EAT_STREAM_PARAMS(sev) \
+  (true ? true : ((void)(sev), true))   \
+      ? static_cast<void>(0)            \
+      : rtc::LogMessageVoidify() &      \
+            rtc::LogMessage(__FILE__, __LINE__, sev).stream()
+#define RTC_DLOG(sev) RTC_DLOG_EAT_STREAM_PARAMS(rtc::sev)
+#define RTC_DLOG_V(sev) RTC_DLOG_EAT_STREAM_PARAMS(sev)
+#define RTC_DLOG_F(sev) RTC_DLOG_EAT_STREAM_PARAMS(rtc::sev)
+#endif
 
 }  // namespace rtc
 

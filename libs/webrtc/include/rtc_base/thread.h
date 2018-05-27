@@ -15,13 +15,13 @@
 #include <list>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #if defined(WEBRTC_POSIX)
 #include <pthread.h>
 #endif
 #include "rtc_base/constructormagic.h"
-#include "rtc_base/event.h"
 #include "rtc_base/messagequeue.h"
 #include "rtc_base/platform_thread_types.h"
 
@@ -70,11 +70,11 @@ class ThreadManager {
 #endif
 
 #if defined(WEBRTC_WIN)
-  DWORD key_;
+  const DWORD key_;
 #endif
 
   // The thread to potentially autowrap.
-  PlatformThreadRef main_thread_ref_;
+  const PlatformThreadRef main_thread_ref_;
 
   RTC_DISALLOW_COPY_AND_ASSIGN(ThreadManager);
 };
@@ -111,6 +111,11 @@ class RTC_LOCKABLE Thread : public MessageQueue {
 
   explicit Thread(SocketServer* ss);
   explicit Thread(std::unique_ptr<SocketServer> ss);
+  // Constructors meant for subclasses; they should call DoInit themselves and
+  // pass false for |do_init|, so that DoInit is called only on the fully
+  // instantiated class, which avoids a vptr data race.
+  Thread(SocketServer* ss, bool do_init);
+  Thread(std::unique_ptr<SocketServer> ss, bool do_init);
 
   // NOTE: ALL SUBCLASSES OF Thread MUST CALL Stop() IN THEIR DESTRUCTORS (or
   // guarantee Stop() is explicitly called before the subclass is destroyed).
@@ -175,8 +180,9 @@ class RTC_LOCKABLE Thread : public MessageQueue {
   // NOTE: This function can only be called when synchronous calls are allowed.
   // See ScopedDisallowBlockingCalls for details.
   template <class ReturnT, class FunctorT>
-  ReturnT Invoke(const Location& posted_from, const FunctorT& functor) {
-    FunctorMessageHandler<ReturnT, FunctorT> handler(functor);
+  ReturnT Invoke(const Location& posted_from, FunctorT&& functor) {
+    FunctorMessageHandler<ReturnT, FunctorT> handler(
+        std::forward<FunctorT>(functor));
     InvokeInternal(posted_from, &handler);
     return handler.MoveResult();
   }
@@ -200,26 +206,13 @@ class RTC_LOCKABLE Thread : public MessageQueue {
   // You cannot call Start on non-owned threads.
   bool IsOwned();
 
-#if defined(WEBRTC_WIN)
-  HANDLE GetHandle() const {
-    return thread_;
-  }
-  DWORD GetId() const {
-    return thread_id_;
-  }
-#elif defined(WEBRTC_POSIX)
-  pthread_t GetPThread() {
-    return thread_;
-  }
-#endif
-
-  // Expose private method running() for tests.
+  // Expose private method IsRunning() for tests.
   //
   // DANGER: this is a terrible public API.  Most callers that might want to
   // call this likely do not have enough control/knowledge of the Thread in
   // question to guarantee that the returned value remains true for the duration
   // of whatever code is conditionally executing because of the return value!
-  bool RunningForTest() { return running(); }
+  bool RunningForTest() { return IsRunning(); }
 
   // Sets the per-thread allow-blocking-calls flag and returns the previous
   // value. Must be called on this thread.
@@ -267,8 +260,8 @@ class RTC_LOCKABLE Thread : public MessageQueue {
   bool WrapCurrentWithThreadManager(ThreadManager* thread_manager,
                                     bool need_synchronize_access);
 
-  // Return true if the thread was started and hasn't yet stopped.
-  bool running() { return running_.Wait(0); }
+  // Return true if the thread is currently running.
+  bool IsRunning();
 
   // Processes received "Send" requests. If |source| is not null, only requests
   // from |source| are processed, otherwise, all requests are processed.
@@ -284,19 +277,26 @@ class RTC_LOCKABLE Thread : public MessageQueue {
 
   std::list<_SendMessage> sendlist_;
   std::string name_;
-  Event running_;  // Signalled means running.
+
+  // TODO(tommi): Add thread checks for proper use of control methods.
+  // Ideally we should be able to just use PlatformThread.
 
 #if defined(WEBRTC_POSIX)
-  pthread_t thread_;
+  pthread_t thread_ = 0;
 #endif
 
 #if defined(WEBRTC_WIN)
-  HANDLE thread_;
-  DWORD thread_id_;
+  HANDLE thread_ = nullptr;
+  DWORD thread_id_ = 0;
 #endif
 
-  bool owned_;
-  bool blocking_calls_allowed_;  // By default set to |true|.
+  // Indicates whether or not ownership of the worker thread lies with
+  // this instance or not. (i.e. owned_ == !wrapped).
+  // Must only be modified when the worker thread is not running.
+  bool owned_ = true;
+
+  // Only touched from the worker thread itself.
+  bool blocking_calls_allowed_ = true;
 
   friend class ThreadManager;
 

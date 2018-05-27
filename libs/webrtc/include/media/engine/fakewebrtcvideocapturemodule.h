@@ -16,17 +16,15 @@
 #include "api/video/i420_buffer.h"
 #include "media/base/testutils.h"
 #include "media/engine/webrtcvideocapturer.h"
+#include "rtc_base/task_queue_for_test.h"
 
 class FakeWebRtcVcmFactory;
 
 // Fake class for mocking out webrtc::VideoCaptureModule.
 class FakeWebRtcVideoCaptureModule : public webrtc::VideoCaptureModule {
  public:
-  FakeWebRtcVideoCaptureModule(FakeWebRtcVcmFactory* factory)
-      : factory_(factory),
-        callback_(NULL),
-        running_(false) {
-  }
+  explicit FakeWebRtcVideoCaptureModule(FakeWebRtcVcmFactory* factory)
+      : factory_(factory), callback_(NULL), running_(false) {}
   ~FakeWebRtcVideoCaptureModule();
   void RegisterCaptureDataCallback(
       rtc::VideoSinkInterface<webrtc::VideoFrame>* callback) override {
@@ -63,17 +61,18 @@ class FakeWebRtcVideoCaptureModule : public webrtc::VideoCaptureModule {
     return true;  // Rotation compensation is turned on.
   }
   void SendFrame(int w, int h) {
-    if (!running_) return;
+    if (!running_ || !callback_)
+      return;
 
-    rtc::scoped_refptr<webrtc::I420Buffer> buffer =
-        webrtc::I420Buffer::Create(w, h);
-    // Initialize memory to satisfy DrMemory tests. See
-    // https://bugs.chromium.org/p/libyuv/issues/detail?id=377
-    buffer->InitializeData();
-    if (callback_) {
+    task_queue_.SendTask([this, w, h]() {
+      rtc::scoped_refptr<webrtc::I420Buffer> buffer =
+          webrtc::I420Buffer::Create(w, h);
+      // Initialize memory to satisfy DrMemory tests. See
+      // https://bugs.chromium.org/p/libyuv/issues/detail?id=377
+      buffer->InitializeData();
       callback_->OnFrame(
           webrtc::VideoFrame(buffer, 0, 0, webrtc::kVideoRotation_0));
-    }
+    });
   }
 
   const webrtc::VideoCaptureCapability& cap() const {
@@ -81,6 +80,7 @@ class FakeWebRtcVideoCaptureModule : public webrtc::VideoCaptureModule {
   }
 
  private:
+  rtc::test::TaskQueueForTest task_queue_{"FakeWebRtcVideoCaptureModule"};
   FakeWebRtcVcmFactory* factory_;
   rtc::VideoSinkInterface<webrtc::VideoFrame>* callback_;
   bool running_;

@@ -21,17 +21,16 @@
 #include "modules/video_coding/codecs/vp9/include/vp9_globals.h"
 #include "rtc_base/task_queue.h"
 #include "sdk/android/src/jni/jni_helpers.h"
-#include "sdk/android/src/jni/native_handle_impl.h"
+#include "sdk/android/src/jni/videoframe.h"
 
 namespace webrtc {
 namespace jni {
 
-// Wraps a Java decoder and delegates all calls to it. Passes
-// VideoEncoderWrapperCallback to the decoder on InitDecode. Wraps the received
-// frames to AndroidVideoBuffer.
+// Wraps a Java encoder and delegates all calls to it.
 class VideoEncoderWrapper : public VideoEncoder {
  public:
-  VideoEncoderWrapper(JNIEnv* jni, jobject j_encoder);
+  VideoEncoderWrapper(JNIEnv* jni, const JavaRef<jobject>& j_encoder);
+  ~VideoEncoderWrapper() override;
 
   int32_t InitEncode(const VideoCodec* codec_settings,
                      int32_t number_of_cores,
@@ -48,23 +47,24 @@ class VideoEncoderWrapper : public VideoEncoder {
 
   int32_t SetChannelParameters(uint32_t packet_loss, int64_t rtt) override;
 
-  int32_t SetRateAllocation(const BitrateAllocation& allocation,
+  int32_t SetRateAllocation(const VideoBitrateAllocation& allocation,
                             uint32_t framerate) override;
 
   ScalingSettings GetScalingSettings() const override;
 
-  bool SupportsNativeHandle() const override { return true; }
+  bool SupportsNativeHandle() const override;
 
   // Should only be called by JNI.
   void OnEncodedFrame(JNIEnv* jni,
-                      jobject j_buffer,
+                      const JavaRef<jobject>& j_caller,
+                      const JavaRef<jobject>& j_buffer,
                       jint encoded_width,
                       jint encoded_height,
                       jlong capture_time_ms,
                       jint frame_type,
                       jint rotation,
                       jboolean complete_frame,
-                      jobject j_qp);
+                      const JavaRef<jobject>& j_qp);
 
   const char* ImplementationName() const override;
 
@@ -79,51 +79,25 @@ class VideoEncoderWrapper : public VideoEncoder {
 
   // Takes Java VideoCodecStatus, handles it and returns WEBRTC_VIDEO_CODEC_*
   // status code.
-  int32_t HandleReturnCode(JNIEnv* jni, jobject code);
+  int32_t HandleReturnCode(JNIEnv* jni,
+                           const JavaRef<jobject>& j_value,
+                           const char* method_name);
 
   RTPFragmentationHeader ParseFragmentationHeader(
       const std::vector<uint8_t>& buffer);
   int ParseQp(const std::vector<uint8_t>& buffer);
   CodecSpecificInfo ParseCodecSpecificInfo(const EncodedImage& frame);
-  jobject ToJavaBitrateAllocation(JNIEnv* jni,
-                                  const BitrateAllocation& allocation);
+  ScopedJavaLocalRef<jobject> ToJavaBitrateAllocation(
+      JNIEnv* jni,
+      const VideoBitrateAllocation& allocation);
   std::string GetImplementationName(JNIEnv* jni) const;
 
-  const ScopedGlobalRef<jobject> encoder_;
-  const ScopedGlobalRef<jclass> settings_class_;
-  const ScopedGlobalRef<jclass> encode_info_class_;
-  const ScopedGlobalRef<jclass> frame_type_class_;
-  const ScopedGlobalRef<jclass> bitrate_allocation_class_;
-  const ScopedGlobalRef<jclass> int_array_class_;
-
-  jmethodID init_encode_method_;
-  jmethodID release_method_;
-  jmethodID encode_method_;
-  jmethodID set_channel_parameters_method_;
-  jmethodID set_rate_allocation_method_;
-  jmethodID get_scaling_settings_method_;
-  jmethodID get_implementation_name_method_;
-
-  jmethodID settings_constructor_;
-
-  jmethodID encode_info_constructor_;
-
-  jmethodID frame_type_from_native_method_;
-
-  jmethodID bitrate_allocation_constructor_;
-
-  jfieldID scaling_settings_on_field_;
-  jfieldID scaling_settings_low_field_;
-  jfieldID scaling_settings_high_field_;
-
-  jmethodID get_number_method_;
-
-  jmethodID int_value_method_;
+  const ScopedJavaGlobalRef<jobject> encoder_;
+  const ScopedJavaGlobalRef<jclass> int_array_class_;
 
   std::string implementation_name_;
 
   rtc::TaskQueue* encoder_queue_;
-  JavaVideoFrameFactory video_frame_factory_;
   std::deque<FrameExtraInfo> frame_extra_infos_;
   EncodedImageCallback* callback_;
   bool initialized_;

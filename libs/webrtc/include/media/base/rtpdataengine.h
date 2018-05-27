@@ -11,6 +11,7 @@
 #ifndef MEDIA_BASE_RTPDATAENGINE_H_
 #define MEDIA_BASE_RTPDATAENGINE_H_
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,6 +19,10 @@
 #include "media/base/mediachannel.h"
 #include "media/base/mediaconstants.h"
 #include "media/base/mediaengine.h"
+
+namespace rtc {
+class DataRateLimiter;
+}
 
 namespace cricket {
 
@@ -61,7 +66,7 @@ class RtpClock {
 
 class RtpDataMediaChannel : public DataMediaChannel {
  public:
-  RtpDataMediaChannel(const MediaConfig& config);
+  explicit RtpDataMediaChannel(const MediaConfig& config);
   virtual ~RtpDataMediaChannel();
 
   virtual bool SetSendParameters(const DataSendParameters& params);
@@ -83,7 +88,6 @@ class RtpDataMediaChannel : public DataMediaChannel {
   virtual void OnRtcpReceived(rtc::CopyOnWriteBuffer* packet,
                               const rtc::PacketTime& packet_time) {}
   virtual void OnReadyToSend(bool ready) {}
-  virtual void OnTransportOverheadChanged(int transport_overhead_per_packet) {}
   virtual bool SendData(
     const SendDataParams& params,
     const rtc::CopyOnWriteBuffer& payload,
@@ -103,7 +107,7 @@ class RtpDataMediaChannel : public DataMediaChannel {
   std::vector<StreamParams> send_streams_;
   std::vector<StreamParams> recv_streams_;
   std::map<uint32_t, RtpClock*> rtp_clock_by_send_ssrc_;
-  std::unique_ptr<rtc::RateLimiter> send_limiter_;
+  std::unique_ptr<rtc::DataRateLimiter> send_limiter_;
 };
 
 }  // namespace cricket

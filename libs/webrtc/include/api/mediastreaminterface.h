@@ -27,8 +27,9 @@
 // TODO(zhihuang): Remove unrelated headers once downstream applications stop
 // relying on them; they were previously transitively included by
 // mediachannel.h, which is no longer a dependency of this file.
-#include "media/base/videosinkinterface.h"
-#include "media/base/videosourceinterface.h"
+#include "api/video/video_sink_interface.h"
+#include "api/videosourceinterface.h"
+#include "modules/audio_processing/include/audio_processing_statistics.h"
 #include "rtc_base/ratetracker.h"
 #include "rtc_base/refcount.h"
 #include "rtc_base/scoped_ref_ptr.h"
@@ -71,7 +72,7 @@ class MediaSourceInterface : public rtc::RefCountInterface,
   virtual bool remote() const = 0;
 
  protected:
-  virtual ~MediaSourceInterface() {}
+  ~MediaSourceInterface() override = default;
 };
 
 // C++ version of MediaStreamTrack.
@@ -105,7 +106,7 @@ class MediaStreamTrackInterface : public rtc::RefCountInterface,
   virtual TrackState state() const = 0;
 
  protected:
-  virtual ~MediaStreamTrackInterface() {}
+  ~MediaStreamTrackInterface() override = default;
 };
 
 // VideoTrackSourceInterface is a reference counted source used for
@@ -146,7 +147,7 @@ class VideoTrackSourceInterface
   virtual bool GetStats(Stats* stats) = 0;
 
  protected:
-  virtual ~VideoTrackSourceInterface() {}
+  ~VideoTrackSourceInterface() override = default;
 };
 
 // VideoTrackInterface is designed to be invoked on the signaling thread except
@@ -172,11 +173,11 @@ class VideoTrackInterface
 
   virtual VideoTrackSourceInterface* GetSource() const = 0;
 
-  virtual ContentHint content_hint() const { return ContentHint::kNone; }
+  virtual ContentHint content_hint() const;
   virtual void set_content_hint(ContentHint hint) {}
 
  protected:
-  virtual ~VideoTrackInterface() {}
+  ~VideoTrackInterface() override = default;
 };
 
 // Interface for receiving audio data from a AudioTrack.
@@ -225,6 +226,9 @@ class AudioSourceInterface : public MediaSourceInterface {
 // statistics.
 class AudioProcessorInterface : public rtc::RefCountInterface {
  public:
+  // Deprecated, use AudioProcessorStatistics instead.
+  // TODO(ivoc): Remove this when all implementations have switched to the new
+  //             GetStats function. See b/67926135.
   struct AudioProcessorStats {
     AudioProcessorStats()
         : typing_noise_detected(false),
@@ -232,7 +236,6 @@ class AudioProcessorInterface : public rtc::RefCountInterface {
           echo_return_loss_enhancement(0),
           echo_delay_median_ms(0),
           echo_delay_std_ms(0),
-          aec_quality_min(0.0),
           residual_echo_likelihood(0.0f),
           residual_echo_likelihood_recent_max(0.0f),
           aec_divergent_filter_fraction(0.0) {}
@@ -243,17 +246,30 @@ class AudioProcessorInterface : public rtc::RefCountInterface {
     int echo_return_loss_enhancement;
     int echo_delay_median_ms;
     int echo_delay_std_ms;
-    float aec_quality_min;
     float residual_echo_likelihood;
     float residual_echo_likelihood_recent_max;
     float aec_divergent_filter_fraction;
   };
+  // This struct maintains the optionality of the stats, and will replace the
+  // regular stats struct when all users have been updated.
+  struct AudioProcessorStatistics {
+    bool typing_noise_detected = false;
+    AudioProcessingStats apm_statistics;
+  };
 
   // Get audio processor statistics.
-  virtual void GetStats(AudioProcessorStats* stats) = 0;
+  virtual void GetStats(AudioProcessorStats* stats);
+
+  // Get audio processor statistics. The |has_remote_tracks| argument should be
+  // set if there are active remote tracks (this would usually be true during
+  // a call). If there are no remote tracks some of the stats will not be set by
+  // the AudioProcessor, because they only make sense if there is at least one
+  // remote track.
+  // TODO(ivoc): Make pure virtual when all implementions are updated.
+  virtual AudioProcessorStatistics GetStats(bool has_remote_tracks);
 
  protected:
-  virtual ~AudioProcessorInterface() {}
+  ~AudioProcessorInterface() override = default;
 };
 
 class AudioTrackInterface : public MediaStreamTrackInterface {
@@ -270,17 +286,15 @@ class AudioTrackInterface : public MediaStreamTrackInterface {
   // Return true on success, otherwise false.
   // TODO(deadbeef): Change the interface to int GetSignalLevel() and pure
   // virtual after it's implemented in chromium.
-  virtual bool GetSignalLevel(int* level) { return false; }
+  virtual bool GetSignalLevel(int* level);
 
   // Get the audio processor used by the audio track. Return null if the track
   // does not have any processor.
   // TODO(deadbeef): Make the interface pure virtual.
-  virtual rtc::scoped_refptr<AudioProcessorInterface> GetAudioProcessor() {
-    return nullptr;
-  }
+  virtual rtc::scoped_refptr<AudioProcessorInterface> GetAudioProcessor();
 
  protected:
-  virtual ~AudioTrackInterface() {}
+  ~AudioTrackInterface() override = default;
 };
 
 typedef std::vector<rtc::scoped_refptr<AudioTrackInterface> >
@@ -299,8 +313,7 @@ typedef std::vector<rtc::scoped_refptr<VideoTrackInterface> >
 class MediaStreamInterface : public rtc::RefCountInterface,
                              public NotifierInterface {
  public:
-  // TODO(steveanton): This could be renamed to id() to match the spec.
-  virtual std::string label() const = 0;
+  virtual std::string id() const = 0;
 
   virtual AudioTrackVector GetAudioTracks() = 0;
   virtual VideoTrackVector GetVideoTracks() = 0;
@@ -315,7 +328,7 @@ class MediaStreamInterface : public rtc::RefCountInterface,
   virtual bool RemoveTrack(VideoTrackInterface* track) = 0;
 
  protected:
-  virtual ~MediaStreamInterface() {}
+  ~MediaStreamInterface() override = default;
 };
 
 }  // namespace webrtc

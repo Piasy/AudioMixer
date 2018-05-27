@@ -1,3 +1,4 @@
+
 /*
  *  Copyright 2011 The WebRTC project authors. All Rights Reserved.
  *
@@ -16,6 +17,7 @@
 
 #include "api/mediastreaminterface.h"
 #include "api/peerconnectioninterface.h"
+#include "media/sctp/sctptransportinternal.h"
 #include "pc/channelmanager.h"
 #include "rtc_base/rtccertificategenerator.h"
 #include "rtc_base/scoped_ref_ptr.h"
@@ -48,24 +50,28 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
       std::unique_ptr<rtc::RTCCertificateGeneratorInterface> cert_generator,
       PeerConnectionObserver* observer) override;
 
-  virtual rtc::scoped_refptr<PeerConnectionInterface> CreatePeerConnection(
+  rtc::scoped_refptr<PeerConnectionInterface> CreatePeerConnection(
       const PeerConnectionInterface::RTCConfiguration& configuration,
       std::unique_ptr<cricket::PortAllocator> allocator,
       std::unique_ptr<rtc::RTCCertificateGeneratorInterface> cert_generator,
       PeerConnectionObserver* observer) override;
 
+  rtc::scoped_refptr<PeerConnectionInterface> CreatePeerConnection(
+      const PeerConnectionInterface::RTCConfiguration& configuration,
+      PeerConnectionDependencies dependencies) override;
+
   bool Initialize();
 
-  rtc::scoped_refptr<MediaStreamInterface>
-      CreateLocalMediaStream(const std::string& label) override;
+  rtc::scoped_refptr<MediaStreamInterface> CreateLocalMediaStream(
+      const std::string& stream_id) override;
 
-  virtual rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
+  rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
       const cricket::AudioOptions& options) override;
   // Deprecated, use version without constraints.
   rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
       const MediaConstraintsInterface* constraints) override;
 
-  virtual rtc::scoped_refptr<VideoTrackSourceInterface> CreateVideoSource(
+  rtc::scoped_refptr<VideoTrackSourceInterface> CreateVideoSource(
       std::unique_ptr<cricket::VideoCapturer> capturer) override;
   // This version supports filtering on width, height and frame rate.
   // For the "constraints=null" case, use the version without constraints.
@@ -86,9 +92,9 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
   bool StartAecDump(rtc::PlatformFile file, int64_t max_size_bytes) override;
   void StopAecDump() override;
 
-  virtual cricket::TransportController* CreateTransportController(
-      cricket::PortAllocator* port_allocator,
-      bool redetermine_role_on_ice_restart);
+  virtual std::unique_ptr<cricket::SctpTransportInternalFactory>
+  CreateSctpTransportInternalFactory();
+
   virtual cricket::ChannelManager* channel_manager();
   virtual rtc::Thread* signaling_thread();
   virtual rtc::Thread* worker_thread();
@@ -103,6 +109,14 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
       std::unique_ptr<cricket::MediaEngineInterface> media_engine,
       std::unique_ptr<webrtc::CallFactoryInterface> call_factory,
       std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory);
+  PeerConnectionFactory(
+      rtc::Thread* network_thread,
+      rtc::Thread* worker_thread,
+      rtc::Thread* signaling_thread,
+      std::unique_ptr<cricket::MediaEngineInterface> media_engine,
+      std::unique_ptr<webrtc::CallFactoryInterface> call_factory,
+      std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory,
+      std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory);
   virtual ~PeerConnectionFactory();
 
  private:
@@ -122,6 +136,7 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
   std::unique_ptr<cricket::MediaEngineInterface> media_engine_;
   std::unique_ptr<webrtc::CallFactoryInterface> call_factory_;
   std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory_;
+  std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory_;
 };
 
 }  // namespace webrtc

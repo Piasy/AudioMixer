@@ -58,8 +58,9 @@ int SrtpCryptoSuiteFromName(const std::string& crypto_suite);
 
 // Get key length and salt length for given crypto suite. Returns true for
 // valid suites, otherwise false.
-bool GetSrtpKeyAndSaltLengths(int crypto_suite, int *key_length,
-    int *salt_length);
+bool GetSrtpKeyAndSaltLengths(int crypto_suite,
+                              int* key_length,
+                              int* salt_length);
 
 // Returns true if the given crypto suite id uses a GCM cipher.
 bool IsGcmCryptoSuite(int crypto_suite);
@@ -78,6 +79,12 @@ struct CryptoOptions {
   // Enable GCM crypto suites from RFC 7714 for SRTP. GCM will only be used
   // if both sides enable it.
   bool enable_gcm_crypto_suites = false;
+
+  // If set to true, the (potentially insecure) crypto cipher
+  // SRTP_AES128_CM_SHA1_32 will be included in the list of supported ciphers
+  // during negotiation. It will only be used if both peers support it and no
+  // other ciphers get preferred.
+  bool enable_aes128_sha1_32_crypto_cipher = false;
 
   // If set to true, encrypted RTP header extensions as defined in RFC 6904
   // will be negotiated. They will only be used if both peers support them.
@@ -102,7 +109,6 @@ std::vector<int> GetSupportedDtlsSrtpCryptoSuites(
 // The SSL library requires initialization and cleanup. Static method
 // for doing this are in SSLAdapter. They should possibly be moved out
 // to a neutral class.
-
 
 enum SSLRole { SSL_CLIENT, SSL_SERVER };
 enum SSLMode { SSL_MODE_TLS, SSL_MODE_DTLS };
@@ -201,10 +207,9 @@ class SSLStreamAdapter : public StreamAdapterInterface {
       size_t digest_len,
       SSLPeerCertificateDigestError* error = nullptr) = 0;
 
-  // Retrieves the peer's X.509 certificate, if a connection has been
-  // established. It returns the transmitted over SSL, including the entire
-  // chain.
-  virtual std::unique_ptr<SSLCertificate> GetPeerCertificate() const = 0;
+  // Retrieves the peer's certificate chain including leaf certificate, if a
+  // connection has been established.
+  virtual std::unique_ptr<SSLCertChain> GetPeerSSLCertChain() const = 0;
 
   // Retrieves the IANA registration id of the cipher suite used for the
   // connection (e.g. 0x2F for "TLS_RSA_WITH_AES_128_CBC_SHA").

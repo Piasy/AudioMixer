@@ -11,7 +11,9 @@
 #ifndef P2P_BASE_FAKEICETRANSPORT_H_
 #define P2P_BASE_FAKEICETRANSPORT_H_
 
+#include <map>
 #include <string>
+#include <utility>
 
 #include "p2p/base/icetransportinternal.h"
 #include "rtc_base/asyncinvoker.h"
@@ -83,7 +85,9 @@ class FakeIceTransport : public IceTransportInternal {
   }
 
   // Convenience functions for accessing ICE config and other things.
-  int receiving_timeout() const { return ice_config_.receiving_timeout; }
+  int receiving_timeout() const {
+    return ice_config_.receiving_timeout_or_default();
+  }
   bool gather_continually() const { return ice_config_.gather_continually(); }
   const Candidates& remote_candidates() const { return remote_candidates_; }
 
@@ -142,18 +146,29 @@ class FakeIceTransport : public IceTransportInternal {
   void AddRemoteCandidate(const Candidate& candidate) override {
     remote_candidates_.push_back(candidate);
   }
-  void RemoveRemoteCandidate(const Candidate& candidate) override {}
+  void RemoveRemoteCandidate(const Candidate& candidate) override {
+    auto it = std::find(remote_candidates_.begin(), remote_candidates_.end(),
+                        candidate);
+    if (it == remote_candidates_.end()) {
+      RTC_LOG(LS_INFO) << "Trying to remove a candidate which doesn't exist.";
+      return;
+    }
 
-  bool GetStats(ConnectionInfos* infos) override {
-    ConnectionInfo info;
-    infos->clear();
-    infos->push_back(info);
+    remote_candidates_.erase(it);
+  }
+
+  bool GetStats(ConnectionInfos* candidate_pair_stats_list,
+                CandidateStatsList* candidate_stats_list) override {
+    CandidateStats candidate_stats;
+    ConnectionInfo candidate_pair_stats;
+    candidate_stats_list->clear();
+    candidate_stats_list->push_back(candidate_stats);
+    candidate_pair_stats_list->clear();
+    candidate_pair_stats_list->push_back(candidate_pair_stats);
     return true;
   }
 
-  rtc::Optional<int> GetRttEstimate() override {
-    return rtc::Optional<int>();
-  }
+  rtc::Optional<int> GetRttEstimate() override { return rtc::nullopt; }
 
   void SetMetricsObserver(webrtc::MetricsObserverInterface* observer) override {
   }
@@ -190,16 +205,38 @@ class FakeIceTransport : public IceTransportInternal {
     SignalSentPacket(this, sent_packet);
     return static_cast<int>(len);
   }
-  int SetOption(rtc::Socket::Option opt, int value) override { return true; }
-  bool GetOption(rtc::Socket::Option opt, int* value) override { return true; }
+
+  int SetOption(rtc::Socket::Option opt, int value) override {
+    socket_options_[opt] = value;
+    return true;
+  }
+  bool GetOption(rtc::Socket::Option opt, int* value) override {
+    auto it = socket_options_.find(opt);
+    if (it != socket_options_.end()) {
+      *value = it->second;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   int GetError() override { return 0; }
+
+  rtc::CopyOnWriteBuffer last_sent_packet() { return last_sent_packet_; }
+
+  rtc::Optional<rtc::NetworkRoute> network_route() const override {
+    return network_route_;
+  }
+  void SetNetworkRoute(rtc::Optional<rtc::NetworkRoute> network_route) {
+    network_route_ = network_route;
+  }
 
  private:
   void set_writable(bool writable) {
     if (writable_ == writable) {
       return;
     }
-    LOG(INFO) << "set_writable from:" << writable_ << " to " << writable;
+    RTC_LOG(INFO) << "Change writable_ to " << writable;
     writable_ = writable;
     if (writable_) {
       SignalReadyToSend(this);
@@ -217,6 +254,7 @@ class FakeIceTransport : public IceTransportInternal {
 
   void SendPacketInternal(const rtc::CopyOnWriteBuffer& packet) {
     if (dest_) {
+      last_sent_packet_ = packet;
       dest_->SignalReadPacket(dest_, packet.data<char>(), packet.size(),
                               rtc::CreatePacketTime(0), 0);
     }
@@ -244,6 +282,9 @@ class FakeIceTransport : public IceTransportInternal {
   bool receiving_ = false;
   bool combine_outgoing_packets_ = false;
   rtc::CopyOnWriteBuffer send_packet_;
+  rtc::Optional<rtc::NetworkRoute> network_route_;
+  std::map<rtc::Socket::Option, int> socket_options_;
+  rtc::CopyOnWriteBuffer last_sent_packet_;
 };
 
 }  // namespace cricket

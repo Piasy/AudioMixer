@@ -14,49 +14,30 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
-#include "pc/rtptransportinternal.h"
-#include "pc/srtpfilter.h"
+#include "api/ortc/srtptransportinterface.h"
+#include "p2p/base/dtlstransportinternal.h"
+#include "p2p/base/icetransportinternal.h"
+#include "pc/rtptransport.h"
 #include "pc/srtpsession.h"
+#include "rtc_base/buffer.h"
 #include "rtc_base/checks.h"
 
 namespace webrtc {
 
-// This class will eventually be a wrapper around RtpTransportInternal
-// that protects and unprotects sent and received RTP packets.
-class SrtpTransport : public RtpTransportInternal {
+// This subclass of the RtpTransport is used for SRTP which is reponsible for
+// protecting/unprotecting the packets. It provides interfaces to set the crypto
+// parameters for the SrtpSession underneath.
+class SrtpTransport : public RtpTransport {
  public:
-  SrtpTransport(bool rtcp_mux_enabled, const std::string& content_name);
+  explicit SrtpTransport(bool rtcp_mux_enabled);
 
-  SrtpTransport(std::unique_ptr<RtpTransportInternal> transport,
-                const std::string& content_name);
+  virtual ~SrtpTransport() = default;
 
-  void SetRtcpMuxEnabled(bool enable) override {
-    rtp_transport_->SetRtcpMuxEnabled(enable);
-  }
-
-  rtc::PacketTransportInternal* rtp_packet_transport() const override {
-    return rtp_transport_->rtp_packet_transport();
-  }
-
-  void SetRtpPacketTransport(rtc::PacketTransportInternal* rtp) override {
-    rtp_transport_->SetRtpPacketTransport(rtp);
-  }
-
-  PacketTransportInterface* GetRtpPacketTransport() const override {
-    return rtp_transport_->GetRtpPacketTransport();
-  }
-
-  rtc::PacketTransportInternal* rtcp_packet_transport() const override {
-    return rtp_transport_->rtcp_packet_transport();
-  }
-  void SetRtcpPacketTransport(rtc::PacketTransportInternal* rtcp) override {
-    rtp_transport_->SetRtcpPacketTransport(rtcp);
-  }
-
-  PacketTransportInterface* GetRtcpPacketTransport() const override {
-    return rtp_transport_->GetRtcpPacketTransport();
-  }
+  // SrtpTransportInterface specific implementation.
+  RTCError SetSrtpSendKey(const cricket::CryptoParams& params) override;
+  RTCError SetSrtpReceiveKey(const cricket::CryptoParams& params) override;
 
   bool SendRtpPacket(rtc::CopyOnWriteBuffer* packet,
                      const rtc::PacketOptions& options,
@@ -66,32 +47,11 @@ class SrtpTransport : public RtpTransportInternal {
                       const rtc::PacketOptions& options,
                       int flags) override;
 
-  bool IsWritable(bool rtcp) const override {
-    return rtp_transport_->IsWritable(rtcp);
-  }
-
   // The transport becomes active if the send_session_ and recv_session_ are
   // created.
-  bool IsActive() const;
+  bool IsSrtpActive() const override;
 
-  bool HandlesPayloadType(int payload_type) const override {
-    return rtp_transport_->HandlesPayloadType(payload_type);
-  }
-
-  void AddHandledPayloadType(int payload_type) override {
-    rtp_transport_->AddHandledPayloadType(payload_type);
-  }
-
-  RTCError SetParameters(const RtpTransportParameters& parameters) override {
-    return rtp_transport_->SetParameters(parameters);
-  }
-
-  RtpTransportParameters GetParameters() const override {
-    return rtp_transport_->GetParameters();
-  }
-
-  // TODO(zstein): Remove this when we remove RtpTransportAdapter.
-  RtpTransportAdapter* GetInternal() override { return nullptr; }
+  bool IsWritable(bool rtcp) const override;
 
   // Create new send/recv sessions and set the negotiated crypto keys for RTP
   // packet encryption. The keys can either come from SDES negotiation or DTLS
@@ -99,9 +59,11 @@ class SrtpTransport : public RtpTransportInternal {
   bool SetRtpParams(int send_cs,
                     const uint8_t* send_key,
                     int send_key_len,
+                    const std::vector<int>& send_extension_ids,
                     int recv_cs,
                     const uint8_t* recv_key,
-                    int recv_key_len);
+                    int recv_key_len,
+                    const std::vector<int>& recv_extension_ids);
 
   // Create new send/recv sessions and set the negotiated crypto keys for RTCP
   // packet encryption. The keys can either come from SDES negotiation or DTLS
@@ -109,17 +71,13 @@ class SrtpTransport : public RtpTransportInternal {
   bool SetRtcpParams(int send_cs,
                      const uint8_t* send_key,
                      int send_key_len,
+                     const std::vector<int>& send_extension_ids,
                      int recv_cs,
                      const uint8_t* recv_key,
-                     int recv_key_len);
+                     int recv_key_len,
+                     const std::vector<int>& recv_extension_ids);
 
   void ResetParams();
-
-  // Set the header extension ids that should be encrypted for the given source.
-  // This method doesn't immediately update the SRTP session with the new IDs,
-  // and you need to call SetRtpParams for that to happen.
-  void SetEncryptedHeaderExtensionIds(cricket::ContentSource source,
-                                      const std::vector<int>& extension_ids);
 
   // If external auth is enabled, SRTP will write a dummy auth tag that then
   // later must get replaced before the packet is sent out. Only supported for
@@ -140,27 +98,29 @@ class SrtpTransport : public RtpTransportInternal {
   // Returns rtp auth params from srtp context.
   bool GetRtpAuthParams(uint8_t** key, int* key_len, int* tag_len);
 
-  // Helper method to get RTP Absoulute SendTime extension header id if
-  // present in remote supported extensions list.
+  // Cache RTP Absoulute SendTime extension header ID. This is only used when
+  // external authentication is enabled.
   void CacheRtpAbsSendTimeHeaderExtension(int rtp_abs_sendtime_extn_id) {
     rtp_abs_sendtime_extn_id_ = rtp_abs_sendtime_extn_id;
   }
 
+ protected:
+  // If the writable state changed, fire the SignalWritableState.
+  void MaybeUpdateWritableState();
+
  private:
+  void ConnectToRtpTransport();
   void CreateSrtpSessions();
 
-  void ConnectToRtpTransport();
+  void OnRtpPacketReceived(rtc::CopyOnWriteBuffer* packet,
+                           const rtc::PacketTime& packet_time) override;
+  void OnRtcpPacketReceived(rtc::CopyOnWriteBuffer* packet,
+                            const rtc::PacketTime& packet_time) override;
+  void OnNetworkRouteChanged(
+      rtc::Optional<rtc::NetworkRoute> network_route) override;
 
-  bool SendPacket(bool rtcp,
-                  rtc::CopyOnWriteBuffer* packet,
-                  const rtc::PacketOptions& options,
-                  int flags);
-
-  void OnPacketReceived(bool rtcp,
-                        rtc::CopyOnWriteBuffer* packet,
-                        const rtc::PacketTime& packet_time);
-
-  void OnReadyToSend(bool ready) { SignalReadyToSend(ready); }
+  // Override the RtpTransport::OnWritableState.
+  void OnWritableState(rtc::PacketTransportInternal* packet_transport) override;
 
   bool ProtectRtp(void* data, int in_len, int max_len, int* out_len);
 
@@ -178,19 +138,33 @@ class SrtpTransport : public RtpTransportInternal {
 
   bool UnprotectRtcp(void* data, int in_len, int* out_len);
 
+  bool MaybeSetKeyParams();
+  bool ParseKeyParams(const std::string& key_params, uint8_t* key, size_t len);
+
+  void SetMetricsObserver(
+      rtc::scoped_refptr<MetricsObserverInterface> metrics_observer) override;
+
   const std::string content_name_;
-  std::unique_ptr<RtpTransportInternal> rtp_transport_;
 
   std::unique_ptr<cricket::SrtpSession> send_session_;
   std::unique_ptr<cricket::SrtpSession> recv_session_;
   std::unique_ptr<cricket::SrtpSession> send_rtcp_session_;
   std::unique_ptr<cricket::SrtpSession> recv_rtcp_session_;
 
-  std::vector<int> send_encrypted_header_extension_ids_;
-  std::vector<int> recv_encrypted_header_extension_ids_;
+  rtc::Optional<cricket::CryptoParams> send_params_;
+  rtc::Optional<cricket::CryptoParams> recv_params_;
+  rtc::Optional<int> send_cipher_suite_;
+  rtc::Optional<int> recv_cipher_suite_;
+  rtc::ZeroOnFreeBuffer<uint8_t> send_key_;
+  rtc::ZeroOnFreeBuffer<uint8_t> recv_key_;
+
+  bool writable_ = false;
+
   bool external_auth_enabled_ = false;
 
   int rtp_abs_sendtime_extn_id_ = -1;
+
+  rtc::scoped_refptr<MetricsObserverInterface> metrics_observer_;
 };
 
 }  // namespace webrtc
