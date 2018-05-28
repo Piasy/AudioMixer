@@ -11,7 +11,7 @@ namespace audio_mixer {
 
 AudioFileSource::AudioFileSource(const std::string& filepath, int32_t output_sample_rate,
                                  int32_t output_channel_num, int32_t msPerBuf)
-        : ssrc(g_ssrc++),
+        : ssrc_(g_ssrc++),
           output_sample_rate_(output_sample_rate),
           output_channel_num_(output_channel_num),
           output_samples_(output_sample_rate / (1000 / msPerBuf)),
@@ -61,7 +61,7 @@ AudioFileSource::GetAudioFrameWithInfo(int32_t sample_rate_hz, webrtc::AudioFram
 }
 
 int32_t AudioFileSource::Ssrc() const {
-    return ssrc;
+    return ssrc_;
 }
 
 int32_t AudioFileSource::PreferredSampleRate() const {

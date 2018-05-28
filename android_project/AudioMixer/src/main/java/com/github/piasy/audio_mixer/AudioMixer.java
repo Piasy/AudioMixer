@@ -38,11 +38,20 @@ public class AudioMixer {
 
     private static native int nativeMix(long handle, byte[] buf);
 
+    private static native int nativeAddRecordedDataAndMix(long handle, byte[] data, int size,
+            byte[] buf);
+
     private static native void nativeDestroy(long handle);
 
     public AudioBuffer mix() {
         return mBuffer.setSize(
                 nativeMix(mNativeHandle, mBuffer.getBuffer())
+        );
+    }
+
+    public AudioBuffer addRecordedDataAndMix(byte[] data, int size) {
+        return mBuffer.setSize(
+                nativeAddRecordedDataAndMix(mNativeHandle, data, size, mBuffer.getBuffer())
         );
     }
 

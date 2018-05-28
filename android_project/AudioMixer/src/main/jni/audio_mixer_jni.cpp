@@ -173,6 +173,20 @@ Java_com_github_piasy_audio_1mixer_AudioMixer_nativeMix(
     return size;
 }
 
+JNIEXPORT jint JNICALL
+Java_com_github_piasy_audio_1mixer_AudioMixer_nativeAddRecordedDataAndMix(
+        JNIEnv* env, jclass type, jlong handle, jbyteArray data_, jint size, jbyteArray buffer_) {
+    jbyte* data = env->GetByteArrayElements(data_, NULL);
+    jbyte* buffer = env->GetByteArrayElements(buffer_, NULL);
+
+    int output_size = fromJ(AudioMixer, handle)
+            ->AddRecordedDataAndMix(data, size, reinterpret_cast<void*>(buffer));
+
+    env->ReleaseByteArrayElements(buffer_, buffer, 0);
+    env->ReleaseByteArrayElements(data_, data, 0);
+    return output_size;
+}
+
 JNIEXPORT void JNICALL
 Java_com_github_piasy_audio_1mixer_AudioMixer_nativeDestroy(
         JNIEnv* env, jclass type, jlong handle) {

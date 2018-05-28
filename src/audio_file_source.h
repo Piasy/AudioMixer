@@ -39,7 +39,7 @@ public:
     int32_t Read(void** buffer);
 
 private:
-    int32_t ssrc;
+    int32_t ssrc_;
 
     int32_t input_sample_rate_;
     int32_t input_channel_num_;

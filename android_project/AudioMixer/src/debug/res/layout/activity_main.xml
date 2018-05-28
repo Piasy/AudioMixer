@@ -64,4 +64,11 @@
             android:layout_height="wrap_content"
             android:text="mix"
             />
+
+    <Button
+            android:id="@+id/mBtnRecordAndMix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="record and mix"
+            />
 </LinearLayout>

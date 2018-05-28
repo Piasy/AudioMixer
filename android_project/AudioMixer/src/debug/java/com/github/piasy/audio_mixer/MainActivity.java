@@ -27,7 +27,9 @@ package com.github.piasy.audio_mixer;
 import android.Manifest;
 import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.media.AudioTrack;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -35,9 +37,11 @@ import android.util.Log;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 
@@ -46,12 +50,21 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
 
+    private volatile boolean mRunning = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         ButterKnife.bind(this);
+    }
+
+    @Override
+    protected void onPause() {
+        mRunning = false;
+
+        super.onPause();
     }
 
     @OnClick(R.id.mBtnResample)
@@ -74,6 +87,11 @@ public class MainActivity extends AppCompatActivity {
         MainActivityPermissionsDispatcher.doMixWithPermissionCheck(MainActivity.this);
     }
 
+    @OnClick(R.id.mBtnRecordAndMix)
+    void recordAndMix() {
+        MainActivityPermissionsDispatcher.doRecordAndMixWithPermissionCheck(MainActivity.this);
+    }
+
     @Override
     public void onRequestPermissionsResult(final int requestCode,
             @NonNull final String[] permissions,
@@ -87,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
     void doResample() {
+        mRunning = true;
         new Thread(() -> {
             int inputSampleRate = 44100;
             int inputChannelNum = 2;
@@ -114,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 FileInputStream inputStream = new FileInputStream("/sdcard/mp3/morning.raw");
 
                 int read;
-                while ((read = inputStream.read(inputBuffer.getBuffer())) > 0) {
+                while ((read = inputStream.read(inputBuffer.getBuffer())) > 0 && mRunning) {
                     inputBuffer.setSize(read);
                     AudioBuffer outputBuffer = resampler.resample(inputBuffer);
 
@@ -134,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             audioTrack.stop();
             resampler.destroy();
 
-            Log.d(TAG, "resample finish");
+            Log.e(TAG, "resample finish");
         }).start();
     }
 
@@ -142,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
     void doDecodeMono() {
+        mRunning = true;
         new Thread(() -> {
             AudioFileDecoder decoder = new AudioFileDecoder("/sdcard/mp3/morning-mono-16k.mp3",
                     AudioBuffer.MS_PER_BUF);
@@ -159,8 +179,8 @@ public class MainActivity extends AppCompatActivity {
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
-            int exitCode;
-            while (true) {
+            int exitCode = 0;
+            while (mRunning) {
                 AudioBuffer buffer = decoder.consume();
                 if (buffer.getSize() > 0) {
                     audioTrack.write(buffer.getBuffer(), 0, buffer.getSize());
@@ -170,10 +190,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            Log.d(TAG, "decode finish: " + exitCode);
-
             audioTrack.stop();
             decoder.destroy();
+
+            Log.e(TAG, "decode finish: " + exitCode);
         }).start();
     }
 
@@ -181,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
     void doDecodeAny() {
+        mRunning = true;
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
@@ -200,8 +221,8 @@ public class MainActivity extends AppCompatActivity {
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
-            int exitCode;
-            while (true) {
+            int exitCode = 0;
+            while (mRunning) {
                 AudioBuffer buffer = source.read();
                 if (buffer.getSize() > 0) {
                     audioTrack.write(buffer.getBuffer(), 0, buffer.getSize());
@@ -211,10 +232,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            Log.d(TAG, "decode finish: " + exitCode);
-
             audioTrack.stop();
             source.destroy();
+
+            Log.e(TAG, "decode finish: " + exitCode);
         }).start();
     }
 
@@ -222,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     })
     void doMix() {
+        mRunning = true;
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
@@ -247,8 +269,8 @@ public class MainActivity extends AppCompatActivity {
                     sampleRate, channelNum
             ));
 
-            int exitCode;
-            while (true) {
+            int exitCode = 0;
+            while (mRunning) {
                 AudioBuffer buffer = mixer.mix();
                 if (buffer.getSize() > 0) {
                     audioTrack.write(buffer.getBuffer(), 0, buffer.getSize());
@@ -258,11 +280,66 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // actually can't reach there, mixer never ends
-            Log.d(TAG, "mix finish: " + exitCode);
-
             audioTrack.stop();
             mixer.destroy();
+
+            Log.e(TAG, "mix finish: " + exitCode);
+        }).start();
+    }
+
+    @NeedsPermission({
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO,
+    })
+    void doRecordAndMix() {
+        mRunning = true;
+        new Thread(() -> {
+            int sampleRate = 48000;
+            int channelNum = 1;
+
+            int bufSize = (sampleRate / 100) * channelNum * 2;
+            byte[] buf = new byte[bufSize];
+
+            final int channel = channelNum == 1 ? AudioFormat.CHANNEL_IN_MONO
+                    : AudioFormat.CHANNEL_IN_STEREO;
+            final int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+            int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channel, audioFormat);
+            AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                    sampleRate, channel, audioFormat,
+                    Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE));
+            recorder.startRecording();
+
+            AudioMixer mixer = new AudioMixer(new MixerConfig(
+                    new ArrayList<>(Collections.singletonList(
+                            "/sdcard/mp3/morning.mp3"
+                    )),
+                    sampleRate, channelNum
+            ));
+
+            int exitCode = 0;
+            try {
+                FileOutputStream mixerDump = new FileOutputStream(
+                        "/sdcard/mp3/record_and_mix.pcm");
+
+                while (mRunning) {
+                    int read = recorder.read(buf, 0, bufSize);
+                    AudioBuffer buffer = mixer.addRecordedDataAndMix(buf, read);
+                    if (buffer.getSize() > 0) {
+                        mixerDump.write(buffer.getBuffer(), 0, buffer.getSize());
+                    } else {
+                        exitCode = buffer.getSize();
+                        break;
+                    }
+                }
+                mixerDump.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            recorder.stop();
+            mixer.destroy();
+
+            Log.e(TAG, "mix finish: " + exitCode);
         }).start();
     }
 }

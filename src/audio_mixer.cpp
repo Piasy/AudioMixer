@@ -6,6 +6,7 @@
 
 #include "audio_mixer_global.h"
 #include "audio_mixer.h"
+#include "audio_file_source.h"
 
 namespace audio_mixer {
 
@@ -20,10 +21,13 @@ AudioMixer::AudioMixer(const MixerConfig& config)
                 f, output_sample_rate_, output_channel_num_, MixerConfig::MS_PER_BUF
         ));
     }
+    record_source_ = std::make_unique<AudioRecordSource>(output_sample_rate_,
+                                                         output_channel_num_);
 
     for (auto& source : sources_) {
         mixer_->AddSource(source.get());
     }
+    mixer_->AddSource(record_source_.get());
 
     mixed_frame_->sample_rate_hz_ = output_sample_rate_;
     mixed_frame_->num_channels_ = static_cast<size_t>(output_channel_num_);
@@ -36,17 +40,25 @@ AudioMixer::~AudioMixer() {
     for (auto& source : sources_) {
         mixer_->RemoveSource(source.get());
     }
+    mixer_->RemoveSource(record_source_.get());
 
     sources_.clear();
 }
 
-int32_t AudioMixer::Mix(void* buffer) {
+int32_t AudioMixer::Mix(void* output_buffer) {
     mixer_->Mix(static_cast<size_t>(output_channel_num_), mixed_frame_.get());
 
     int32_t size = av_samples_get_buffer_size(nullptr, output_channel_num_, output_samples_,
                                               kOutputSampleFormat, 1);
-    memcpy(buffer, reinterpret_cast<const void*>(mixed_frame_->data()), static_cast<size_t>(size));
+    memcpy(output_buffer, reinterpret_cast<const void*>(mixed_frame_->data()),
+           static_cast<size_t>(size));
     return size;
+}
+
+int32_t AudioMixer::AddRecordedDataAndMix(const void* data, int32_t size, void* output_buffer) {
+    record_source_->OnAudioRecorded(data, size);
+
+    return Mix(output_buffer);
 }
 
 }
