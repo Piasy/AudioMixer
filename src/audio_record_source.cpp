@@ -5,8 +5,10 @@
 #include "audio_record_source.h"
 #include "audio_mixer_global.h"
 
-audio_mixer::AudioRecordSource::AudioRecordSource(int32_t sample_rate, int32_t channel_num)
-        : ssrc_(g_ssrc++),
+audio_mixer::AudioRecordSource::AudioRecordSource(int32_t ssrc, int32_t sample_rate,
+                                                  int32_t channel_num, float volume)
+        : AudioSource(volume),
+          ssrc_(ssrc),
           sample_rate_(sample_rate),
           channel_num_(channel_num),
           samples_per_channel_10ms_(sample_rate * 10 / 1000),
@@ -42,6 +44,8 @@ audio_mixer::AudioRecordSource::GetAudioFrameWithInfo(int32_t sample_rate_hz,
     memmove(buffer_.data(), buffer_.data() + buffer_num_elements_10ms_,
             (buffer_.size() - buffer_num_elements_10ms_) * sizeof(int16_t));
     buffer_.SetSize(buffer_.size() - buffer_num_elements_10ms_);
+
+    ApplyVolume(audio_frame);
 
     return webrtc::AudioMixer::Source::AudioFrameInfo::kNormal;
 }

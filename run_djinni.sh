@@ -7,7 +7,7 @@ objc_out="$base_dir/generated_src/objc"
 java_out="$base_dir/generated_src/java/com/github/piasy/audio_mixer"
 java_package="com.github.piasy.audio_mixer"
 namespace="audio_mixer"
-objc_prefix="PAM"
+objc_prefix="PYA"
 djinni_file="$base_dir/djinni/audio_mixer.djinni"
 
 rm -rf $base_dir/generated_src && \
@@ -18,6 +18,7 @@ rm -rf $base_dir/generated_src && \
    \
    --cpp-out $cpp_out \
    --cpp-namespace $namespace \
+   --ident-cpp-method FooBar \
    \
    --jni-out $jni_out \
    --ident-jni-class NativeFooBar \

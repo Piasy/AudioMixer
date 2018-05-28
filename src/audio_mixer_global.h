@@ -12,7 +12,6 @@ extern "C" {
 
 namespace audio_mixer {
 
-extern int32_t g_ssrc;
 extern const AVSampleFormat kOutputSampleFormat;
 
 }

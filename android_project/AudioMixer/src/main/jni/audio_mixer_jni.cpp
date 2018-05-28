@@ -114,8 +114,8 @@ Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeInit(
     const char* filepath = env->GetStringUTFChars(filepath_, 0);
 
     std::string path(filepath);
-    AudioFileSource* source = new AudioFileSource(path, outputSampleRate, outputChannelNum,
-                                                  msPerBuf);
+    AudioFileSource* source = new AudioFileSource(0, path, outputSampleRate, outputChannelNum,
+                                                  msPerBuf, 1);
 
     env->ReleaseStringUTFChars(filepath_, filepath);
 
@@ -156,18 +156,13 @@ Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeDestroy(
 }
 
 
-JNIEXPORT jlong JNICALL
-Java_com_github_piasy_audio_1mixer_AudioMixer_nativeInit(
-        JNIEnv* env, jclass type, jobject config) {
-    return toJ(new AudioMixer(djinni_generated::NativeMixerConfig::toCpp(env, config)));
-}
-
 JNIEXPORT jint JNICALL
 Java_com_github_piasy_audio_1mixer_AudioMixer_nativeMix(
         JNIEnv* env, jclass type, jlong handle, jbyteArray buffer_) {
     jbyte* buffer = env->GetByteArrayElements(buffer_, NULL);
 
-    int size = fromJ(AudioMixer, handle)->Mix(reinterpret_cast<void*>(buffer));
+    const auto& ref = ::djinni::objectFromHandleAddress<AudioMixerApi>(handle);
+    int32_t size = reinterpret_cast<AudioMixer*>(ref.get())->Mix(reinterpret_cast<void*>(buffer));
 
     env->ReleaseByteArrayElements(buffer_, buffer, 0);
     return size;
@@ -179,18 +174,13 @@ Java_com_github_piasy_audio_1mixer_AudioMixer_nativeAddRecordedDataAndMix(
     jbyte* data = env->GetByteArrayElements(data_, NULL);
     jbyte* buffer = env->GetByteArrayElements(buffer_, NULL);
 
-    int output_size = fromJ(AudioMixer, handle)
+    const auto& ref = ::djinni::objectFromHandleAddress<AudioMixerApi>(handle);
+    int32_t output_size = reinterpret_cast<AudioMixer*>(ref.get())
             ->AddRecordedDataAndMix(data, size, reinterpret_cast<void*>(buffer));
 
     env->ReleaseByteArrayElements(buffer_, buffer, 0);
     env->ReleaseByteArrayElements(data_, data, 0);
     return output_size;
-}
-
-JNIEXPORT void JNICALL
-Java_com_github_piasy_audio_1mixer_AudioMixer_nativeDestroy(
-        JNIEnv* env, jclass type, jlong handle) {
-    delete fromJ(AudioMixer, handle);
 }
 
 }

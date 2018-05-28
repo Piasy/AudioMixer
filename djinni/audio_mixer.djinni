@@ -1,9 +1,32 @@
+mixer_source = record {
+    type: i32;
+    ssrc: i32;
+    volume: f32;
+
+    path: string;
+
+    sample_rate: i32;
+    channel_num: i32;
+
+    const type_file: i32 = 1;
+    const type_record: i32 = 2;
+}
+
 mixer_config = record {
-    input_files: list<string>;
+    sources: list<mixer_source>;
 
     output_sample_rate: i32;
     output_channel_num: i32;
 
     # stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs
     const ms_per_buf: i32 = 10;
+}
+
+audio_mixer_api = interface +c {
+    static create(config: mixer_config): audio_mixer_api;
+
+    update_volume(ssrc: i32, volume: f32);
+
+    add_source(source: mixer_source): bool;
+    remove_source(ssrc: i32): bool;
 }

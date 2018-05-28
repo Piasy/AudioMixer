@@ -9,9 +9,11 @@
 
 namespace audio_mixer {
 
-AudioFileSource::AudioFileSource(const std::string& filepath, int32_t output_sample_rate,
-                                 int32_t output_channel_num, int32_t msPerBuf)
-        : ssrc_(g_ssrc++),
+AudioFileSource::AudioFileSource(int32_t ssrc, const std::string& filepath,
+                                 int32_t output_sample_rate, int32_t output_channel_num,
+                                 int32_t msPerBuf, float volume)
+        : AudioSource(volume),
+          ssrc_(ssrc),
           output_sample_rate_(output_sample_rate),
           output_channel_num_(output_channel_num),
           output_samples_(output_sample_rate / (1000 / msPerBuf)),
@@ -47,16 +49,18 @@ AudioFileSource::GetAudioFrameWithInfo(int32_t sample_rate_hz, webrtc::AudioFram
         return webrtc::AudioMixer::Source::AudioFrameInfo::kError;
     }
 
+    audio_frame->UpdateFrame(0, nullptr, static_cast<size_t>(output_samples_), output_sample_rate_,
+                             webrtc::AudioFrame::SpeechType::kNormalSpeech,
+                             webrtc::AudioFrame::VADActivity::kVadActive,
+                             static_cast<size_t>(output_channel_num_));
+
     int16_t* output_buffer = audio_frame->mutable_data();
     if (Read(reinterpret_cast<void**>(&output_buffer)) < 0) {
         return webrtc::AudioMixer::Source::AudioFrameInfo::kError;
     }
 
-    audio_frame->sample_rate_hz_ = output_sample_rate_;
-    audio_frame->num_channels_ = static_cast<size_t>(output_channel_num_);
-    audio_frame->samples_per_channel_ = static_cast<size_t>(output_samples_);
-    audio_frame->speech_type_ = webrtc::AudioFrame::SpeechType::kNormalSpeech;
-    audio_frame->vad_activity_ = webrtc::AudioFrame::VADActivity::kVadActive;
+    ApplyVolume(audio_frame);
+
     return webrtc::AudioMixer::Source::AudioFrameInfo::kNormal;
 }
 

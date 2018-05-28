@@ -6,17 +6,16 @@
 
 #include <string>
 
-#include <api/audio/audio_mixer.h>
-
+#include "audio_source.h"
 #include "audio_file_decoder.h"
 #include "audio_resampler.h"
 
 namespace audio_mixer {
 
-class AudioFileSource : public webrtc::AudioMixer::Source {
+class AudioFileSource : public AudioSource {
 public:
-    AudioFileSource(const std::string& filepath, int32_t output_sample_rate,
-                    int32_t output_channel_num, int32_t msPerBuf);
+    AudioFileSource(int32_t ssrc, const std::string& filepath, int32_t output_sample_rate,
+                    int32_t output_channel_num, int32_t msPerBuf, float volume);
 
     ~AudioFileSource() override;
 

@@ -41,7 +41,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 
@@ -67,6 +66,15 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
+    @Override
+    public void onRequestPermissionsResult(final int requestCode,
+            @NonNull final String[] permissions,
+            @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode,
+                grantResults);
+    }
+
     @OnClick(R.id.mBtnResample)
     void resample() {
         MainActivityPermissionsDispatcher.doResampleWithPermissionCheck(MainActivity.this);
@@ -90,15 +98,6 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.mBtnRecordAndMix)
     void recordAndMix() {
         MainActivityPermissionsDispatcher.doRecordAndMixWithPermissionCheck(MainActivity.this);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(final int requestCode,
-            @NonNull final String[] permissions,
-            @NonNull final int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode,
-                grantResults);
     }
 
     @NeedsPermission({
@@ -263,8 +262,12 @@ public class MainActivity extends AppCompatActivity {
 
             AudioMixer mixer = new AudioMixer(new MixerConfig(
                     new ArrayList<>(Arrays.asList(
-                            "/sdcard/mp3/morning.mp3", "/sdcard/mp3/lion.mp3",
-                            "/sdcard/mp3/iamyou.mp3"
+                            new MixerSource(MixerSource.TYPE_FILE, 1, 1, "/sdcard/mp3/morning.mp3",
+                                    0, 0),
+                            new MixerSource(MixerSource.TYPE_FILE, 2, 1, "/sdcard/mp3/lion.mp3",
+                                    0, 0),
+                            new MixerSource(MixerSource.TYPE_FILE, 3, 1, "/sdcard/mp3/iamyou.mp3",
+                                    0, 0)
                     )),
                     sampleRate, channelNum
             ));
@@ -310,8 +313,11 @@ public class MainActivity extends AppCompatActivity {
             recorder.startRecording();
 
             AudioMixer mixer = new AudioMixer(new MixerConfig(
-                    new ArrayList<>(Collections.singletonList(
-                            "/sdcard/mp3/morning.mp3"
+                    new ArrayList<>(Arrays.asList(
+                            new MixerSource(MixerSource.TYPE_FILE, 1, 0.1f,
+                                    "/sdcard/mp3/morning.mp3", 0, 0),
+                            new MixerSource(MixerSource.TYPE_RECORD, 2, 2.0f, "", sampleRate,
+                                    channelNum)
                     )),
                     sampleRate, channelNum
             ));

@@ -6,5 +6,3 @@ bintray.properties
 **/build
 
 /libs/webrtc/lib/
-
-/generated_src/

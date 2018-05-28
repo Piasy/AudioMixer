@@ -4,45 +4,70 @@
 
 #include <modules/audio_mixer/audio_mixer_impl.h>
 
-#include "audio_mixer_global.h"
 #include "audio_mixer.h"
+#include "audio_mixer_global.h"
 #include "audio_file_source.h"
+#include "mixer_source.hpp"
 
 namespace audio_mixer {
 
+std::shared_ptr<AudioMixerApi> AudioMixerApi::Create(const MixerConfig& config) {
+    return std::make_shared<AudioMixer>(config);
+}
+
 AudioMixer::AudioMixer(const MixerConfig& config)
         : mixer_(webrtc::AudioMixerImpl::Create()),
+          record_source_(nullptr),
           mixed_frame_(std::make_unique<webrtc::AudioFrame>()),
           output_sample_rate_(config.output_sample_rate),
           output_channel_num_(config.output_channel_num),
           output_samples_(output_sample_rate_ / (1000 / MixerConfig::MS_PER_BUF)) {
-    for (auto& f : config.input_files) {
-        sources_.push_back(std::make_unique<AudioFileSource>(
-                f, output_sample_rate_, output_channel_num_, MixerConfig::MS_PER_BUF
-        ));
+    for (auto& source : config.sources) {
+        DoAddSource(source);
     }
-    record_source_ = std::make_unique<AudioRecordSource>(output_sample_rate_,
-                                                         output_channel_num_);
 
-    for (auto& source : sources_) {
-        mixer_->AddSource(source.get());
+    for (const auto& item : sources_) {
+        mixer_->AddSource(item.second.get());
     }
-    mixer_->AddSource(record_source_.get());
 
-    mixed_frame_->sample_rate_hz_ = output_sample_rate_;
-    mixed_frame_->num_channels_ = static_cast<size_t>(output_channel_num_);
-    mixed_frame_->samples_per_channel_ = static_cast<size_t>(output_samples_);
-    mixed_frame_->speech_type_ = webrtc::AudioFrame::SpeechType::kNormalSpeech;
-    mixed_frame_->vad_activity_ = webrtc::AudioFrame::VADActivity::kVadActive;
+    mixed_frame_->UpdateFrame(0, nullptr, static_cast<size_t>(output_samples_), output_sample_rate_,
+                              webrtc::AudioFrame::SpeechType::kUndefined,
+                              webrtc::AudioFrame::VADActivity::kVadUnknown,
+                              static_cast<size_t>(output_channel_num_));
 }
 
 AudioMixer::~AudioMixer() {
-    for (auto& source : sources_) {
-        mixer_->RemoveSource(source.get());
+    for (const auto& item : sources_) {
+        mixer_->RemoveSource(item.second.get());
     }
-    mixer_->RemoveSource(record_source_.get());
 
     sources_.clear();
+}
+
+void AudioMixer::UpdateVolume(int32_t ssrc, float volume) {
+    auto source = sources_.find(ssrc);
+    if (source != sources_.end()) {
+        source->second->UpdateVolume(volume);
+    }
+}
+
+bool AudioMixer::AddSource(const MixerSource& source) {
+    std::shared_ptr<AudioSource> audio_source = DoAddSource(source);
+    mixer_->AddSource(audio_source.get());
+
+    return true;
+}
+
+bool AudioMixer::RemoveSource(int32_t ssrc) {
+    auto source = sources_.find(ssrc);
+    if (source != sources_.end()) {
+        mixer_->RemoveSource(source->second.get());
+        sources_.erase(source);
+
+        return true;
+    }
+
+    return false;
 }
 
 int32_t AudioMixer::Mix(void* output_buffer) {
@@ -59,6 +84,33 @@ int32_t AudioMixer::AddRecordedDataAndMix(const void* data, int32_t size, void* 
     record_source_->OnAudioRecorded(data, size);
 
     return Mix(output_buffer);
+}
+
+std::shared_ptr<AudioSource> AudioMixer::DoAddSource(const MixerSource& source) {
+    if (source.type == MixerSource::TYPE_RECORD) {
+        RTC_CHECK(record_source_.get() == nullptr) << "only one record source is supported";
+        RTC_CHECK(source.sample_rate == output_sample_rate_)
+        << "record source must have the same sample rate as output";
+        RTC_CHECK(source.channel_num == output_channel_num_)
+        << "record source must have the same channels as output";
+
+        record_source_.reset(new AudioRecordSource(
+                source.ssrc, output_sample_rate_, output_channel_num_, source.volume
+        ));
+        sources_.insert(std::pair<int32_t, std::shared_ptr<AudioSource>>(
+                source.ssrc, record_source_
+        ));
+
+        return record_source_;
+    } else {
+        std::shared_ptr<AudioSource> file_source = std::make_shared<AudioFileSource>(
+                source.ssrc, source.path, output_sample_rate_, output_channel_num_,
+                MixerConfig::MS_PER_BUF, source.volume
+        );
+        sources_.emplace(std::make_pair(source.ssrc, file_source));
+
+        return file_source;
+    }
 }
 
 }

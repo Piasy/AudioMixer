@@ -4,14 +4,16 @@
 
 #pragma once
 
-#include <api/audio/audio_mixer.h>
 #include <rtc_base/buffer.h>
+
+#include "audio_source.h"
 
 namespace audio_mixer {
 
-class AudioRecordSource : public webrtc::AudioMixer::Source {
+class AudioRecordSource : public AudioSource {
 public:
-    AudioRecordSource(int32_t sample_rate, int32_t channel_num);
+    AudioRecordSource(int32_t ssrc, int32_t sample_rate, int32_t channel_num, float volume);
+
     ~AudioRecordSource();
 
     void OnAudioRecorded(const void* data, int32_t size);
