@@ -110,12 +110,12 @@ Java_com_github_piasy_audio_1mixer_AudioFileDecoder_nativeDestroy(
 JNIEXPORT jlong JNICALL
 Java_com_github_piasy_audio_1mixer_AudioFileSource_nativeInit(
         JNIEnv* env, jclass type, jstring filepath_, jint outputSampleRate,
-        jint outputChannelNum, jint msPerBuf) {
+        jint outputChannelNum, jint frameDurationMs) {
     const char* filepath = env->GetStringUTFChars(filepath_, 0);
 
     std::string path(filepath);
     AudioFileSource* source = new AudioFileSource(0, path, outputSampleRate, outputChannelNum,
-                                                  msPerBuf, 1);
+                                                  frameDurationMs, 1);
 
     env->ReleaseStringUTFChars(filepath_, filepath);
 

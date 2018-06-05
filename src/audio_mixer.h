@@ -41,7 +41,10 @@ private:
     std::unique_ptr<webrtc::AudioFrame> mixed_frame_;
     int32_t output_sample_rate_;
     int32_t output_channel_num_;
-    int32_t output_samples_;
+
+    int32_t frame_duration_ms_;
+    int32_t report_output_samples_;
+    int32_t real_output_samples_;
 };
 
 }

@@ -7,9 +7,6 @@ import java.util.ArrayList;
 
 public final class MixerConfig {
 
-    /** stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs */
-    public static final int MS_PER_BUF = 10;
-
 
     /*package*/ final ArrayList<MixerSource> mSources;
 
@@ -17,13 +14,17 @@ public final class MixerConfig {
 
     /*package*/ final int mOutputChannelNum;
 
+    /*package*/ final int mFrameDurationMs;
+
     public MixerConfig(
             ArrayList<MixerSource> sources,
             int outputSampleRate,
-            int outputChannelNum) {
+            int outputChannelNum,
+            int frameDurationMs) {
         this.mSources = sources;
         this.mOutputSampleRate = outputSampleRate;
         this.mOutputChannelNum = outputChannelNum;
+        this.mFrameDurationMs = frameDurationMs;
     }
 
     public ArrayList<MixerSource> getSources() {
@@ -38,12 +39,17 @@ public final class MixerConfig {
         return mOutputChannelNum;
     }
 
+    public int getFrameDurationMs() {
+        return mFrameDurationMs;
+    }
+
     @Override
     public String toString() {
         return "MixerConfig{" +
                 "mSources=" + mSources +
                 "," + "mOutputSampleRate=" + mOutputSampleRate +
                 "," + "mOutputChannelNum=" + mOutputChannelNum +
+                "," + "mFrameDurationMs=" + mFrameDurationMs +
         "}";
     }
 

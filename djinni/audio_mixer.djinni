@@ -18,8 +18,7 @@ mixer_config = record {
     output_sample_rate: i32;
     output_channel_num: i32;
 
-    # stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs
-    const ms_per_buf: i32 = 10;
+    frame_duration_ms: i32;
 }
 
 audio_mixer_api = interface +c {

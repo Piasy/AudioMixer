@@ -34,13 +34,13 @@ public class AudioFileSource {
     private long mNativeHandle;
 
     public AudioFileSource(String filepath, int outputSampleRate, int outputChannelNum,
-            int msPerBuf) {
-        mNativeHandle = nativeInit(filepath, outputSampleRate, outputChannelNum, msPerBuf);
+            int frameDurationMs) {
+        mNativeHandle = nativeInit(filepath, outputSampleRate, outputChannelNum, frameDurationMs);
         mBuffer = new AudioBuffer(new byte[AudioBuffer.MAX_BUF_SIZE], 0);
     }
 
     private static native long nativeInit(String filepath, int outputSampleRate,
-            int outputChannelNum, int msPerBuf);
+            int outputChannelNum, int frameDurationMs);
 
     private static native int nativeGetInputSampleRate(long handle);
 

@@ -31,15 +31,15 @@ public class AudioResampler {
     private long mNativeHandle;
 
     public AudioResampler(int inputSampleRate, int inputChannelNum, int outputSampleRate,
-            int outputChannelNum) {
+            int outputChannelNum, int frameDurationMs) {
         mNativeHandle = nativeInit(inputSampleRate, inputChannelNum, outputSampleRate,
                 outputChannelNum);
 
-        int inputSamplesPerBuf = inputSampleRate / (1000 / AudioBuffer.MS_PER_BUF);
+        int inputSamplesPerBuf = inputSampleRate / (1000 / frameDurationMs);
         int inputBufferSize = inputSamplesPerBuf * inputChannelNum * AudioBuffer.SAMPLE_SIZE;
         mInputBuffer = new AudioBuffer(new byte[inputBufferSize], inputBufferSize);
 
-        int outputBufferSize = outputSampleRate / (1000 / AudioBuffer.MS_PER_BUF)
+        int outputBufferSize = outputSampleRate / (1000 / frameDurationMs)
                                * outputChannelNum * AudioBuffer.SAMPLE_SIZE;
         // there may have some delay in swr, so output buffer may be lager
         outputBufferSize *= 2;

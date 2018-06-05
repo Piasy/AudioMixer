@@ -12,7 +12,8 @@ namespace audio_mixer {
 
 class AudioRecordSource : public AudioSource {
 public:
-    AudioRecordSource(int32_t ssrc, int32_t sample_rate, int32_t channel_num, float volume);
+    AudioRecordSource(int32_t ssrc, int32_t sample_rate, int32_t channel_num,
+                      int32_t frame_duration_ms, float volume);
 
     ~AudioRecordSource();
 
@@ -31,8 +32,9 @@ private:
     int32_t sample_rate_;
     int32_t channel_num_;
 
-    int32_t samples_per_channel_10ms_;
-    int32_t buffer_num_elements_10ms_;
+    int32_t frame_duration_ms_;
+    int32_t report_output_samples_;
+    int32_t real_buffer_num_elements_;
 
     rtc::BufferT<int16_t> buffer_;
 };

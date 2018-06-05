@@ -7,10 +7,12 @@
 @interface PYAMixerConfig : NSObject
 - (nonnull instancetype)initWithSources:(nonnull NSArray<PYAMixerSource *> *)sources
                        outputSampleRate:(int32_t)outputSampleRate
-                       outputChannelNum:(int32_t)outputChannelNum;
+                       outputChannelNum:(int32_t)outputChannelNum
+                        frameDurationMs:(int32_t)frameDurationMs;
 + (nonnull instancetype)mixerConfigWithSources:(nonnull NSArray<PYAMixerSource *> *)sources
                               outputSampleRate:(int32_t)outputSampleRate
-                              outputChannelNum:(int32_t)outputChannelNum;
+                              outputChannelNum:(int32_t)outputChannelNum
+                               frameDurationMs:(int32_t)frameDurationMs;
 
 @property (nonatomic, readonly, nonnull) NSArray<PYAMixerSource *> * sources;
 
@@ -18,7 +20,6 @@
 
 @property (nonatomic, readonly) int32_t outputChannelNum;
 
-@end
+@property (nonatomic, readonly) int32_t frameDurationMs;
 
-/** stay the same as webrtc::AudioMixerImpl::kFrameDurationInMs */
-extern int32_t const PYAMixerConfigMsPerBuf;
+@end

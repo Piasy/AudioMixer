@@ -14,7 +14,7 @@ include_directories(
 )
 
 
-add_definitions(-DWEBRTC_POSIX)
+add_definitions(-DWEBRTC_POSIX, -DWEBRTC_ANDROID)
 
 
 file(GLOB audio_mixer_sources
@@ -26,8 +26,11 @@ file(GLOB audio_mixer_sources
 )
 
 file(GLOB audio_mixer_deps
-    ../../libs/ffmpeg/lib/${ANDROID_ABI}/*.so
-    ../../libs/webrtc/lib/${ANDROID_ABI}/libwebrtc.a
+    ../../libs/ffmpeg/lib/Android/${ANDROID_ABI}/libswresample.a
+    ../../libs/ffmpeg/lib/Android/${ANDROID_ABI}/libavformat.a
+    ../../libs/ffmpeg/lib/Android/${ANDROID_ABI}/libavcodec.a
+    ../../libs/ffmpeg/lib/Android/${ANDROID_ABI}/libavutil.a
+    ../../libs/webrtc/lib/Android/${ANDROID_ABI}/libwebrtc.a
 )
 
 add_library(audio_mixer SHARED
@@ -37,6 +40,7 @@ add_library(audio_mixer SHARED
 target_link_libraries(audio_mixer
                       android
                       log
+                      z
 
                       ${audio_mixer_deps}
                       )

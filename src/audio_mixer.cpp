@@ -2,6 +2,7 @@
 // Created by Piasy on 29/10/2017.
 //
 
+#include <rtc_base/checks.h>
 #include <modules/audio_mixer/audio_mixer_impl.h>
 
 #include "audio_mixer.h"
@@ -20,17 +21,24 @@ AudioMixer::AudioMixer(const MixerConfig& config)
           record_source_(nullptr),
           mixed_frame_(std::make_unique<webrtc::AudioFrame>()),
           output_sample_rate_(config.output_sample_rate),
-          output_channel_num_(config.output_channel_num),
-          output_samples_(output_sample_rate_ / (1000 / MixerConfig::MS_PER_BUF)) {
+          output_channel_num_(config.output_channel_num) {
+    RTC_CHECK(config.frame_duration_ms <= webrtc::AudioMixerImpl::kFrameDurationInMs)
+    << "frame duration too long";
+
+    frame_duration_ms_ = config.frame_duration_ms;
+    report_output_samples_ =
+            output_sample_rate_ / (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs);
+    real_output_samples_ = output_sample_rate_ / (1000 / frame_duration_ms_);
+
     for (auto& source : config.sources) {
         DoAddSource(source);
     }
-
     for (const auto& item : sources_) {
         mixer_->AddSource(item.second.get());
     }
 
-    mixed_frame_->UpdateFrame(0, nullptr, static_cast<size_t>(output_samples_), output_sample_rate_,
+    mixed_frame_->UpdateFrame(0, nullptr, static_cast<size_t>(report_output_samples_),
+                              output_sample_rate_,
                               webrtc::AudioFrame::SpeechType::kUndefined,
                               webrtc::AudioFrame::VADActivity::kVadUnknown,
                               static_cast<size_t>(output_channel_num_));
@@ -73,7 +81,7 @@ bool AudioMixer::RemoveSource(int32_t ssrc) {
 int32_t AudioMixer::Mix(void* output_buffer) {
     mixer_->Mix(static_cast<size_t>(output_channel_num_), mixed_frame_.get());
 
-    int32_t size = av_samples_get_buffer_size(nullptr, output_channel_num_, output_samples_,
+    int32_t size = av_samples_get_buffer_size(nullptr, output_channel_num_, real_output_samples_,
                                               kOutputSampleFormat, 1);
     memcpy(output_buffer, reinterpret_cast<const void*>(mixed_frame_->data()),
            static_cast<size_t>(size));
@@ -95,7 +103,8 @@ std::shared_ptr<AudioSource> AudioMixer::DoAddSource(const MixerSource& source) 
         << "record source must have the same channels as output";
 
         record_source_.reset(new AudioRecordSource(
-                source.ssrc, output_sample_rate_, output_channel_num_, source.volume
+                source.ssrc, output_sample_rate_, output_channel_num_, frame_duration_ms_,
+                source.volume
         ));
         sources_.insert(std::pair<int32_t, std::shared_ptr<AudioSource>>(
                 source.ssrc, record_source_
@@ -105,7 +114,7 @@ std::shared_ptr<AudioSource> AudioMixer::DoAddSource(const MixerSource& source) 
     } else {
         std::shared_ptr<AudioSource> file_source = std::make_shared<AudioFileSource>(
                 source.ssrc, source.path, output_sample_rate_, output_channel_num_,
-                MixerConfig::MS_PER_BUF, source.volume
+                frame_duration_ms_, source.volume
         );
         sources_.emplace(std::make_pair(source.ssrc, file_source));
 

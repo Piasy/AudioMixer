@@ -2,7 +2,9 @@
 .idea
 .gradle
 /local.properties
-bintray.properties
+/gradle/bintray.properties
 **/build
 
+/libs/ffmpeg/lib/
 /libs/webrtc/lib/
+libs*.zip

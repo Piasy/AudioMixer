@@ -25,10 +25,11 @@ private:
     friend ::djinni::JniClass<NativeMixerConfig>;
 
     const ::djinni::GlobalRef<jclass> clazz { ::djinni::jniFindClass("com/github/piasy/audio_mixer/MixerConfig") };
-    const jmethodID jconstructor { ::djinni::jniGetMethodID(clazz.get(), "<init>", "(Ljava/util/ArrayList;II)V") };
+    const jmethodID jconstructor { ::djinni::jniGetMethodID(clazz.get(), "<init>", "(Ljava/util/ArrayList;III)V") };
     const jfieldID field_mSources { ::djinni::jniGetFieldID(clazz.get(), "mSources", "Ljava/util/ArrayList;") };
     const jfieldID field_mOutputSampleRate { ::djinni::jniGetFieldID(clazz.get(), "mOutputSampleRate", "I") };
     const jfieldID field_mOutputChannelNum { ::djinni::jniGetFieldID(clazz.get(), "mOutputChannelNum", "I") };
+    const jfieldID field_mFrameDurationMs { ::djinni::jniGetFieldID(clazz.get(), "mFrameDurationMs", "I") };
 };
 
 }  // namespace djinni_generated

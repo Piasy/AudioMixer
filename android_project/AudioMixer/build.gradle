@@ -1,12 +1,10 @@
-apply from: "../simple_lib_android_bintray.gradle"
+apply from: "$rootProject.rootDir/gradle/simple_lib_android_bintray.gradle"
 
 android {
-    //if (!"true".equals(System.getenv('IS_PIASY_LIB_RELEASE')))
     defaultConfig {
-        ndk.abiFilters = ['armeabi-v7a']
+        ndk.abiFilters = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
 
         sourceSets.main.java.srcDirs += '../../generated_src/java'
-        sourceSets.main.jniLibs.srcDirs += '../../libs/ffmpeg/lib'
 
         externalNativeBuild {
             cmake {
@@ -15,10 +13,6 @@ android {
                 cppFlags '-std=c++14 -fexceptions' // -fno-rtti
             }
         }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
     externalNativeBuild {
         cmake {

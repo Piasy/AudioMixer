@@ -110,9 +110,10 @@ public class MainActivity extends AppCompatActivity {
             int inputChannelNum = 2;
             int outputSampleRate = 48000;
             int outputChannelNum = 1;
+            int frameDurationMs = 10;
 
             AudioResampler resampler = new AudioResampler(inputSampleRate, inputChannelNum,
-                    outputSampleRate, outputChannelNum);
+                    outputSampleRate, outputChannelNum, frameDurationMs);
             AudioBuffer inputBuffer = resampler.getInputBuffer();
 
             int minBufferSize = AudioTrack.getMinBufferSize(outputSampleRate,
@@ -162,8 +163,9 @@ public class MainActivity extends AppCompatActivity {
     void doDecodeMono() {
         mRunning = true;
         new Thread(() -> {
+            int frameDurationMs = 10;
             AudioFileDecoder decoder = new AudioFileDecoder("/sdcard/mp3/morning-mono-16k.mp3",
-                    AudioBuffer.MS_PER_BUF);
+                    frameDurationMs);
 
             int minBufferSize = AudioTrack.getMinBufferSize(decoder.getSampleRate(),
                     decoder.getChannelNum() == 1 ? AudioFormat.CHANNEL_OUT_MONO
@@ -204,8 +206,9 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
+            int frameDurationMs = 10;
             AudioFileSource source = new AudioFileSource("/sdcard/mp3/morning.mp3", sampleRate,
-                    channelNum, AudioBuffer.MS_PER_BUF);
+                    channelNum, frameDurationMs);
 
             int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
                     channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
@@ -246,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
+            int frameDurationMs = 10;
 
             int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
                     channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
@@ -262,14 +266,14 @@ public class MainActivity extends AppCompatActivity {
 
             AudioMixer mixer = new AudioMixer(new MixerConfig(
                     new ArrayList<>(Arrays.asList(
-                            new MixerSource(MixerSource.TYPE_FILE, 1, 1, "/sdcard/mp3/morning.mp3",
-                                    0, 0),
-                            new MixerSource(MixerSource.TYPE_FILE, 2, 1, "/sdcard/mp3/lion.mp3",
-                                    0, 0),
-                            new MixerSource(MixerSource.TYPE_FILE, 3, 1, "/sdcard/mp3/iamyou.mp3",
-                                    0, 0)
+                            new MixerSource(MixerSource.TYPE_FILE, 1, 1,
+                                    "/sdcard/mp3/morning.mp3", 0, 0),
+                            new MixerSource(MixerSource.TYPE_FILE, 2, 1,
+                                    "/sdcard/mp3/lion.mp3", 0, 0),
+                            new MixerSource(MixerSource.TYPE_FILE, 3, 1,
+                                    "/sdcard/mp3/iamyou.mp3", 0, 0)
                     )),
-                    sampleRate, channelNum
+                    sampleRate, channelNum, frameDurationMs
             ));
 
             int exitCode = 0;
@@ -299,8 +303,9 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
+            int frameDurationMs = 10;
 
-            int bufSize = (sampleRate / 100) * channelNum * 2;
+            int bufSize = (sampleRate / (1000 / frameDurationMs)) * channelNum * 2;
             byte[] buf = new byte[bufSize];
 
             final int channel = channelNum == 1 ? AudioFormat.CHANNEL_IN_MONO
@@ -314,12 +319,12 @@ public class MainActivity extends AppCompatActivity {
 
             AudioMixer mixer = new AudioMixer(new MixerConfig(
                     new ArrayList<>(Arrays.asList(
-                            new MixerSource(MixerSource.TYPE_FILE, 1, 0.1f,
+                            new MixerSource(MixerSource.TYPE_FILE, 1, 1,
                                     "/sdcard/mp3/morning.mp3", 0, 0),
-                            new MixerSource(MixerSource.TYPE_RECORD, 2, 2.0f, "", sampleRate,
+                            new MixerSource(MixerSource.TYPE_RECORD, 2, 1, "", sampleRate,
                                     channelNum)
                     )),
-                    sampleRate, channelNum
+                    sampleRate, channelNum, frameDurationMs
             ));
 
             int exitCode = 0;

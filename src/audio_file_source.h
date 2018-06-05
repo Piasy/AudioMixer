@@ -15,7 +15,7 @@ namespace audio_mixer {
 class AudioFileSource : public AudioSource {
 public:
     AudioFileSource(int32_t ssrc, const std::string& filepath, int32_t output_sample_rate,
-                    int32_t output_channel_num, int32_t msPerBuf, float volume);
+                    int32_t output_channel_num, int32_t frame_duration_ms, float volume);
 
     ~AudioFileSource() override;
 
@@ -47,7 +47,10 @@ private:
 
     int32_t output_sample_rate_;
     int32_t output_channel_num_;
-    int32_t output_samples_;
+
+    int32_t frame_duration_ms_;
+    int32_t report_output_samples_;
+    int32_t real_output_samples_;
 
     void** input_buffer_;
 

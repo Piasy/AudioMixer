@@ -3,6 +3,7 @@
 //
 
 #include <rtc_base/checks.h>
+#include <modules/audio_mixer/audio_mixer_impl.h>
 
 #include "audio_mixer_global.h"
 #include "audio_file_source.h"
@@ -11,22 +12,25 @@ namespace audio_mixer {
 
 AudioFileSource::AudioFileSource(int32_t ssrc, const std::string& filepath,
                                  int32_t output_sample_rate, int32_t output_channel_num,
-                                 int32_t msPerBuf, float volume)
+                                 int32_t frame_duration_ms, float volume)
         : AudioSource(volume),
           ssrc_(ssrc),
           output_sample_rate_(output_sample_rate),
           output_channel_num_(output_channel_num),
-          output_samples_(output_sample_rate / (1000 / msPerBuf)),
+          frame_duration_ms_(frame_duration_ms),
+          report_output_samples_(
+                  output_sample_rate / (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs)),
+          real_output_samples_(output_sample_rate / (1000 / frame_duration_ms)),
           input_buffer_(nullptr) {
     decoder_.reset(new AudioFileDecoder(filepath));
 
     input_sample_rate_ = decoder_->sample_rate();
     input_channel_num_ = decoder_->channel_num();
     input_format_ = decoder_->sample_format();
-    input_samples_ = input_sample_rate_ / (1000 / msPerBuf);
+    input_samples_ = input_sample_rate_ / (1000 / frame_duration_ms);
 
     int32_t error = av_samples_alloc_array_and_samples(
-            reinterpret_cast<uint8_t***>(&input_buffer_), nullptr, input_channel_num_, 
+            reinterpret_cast<uint8_t***>(&input_buffer_), nullptr, input_channel_num_,
             input_samples_, input_format_, 0
     );
     RTC_CHECK(error >= 0) << av_err2str(error);
@@ -49,7 +53,8 @@ AudioFileSource::GetAudioFrameWithInfo(int32_t sample_rate_hz, webrtc::AudioFram
         return webrtc::AudioMixer::Source::AudioFrameInfo::kError;
     }
 
-    audio_frame->UpdateFrame(0, nullptr, static_cast<size_t>(output_samples_), output_sample_rate_,
+    audio_frame->UpdateFrame(0, nullptr, static_cast<size_t>(report_output_samples_),
+                             output_sample_rate_,
                              webrtc::AudioFrame::SpeechType::kNormalSpeech,
                              webrtc::AudioFrame::VADActivity::kVadActive,
                              static_cast<size_t>(output_channel_num_));

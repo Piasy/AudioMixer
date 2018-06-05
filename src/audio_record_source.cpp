@@ -2,17 +2,23 @@
 // Created by Piasy on 2018/5/28.
 //
 
+#include <modules/audio_mixer/audio_mixer_impl.h>
+
 #include "audio_record_source.h"
 #include "audio_mixer_global.h"
 
-audio_mixer::AudioRecordSource::AudioRecordSource(int32_t ssrc, int32_t sample_rate,
-                                                  int32_t channel_num, float volume)
+audio_mixer::AudioRecordSource::AudioRecordSource(int32_t ssrc,
+                                                  int32_t sample_rate,
+                                                  int32_t channel_num,
+                                                  int32_t frame_duration_ms,
+                                                  float volume)
         : AudioSource(volume),
           ssrc_(ssrc),
           sample_rate_(sample_rate),
           channel_num_(channel_num),
-          samples_per_channel_10ms_(sample_rate * 10 / 1000),
-          buffer_num_elements_10ms_(channel_num * samples_per_channel_10ms_) {
+          frame_duration_ms_(frame_duration_ms),
+          report_output_samples_(sample_rate / (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs)),
+          real_buffer_num_elements_(channel_num * sample_rate / (1000 / frame_duration_ms)) {
     buffer_.Clear();
 }
 
@@ -30,20 +36,20 @@ audio_mixer::AudioRecordSource::GetAudioFrameWithInfo(int32_t sample_rate_hz,
     if (sample_rate_hz != sample_rate_) {
         return webrtc::AudioMixer::Source::AudioFrameInfo::kError;
     }
-    if (buffer_.size() < buffer_num_elements_10ms_) {
+    if (buffer_.size() < real_buffer_num_elements_) {
         return webrtc::AudioMixer::Source::AudioFrameInfo::kMuted;
     }
 
     audio_frame->UpdateFrame(0, buffer_.data(),
-                             static_cast<size_t>(samples_per_channel_10ms_),
+                             static_cast<size_t>(report_output_samples_),
                              sample_rate_,
                              webrtc::AudioFrame::SpeechType::kNormalSpeech,
                              webrtc::AudioFrame::VADActivity::kVadActive,
                              static_cast<size_t>(channel_num_));
 
-    memmove(buffer_.data(), buffer_.data() + buffer_num_elements_10ms_,
-            (buffer_.size() - buffer_num_elements_10ms_) * sizeof(int16_t));
-    buffer_.SetSize(buffer_.size() - buffer_num_elements_10ms_);
+    memmove(buffer_.data(), buffer_.data() + real_buffer_num_elements_,
+            (buffer_.size() - real_buffer_num_elements_) * sizeof(int16_t));
+    buffer_.SetSize(buffer_.size() - real_buffer_num_elements_);
 
     ApplyVolume(audio_frame);
 

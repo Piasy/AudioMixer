@@ -16,18 +16,20 @@ auto NativeMixerConfig::fromCpp(JNIEnv* jniEnv, const CppType& c) -> ::djinni::L
     auto r = ::djinni::LocalRef<JniType>{jniEnv->NewObject(data.clazz.get(), data.jconstructor,
                                                            ::djinni::get(::djinni::List<::djinni_generated::NativeMixerSource>::fromCpp(jniEnv, c.sources)),
                                                            ::djinni::get(::djinni::I32::fromCpp(jniEnv, c.output_sample_rate)),
-                                                           ::djinni::get(::djinni::I32::fromCpp(jniEnv, c.output_channel_num)))};
+                                                           ::djinni::get(::djinni::I32::fromCpp(jniEnv, c.output_channel_num)),
+                                                           ::djinni::get(::djinni::I32::fromCpp(jniEnv, c.frame_duration_ms)))};
     ::djinni::jniExceptionCheck(jniEnv);
     return r;
 }
 
 auto NativeMixerConfig::toCpp(JNIEnv* jniEnv, JniType j) -> CppType {
-    ::djinni::JniLocalScope jscope(jniEnv, 4);
+    ::djinni::JniLocalScope jscope(jniEnv, 5);
     assert(j != nullptr);
     const auto& data = ::djinni::JniClass<NativeMixerConfig>::get();
     return {::djinni::List<::djinni_generated::NativeMixerSource>::toCpp(jniEnv, jniEnv->GetObjectField(j, data.field_mSources)),
             ::djinni::I32::toCpp(jniEnv, jniEnv->GetIntField(j, data.field_mOutputSampleRate)),
-            ::djinni::I32::toCpp(jniEnv, jniEnv->GetIntField(j, data.field_mOutputChannelNum))};
+            ::djinni::I32::toCpp(jniEnv, jniEnv->GetIntField(j, data.field_mOutputChannelNum)),
+            ::djinni::I32::toCpp(jniEnv, jniEnv->GetIntField(j, data.field_mFrameDurationMs))};
 }
 
 }  // namespace djinni_generated

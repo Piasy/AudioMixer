@@ -21,10 +21,6 @@ public class AudioMixer extends AudioMixerApi {
             sInitialized = true;
 
             System.loadLibrary("c++_shared");
-            System.loadLibrary("avcodec");
-            System.loadLibrary("avformat");
-            System.loadLibrary("avutil");
-            System.loadLibrary("swresample");
             System.loadLibrary("audio_mixer");
 
             globalInitializeFFMPEG();

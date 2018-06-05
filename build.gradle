@@ -4,14 +4,18 @@ buildscript {
     repositories {
         jcenter()
         google()
+
         maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots"
+            url "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.2'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+
+        // ./gradlew dependencyUpdates
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
     }
 }
 
@@ -19,9 +23,6 @@ allprojects {
     repositories {
         jcenter()
         google()
-        maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots"
-        }
     }
 }
 
@@ -46,9 +47,9 @@ ext {
 
     androidCompileSdkVersion = 27
     androidBuildToolsVersion = '27.0.3'
-    androidSupportSdkVersion = '27.0.1'
-    minSdkVersion = 16
-    targetSdkVersion = 27
+    androidSupportSdkVersion = '27.1.1'
+    androidMinSdkVersion = 16
+    androidTargetSdkVersion = 27
 
     libDebugAppId = 'com.github.piasy.audio_mixer.example'
 }

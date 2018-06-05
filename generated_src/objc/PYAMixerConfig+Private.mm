@@ -13,14 +13,16 @@ auto MixerConfig::toCpp(ObjcType obj) -> CppType
     assert(obj);
     return {::djinni::List<::djinni_generated::MixerSource>::toCpp(obj.sources),
             ::djinni::I32::toCpp(obj.outputSampleRate),
-            ::djinni::I32::toCpp(obj.outputChannelNum)};
+            ::djinni::I32::toCpp(obj.outputChannelNum),
+            ::djinni::I32::toCpp(obj.frameDurationMs)};
 }
 
 auto MixerConfig::fromCpp(const CppType& cpp) -> ObjcType
 {
     return [[PYAMixerConfig alloc] initWithSources:(::djinni::List<::djinni_generated::MixerSource>::fromCpp(cpp.sources))
                                   outputSampleRate:(::djinni::I32::fromCpp(cpp.output_sample_rate))
-                                  outputChannelNum:(::djinni::I32::fromCpp(cpp.output_channel_num))];
+                                  outputChannelNum:(::djinni::I32::fromCpp(cpp.output_channel_num))
+                                   frameDurationMs:(::djinni::I32::fromCpp(cpp.frame_duration_ms))];
 }
 
 }  // namespace djinni_generated

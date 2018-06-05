@@ -30,10 +30,10 @@ public class AudioFileDecoder {
 
     private long mNativeHandle;
 
-    public AudioFileDecoder(String filepath, int msPerBuf) {
+    public AudioFileDecoder(String filepath, int frameDurationMs) {
         mNativeHandle = nativeInit(filepath);
 
-        mSamplesPerBuf = getSampleRate() / (1000 / msPerBuf);
+        mSamplesPerBuf = getSampleRate() / (1000 / frameDurationMs);
         int bufferSize = mSamplesPerBuf * getChannelNum() * AudioBuffer.SAMPLE_SIZE;
         mBuffer = new AudioBuffer(new byte[bufferSize], bufferSize);
     }
