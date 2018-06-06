@@ -31,7 +31,6 @@ class RtpReceiverImpl : public RtpReceiver {
   // want callbacks to do nothing). This class takes ownership of the media
   // receiver but nothing else.
   RtpReceiverImpl(Clock* clock,
-                  RtpFeedback* incoming_messages_callback,
                   RTPPayloadRegistry* rtp_payload_registry,
                   RTPReceiverStrategy* rtp_media_receiver);
 
@@ -73,7 +72,6 @@ class RtpReceiverImpl : public RtpReceiver {
   void CheckSSRCChanged(const RTPHeader& rtp_header);
   void CheckCSRC(const WebRtcRTPHeader& rtp_header);
   int32_t CheckPayloadChanged(const RTPHeader& rtp_header,
-                              const int8_t first_payload_byte,
                               PayloadUnion* payload);
 
   void UpdateSources(const rtc::Optional<uint8_t>& ssrc_audio_level);
@@ -85,8 +83,6 @@ class RtpReceiverImpl : public RtpReceiver {
   RTPPayloadRegistry* const rtp_payload_registry_
       RTC_PT_GUARDED_BY(critical_section_rtp_receiver_);
   const std::unique_ptr<RTPReceiverStrategy> rtp_media_receiver_;
-
-  RtpFeedback* const cb_rtp_feedback_;
 
   // SSRCs.
   uint32_t ssrc_ RTC_GUARDED_BY(critical_section_rtp_receiver_);

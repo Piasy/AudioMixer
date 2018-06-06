@@ -82,6 +82,15 @@
       INTERNAL_UMA_HISTOGRAM_ENUMERATION_DEDUCE_BOUNDARY)(              \
       name, __VA_ARGS__, base::HistogramBase::kUmaTargetedHistogramFlag))
 
+// As above but "scaled" count to avoid overflows caused by increments of
+// large amounts. See UMA_HISTOGRAM_SCALED_EXACT_LINEAR for more information.
+// Only the new format utilizing an internal kMaxValue is supported.
+// It'll be necessary to #include "base/lazy_instance.h" to use this macro.
+#define UMA_HISTOGRAM_SCALED_ENUMERATION(name, sample, count, scale) \
+  INTERNAL_HISTOGRAM_SCALED_ENUMERATION_WITH_FLAG(                   \
+      name, sample, count, scale,                                    \
+      base::HistogramBase::kUmaTargetedHistogramFlag)
+
 // Histogram for boolean values.
 
 // Sample usage:
@@ -113,6 +122,20 @@
 //   UMA_HISTOGRAM_PERCENTAGE("Histogram.Percent", percent_as_int);
 #define UMA_HISTOGRAM_PERCENTAGE(name, percent_as_int) \
   UMA_HISTOGRAM_EXACT_LINEAR(name, percent_as_int, 101)
+
+//------------------------------------------------------------------------------
+// Scaled Linear histograms.
+
+// These take |count| and |scale| parameters to allow cumulative reporting of
+// large numbers. Only the scaled count is reported but the reminder is kept so
+// multiple calls will accumulate correctly.  Only "exact linear" is supported.
+// It'll be necessary to #include "base/lazy_instance.h" to use this macro.
+
+#define UMA_HISTOGRAM_SCALED_EXACT_LINEAR(name, sample, count, value_max, \
+                                          scale)                          \
+  INTERNAL_HISTOGRAM_SCALED_EXACT_LINEAR_WITH_FLAG(                       \
+      name, sample, count, value_max, scale,                              \
+      base::HistogramBase::kUmaTargetedHistogramFlag)
 
 //------------------------------------------------------------------------------
 // Count histograms. These are used for collecting numeric data. Note that we
@@ -178,7 +201,8 @@
 // Sample usage:
 //   UMA_HISTOGRAM_TIMES("My.Timing.Histogram", time_delta);
 
-// Short timings - up to 10 seconds.
+// Short timings - up to 10 seconds. For high-resolution (microseconds) timings,
+// see UMA_HISTOGRAM_CUSTOM_MICROSECONDS_TIMES.
 #define UMA_HISTOGRAM_TIMES(name, sample) UMA_HISTOGRAM_CUSTOM_TIMES(          \
     name, sample, base::TimeDelta::FromMilliseconds(1),                        \
     base::TimeDelta::FromSeconds(10), 50)
@@ -206,10 +230,32 @@
 // Sample usage:
 //   UMA_HISTOGRAM_CUSTOM_TIMES("Very.Long.Timing.Histogram", time_delta,
 //       base::TimeDelta::FromSeconds(1), base::TimeDelta::FromDays(1), 100);
-#define UMA_HISTOGRAM_CUSTOM_TIMES(name, sample, min, max, bucket_count)       \
-    STATIC_HISTOGRAM_POINTER_BLOCK(name, AddTime(sample),                      \
-        base::Histogram::FactoryTimeGet(name, min, max, bucket_count,          \
-            base::HistogramBase::kUmaTargetedHistogramFlag))
+#define UMA_HISTOGRAM_CUSTOM_TIMES(name, sample, min, max, bucket_count) \
+  STATIC_HISTOGRAM_POINTER_BLOCK(                                        \
+      name, AddTimeMillisecondsGranularity(sample),                      \
+      base::Histogram::FactoryTimeGet(                                   \
+          name, min, max, bucket_count,                                  \
+          base::HistogramBase::kUmaTargetedHistogramFlag))
+
+// Same as UMA_HISTOGRAM_CUSTOM_TIMES but reports |sample| in microseconds,
+// dropping the report if this client doesn't have a high-resolution clock.
+//
+// Note: dropping reports on clients with low-resolution clocks means these
+// reports will be biased to a portion of the population on Windows. See
+// Windows.HasHighResolutionTimeTicks for the affected sample.
+//
+// Sample usage:
+//  UMA_HISTOGRAM_CUSTOM_MICROSECONDS_TIMES(
+//      "High.Resolution.TimingMicroseconds.Histogram", time_delta,
+//      base::TimeDelta::FromMicroseconds(1),
+//      base::TimeDelta::FromMilliseconds(10), 100);
+#define UMA_HISTOGRAM_CUSTOM_MICROSECONDS_TIMES(name, sample, min, max, \
+                                                bucket_count)           \
+  STATIC_HISTOGRAM_POINTER_BLOCK(                                       \
+      name, AddTimeMicrosecondsGranularity(sample),                     \
+      base::Histogram::FactoryMicrosecondsTimeGet(                      \
+          name, min, max, bucket_count,                                 \
+          base::HistogramBase::kUmaTargetedHistogramFlag))
 
 // Scoped class which logs its time on this earth as a UMA statistic. This is
 // recommended for when you want a histogram which measures the time it takes

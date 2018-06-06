@@ -85,6 +85,12 @@ struct SentPacket {
   Timestamp send_time = Timestamp::Infinity();
   DataSize size = DataSize::Zero();
   PacedPacketInfo pacing_info;
+  // Transport independent sequence number, any tracked packet should have a
+  // sequence number that is unique over the whole call and increasing by 1 for
+  // each packet.
+  int64_t sequence_number;
+  // Data in flight when the packet was sent, including the packet.
+  DataSize data_in_flight = DataSize::Zero();
 };
 
 // Transport level feedback

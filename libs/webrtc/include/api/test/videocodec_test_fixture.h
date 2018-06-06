@@ -11,11 +11,13 @@
 #ifndef API_TEST_VIDEOCODEC_TEST_FIXTURE_H_
 #define API_TEST_VIDEOCODEC_TEST_FIXTURE_H_
 
+#include <string>
 #include <vector>
 
+#include "api/test/videocodec_test_stats.h"
 #include "api/video_codecs/video_decoder_factory.h"
 #include "api/video_codecs/video_encoder_factory.h"
-#include "modules/video_coding/codecs/test/stats.h"
+#include "modules/video_coding/include/video_codec_interface.h"
 
 namespace webrtc {
 namespace test {
@@ -50,22 +52,99 @@ struct BitstreamThresholds {
   size_t max_max_nalu_size_bytes;
 };
 
-// Should video files be saved persistently to disk for post-run visualization?
-struct VisualizationParams {
-  bool save_encoded_ivf;
-  bool save_decoded_y4m;
-};
-
+// NOTE: This class is still under development and may change without notice.
 class VideoCodecTestFixture {
  public:
+  class EncodedFrameChecker {
+   public:
+    virtual ~EncodedFrameChecker() = default;
+    virtual void CheckEncodedFrame(webrtc::VideoCodecType codec,
+                                   const EncodedImage& encoded_frame) const = 0;
+  };
+
+  struct Config {
+    Config();
+    void SetCodecSettings(std::string codec_name,
+                          size_t num_simulcast_streams,
+                          size_t num_spatial_layers,
+                          size_t num_temporal_layers,
+                          bool denoising_on,
+                          bool frame_dropper_on,
+                          bool spatial_resize_on,
+                          size_t width,
+                          size_t height);
+
+    size_t NumberOfCores() const;
+    size_t NumberOfTemporalLayers() const;
+    size_t NumberOfSpatialLayers() const;
+    size_t NumberOfSimulcastStreams() const;
+
+    std::string ToString() const;
+    std::string CodecName() const;
+    bool IsAsyncCodec() const;
+
+    // Plain name of YUV file to process without file extension.
+    std::string filename;
+
+    // File to process. This must be a video file in the YUV format.
+    std::string filepath;
+
+    // Number of frames to process.
+    size_t num_frames = 0;
+
+    // Bitstream constraints.
+    size_t max_payload_size_bytes = 1440;
+
+    // Should we decode the encoded frames?
+    bool decode = true;
+
+    // Force the encoder and decoder to use a single core for processing.
+    bool use_single_core = false;
+
+    // Should cpu usage be measured?
+    // If set to true, the encoding will run in real-time.
+    bool measure_cpu = false;
+
+    // If > 0: forces the encoder to create a keyframe every Nth frame.
+    size_t keyframe_interval = 0;
+
+    // Codec settings to use.
+    webrtc::VideoCodec codec_settings;
+
+    // Name of the codec being tested.
+    std::string codec_name;
+
+    // H.264 specific settings.
+    struct H264CodecSettings {
+      H264::Profile profile = H264::kProfileConstrainedBaseline;
+      H264PacketizationMode packetization_mode =
+          webrtc::H264PacketizationMode::NonInterleaved;
+    } h264_codec_settings;
+
+    // Should hardware accelerated codecs be used?
+    bool hw_encoder = false;
+    bool hw_decoder = false;
+
+    // Custom checker that will be called for each frame.
+    const EncodedFrameChecker* encoded_frame_checker = nullptr;
+
+    // Print out frame level stats.
+    bool print_frame_level_stats = false;
+
+    // Should video be saved persistently to disk for post-run visualization?
+    struct VisualizationParams {
+      bool save_encoded_ivf = false;
+      bool save_decoded_y4m = false;
+    } visualization_params;
+  };
+
   virtual ~VideoCodecTestFixture() = default;
 
   virtual void RunTest(const std::vector<RateProfile>& rate_profiles,
                        const std::vector<RateControlThresholds>* rc_thresholds,
                        const std::vector<QualityThresholds>* quality_thresholds,
-                       const BitstreamThresholds* bs_thresholds,
-                       const VisualizationParams* visualization_params) = 0;
-  virtual Stats GetStats() = 0;
+                       const BitstreamThresholds* bs_thresholds) = 0;
+  virtual VideoCodecTestStats& GetStats() = 0;
 };
 
 }  // namespace test

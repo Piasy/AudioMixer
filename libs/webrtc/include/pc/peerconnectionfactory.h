@@ -67,9 +67,6 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
 
   rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
       const cricket::AudioOptions& options) override;
-  // Deprecated, use version without constraints.
-  rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
-      const MediaConstraintsInterface* constraints) override;
 
   rtc::scoped_refptr<VideoTrackSourceInterface> CreateVideoSource(
       std::unique_ptr<cricket::VideoCapturer> capturer) override;
@@ -116,7 +113,15 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
       std::unique_ptr<cricket::MediaEngineInterface> media_engine,
       std::unique_ptr<webrtc::CallFactoryInterface> call_factory,
       std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory,
-      std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory);
+      std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory,
+      std::unique_ptr<NetworkControllerFactoryInterface>
+          network_controller_factory);
+  // Use this implementation for all future use. This structure allows simple
+  // management of all new dependencies being added to the
+  // PeerConnectionFactory.
+  explicit PeerConnectionFactory(
+      PeerConnectionFactoryDependencies dependencies);
+
   virtual ~PeerConnectionFactory();
 
  private:
@@ -137,6 +142,10 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
   std::unique_ptr<webrtc::CallFactoryInterface> call_factory_;
   std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory_;
   std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory_;
+  std::unique_ptr<NetworkControllerFactoryInterface>
+      injected_network_controller_factory_;
+  std::unique_ptr<NetworkControllerFactoryInterface>
+      bbr_network_controller_factory_;
 };
 
 }  // namespace webrtc

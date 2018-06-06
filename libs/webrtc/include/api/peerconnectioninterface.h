@@ -91,6 +91,7 @@
 #include "api/stats/rtcstatscollectorcallback.h"
 #include "api/statstypes.h"
 #include "api/transport/bitrate_settings.h"
+#include "api/transport/network_control.h"
 #include "api/turncustomizer.h"
 #include "api/umametrics.h"
 #include "logging/rtc_event_log/rtc_event_log_factory_interface.h"
@@ -338,6 +339,16 @@ class PeerConnectionInterface : public rtc::RefCountInterface {
     void set_experiment_cpu_load_estimator(bool enable) {
       media_config.video.experiment_cpu_load_estimator = enable;
     }
+
+    // Hardware VP8 encoding using VA-API on intel kaby-lake processors.
+    // crbug.com/794608
+    bool experiment_vaapi_vp8_hw_encoding() const {
+      return media_config.video.experiment_vaapi_vp8_hw_encoding;
+    }
+    void set_experiment_vaapi_vp8_hw_encoding(bool enable) {
+      media_config.video.experiment_vaapi_vp8_hw_encoding = enable;
+    }
+
     static const int kUndefined = -1;
     // Default maximum number of packets in the audio jitter buffer.
     static const int kAudioJitterBufferMaxPackets = 50;
@@ -1194,6 +1205,36 @@ struct PeerConnectionDependencies final {
   std::unique_ptr<rtc::SSLCertificateVerifier> tls_cert_verifier;
 };
 
+// PeerConnectionFactoryDependencies holds all of the PeerConnectionFactory
+// dependencies. All new dependencies should be added here instead of
+// overloading the function. This simplifies dependency injection and makes it
+// clear which are mandatory and optional. If possible please allow the peer
+// connection factory to take ownership of the dependency by adding a unique_ptr
+// to this structure.
+struct PeerConnectionFactoryDependencies final {
+  PeerConnectionFactoryDependencies() = default;
+  // This object is not copyable or assignable.
+  PeerConnectionFactoryDependencies(const PeerConnectionFactoryDependencies&) =
+      delete;
+  PeerConnectionFactoryDependencies& operator=(
+      const PeerConnectionFactoryDependencies&) = delete;
+  // This object is only moveable.
+  PeerConnectionFactoryDependencies(PeerConnectionFactoryDependencies&&) =
+      default;
+  PeerConnectionFactoryDependencies& operator=(
+      PeerConnectionFactoryDependencies&&) = default;
+
+  // Optional dependencies
+  rtc::Thread* network_thread = nullptr;
+  rtc::Thread* worker_thread = nullptr;
+  rtc::Thread* signaling_thread = nullptr;
+  std::unique_ptr<cricket::MediaEngineInterface> media_engine;
+  std::unique_ptr<CallFactoryInterface> call_factory;
+  std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory;
+  std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory;
+  std::unique_ptr<NetworkControllerFactoryInterface> network_controller_factory;
+};
+
 // PeerConnectionFactoryInterface is the factory interface used for creating
 // PeerConnection, MediaStream and MediaStreamTrack objects.
 //
@@ -1290,12 +1331,6 @@ class PeerConnectionFactoryInterface : public rtc::RefCountInterface {
   // |options| decides audio processing settings.
   virtual rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
       const cricket::AudioOptions& options) = 0;
-  // Deprecated - use version above.
-  // Can use CopyConstraintsIntoAudioOptions to bridge the gap.
-  virtual rtc::scoped_refptr<AudioSourceInterface> CreateAudioSource(
-      const MediaConstraintsInterface* constraints) {
-    return nullptr;
-  }
 
   // Creates a VideoTrackSourceInterface from |capturer|.
   // TODO(deadbeef): We should aim to remove cricket::VideoCapturer from the
@@ -1424,6 +1459,8 @@ rtc::scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
 // created and used.
 // If |fec_controller_factory| is null, an internal fec controller module will
 // be created and used.
+// If |network_controller_factory| is provided, it will be used if enabled via
+// field trial.
 rtc::scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
     rtc::Thread* network_thread,
     rtc::Thread* worker_thread,
@@ -1435,7 +1472,9 @@ rtc::scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
     cricket::WebRtcVideoDecoderFactory* video_decoder_factory,
     rtc::scoped_refptr<AudioMixer> audio_mixer,
     rtc::scoped_refptr<AudioProcessing> audio_processing,
-    std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory);
+    std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory,
+    std::unique_ptr<NetworkControllerFactoryInterface>
+        network_controller_factory = nullptr);
 
 // Create a new instance of PeerConnectionFactoryInterface with optional video
 // codec factories. These video factories represents all video codecs, i.e. no
@@ -1536,7 +1575,13 @@ CreateModularPeerConnectionFactory(
     std::unique_ptr<cricket::MediaEngineInterface> media_engine,
     std::unique_ptr<CallFactoryInterface> call_factory,
     std::unique_ptr<RtcEventLogFactoryInterface> event_log_factory,
-    std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory);
+    std::unique_ptr<FecControllerFactoryInterface> fec_controller_factory,
+    std::unique_ptr<NetworkControllerFactoryInterface>
+        network_controller_factory = nullptr);
+
+rtc::scoped_refptr<PeerConnectionFactoryInterface>
+CreateModularPeerConnectionFactory(
+    PeerConnectionFactoryDependencies dependencies);
 
 }  // namespace webrtc
 

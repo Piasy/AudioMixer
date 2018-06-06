@@ -148,6 +148,10 @@ struct BASE_EXPORT LaunchOptions {
   // CREATE_BREAKAWAY_FROM_JOB flag which allows it to breakout of the parent
   // job if any.
   bool force_breakaway_from_job_ = false;
+
+  // If set to true, permission to bring windows to the foreground is passed to
+  // the launched process if the current process has such permission.
+  bool grant_foreground_privilege = false;
 #elif defined(OS_POSIX) || defined(OS_FUCHSIA)
   // Set/unset environment variables. These are applied on top of the parent
   // process environment.  Empty (the default) means to inherit the same
@@ -208,8 +212,7 @@ struct BASE_EXPORT LaunchOptions {
   std::vector<FilePath> paths_to_map;
 #endif  // defined(OS_FUCHSIA)
 
-// TODO(crbug/836416): Remove OS_FUCHSIA here.
-#if defined(OS_POSIX) && !defined(OS_FUCHSIA)
+#if defined(OS_POSIX)
   // If not empty, launch the specified executable instead of
   // cmdline.GetProgram(). This is useful when it is necessary to pass a custom
   // argv[0].
@@ -232,7 +235,7 @@ struct BASE_EXPORT LaunchOptions {
   // inheriting the parent's process group.  The pgid of the child process
   // will be the same as its pid.
   bool new_process_group = false;
-#endif  // defined(OS_POSIX) && !defined(OS_FUCHSIA)
+#endif  // defined(OS_POSIX)
 
 #if defined(OS_CHROMEOS)
   // If non-negative, the specified file descriptor will be set as the launched

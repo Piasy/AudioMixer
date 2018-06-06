@@ -43,14 +43,12 @@ class RtpReceiver {
   static RtpReceiver* CreateVideoReceiver(
       Clock* clock,
       RtpData* incoming_payload_callback,
-      RtpFeedback* incoming_messages_callback,
       RTPPayloadRegistry* rtp_payload_registry);
 
   // Creates an audio-enabled RTP receiver.
   static RtpReceiver* CreateAudioReceiver(
       Clock* clock,
       RtpData* incoming_payload_callback,
-      RtpFeedback* incoming_messages_callback,
       RTPPayloadRegistry* rtp_payload_registry);
 
   virtual ~RtpReceiver() {}

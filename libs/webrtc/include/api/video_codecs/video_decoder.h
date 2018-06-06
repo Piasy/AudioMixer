@@ -16,13 +16,11 @@
 #include <vector>
 
 #include "api/video/video_frame.h"
-#include "common_types.h"  // NOLINT(build/include)
+#include "api/video_codecs/video_codec.h"
 #include "common_video/include/video_frame.h"
-#include "typedefs.h"  // NOLINT(build/include)
 
 namespace webrtc {
 
-class RTPFragmentationHeader;
 // TODO(pbos): Expose these through a public (root) header or change these APIs.
 struct CodecSpecificInfo;
 class VideoCodec;
@@ -59,17 +57,7 @@ class VideoDecoder {
   virtual int32_t Decode(const EncodedImage& input_image,
                          bool missing_frames,
                          const CodecSpecificInfo* codec_specific_info,
-                         int64_t render_time_ms);
-
-  // TODO(nisse): Deprecated. Delete this method, and make the above pure
-  // virtual, after downstream projects are updated. The default implementations
-  // of this method and the above ensures that during the transition, subclasses
-  // can choose to implement one or the other.
-  virtual int32_t Decode(const EncodedImage& input_image,
-                         bool missing_frames,
-                         const RTPFragmentationHeader* fragmentation,
-                         const CodecSpecificInfo* codec_specific_info = NULL,
-                         int64_t render_time_ms = -1);
+                         int64_t render_time_ms) = 0;
 
   virtual int32_t RegisterDecodeCompleteCallback(
       DecodedImageCallback* callback) = 0;

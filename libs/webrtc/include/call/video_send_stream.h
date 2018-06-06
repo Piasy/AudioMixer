@@ -17,21 +17,19 @@
 #include <vector>
 
 #include "api/call/transport.h"
-#include "api/rtpparameters.h"
 #include "api/rtp_headers.h"
+#include "api/rtpparameters.h"
 #include "api/video/video_sink_interface.h"
-#include "api/videosourceinterface.h"
+#include "api/video/video_source_interface.h"
+#include "api/video_codecs/video_encoder_config.h"
 #include "api/video_codecs/video_encoder_factory.h"
 #include "call/rtp_config.h"
-#include "call/video_config.h"
 #include "common_types.h"  // NOLINT(build/include)
 #include "common_video/include/frame_callback.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
 #include "rtc_base/platform_file.h"
 
 namespace webrtc {
-
-class VideoEncoder;
 
 class VideoSendStream {
  public:
@@ -118,6 +116,11 @@ class VideoSendStream {
       // Enables the new method to estimate the cpu load from encoding, used for
       // cpu adaptation.
       bool experiment_cpu_load_estimator = false;
+
+      // Enables hardware VAAPI VP8 encoding if supported by the provided
+      // VideoEncoderFactory.
+      // TODO(ilnik): remove this when VAAPI VP8 experiment is over.
+      bool experiment_vaapi_vp8_hw_encoding = false;
 
       // Ownership stays with WebrtcVideoEngine (delegated from PeerConnection).
       VideoEncoderFactory* encoder_factory = nullptr;
@@ -265,11 +268,6 @@ class VideoSendStream {
   // Stops stream activity.
   // When a stream is stopped, it can't receive, process or deliver packets.
   virtual void Stop() = 0;
-
-  // TODO(deadbeef): Remove once downstream code referencing
-  // "webrtc::VideoSendStream::DegradationPreference::kMaintainResolution" is
-  // updated.
-  using DegradationPreference = webrtc::DegradationPreference;
 
   virtual void SetSource(
       rtc::VideoSourceInterface<webrtc::VideoFrame>* source,

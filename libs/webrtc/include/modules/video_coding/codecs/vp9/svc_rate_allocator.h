@@ -15,9 +15,13 @@
 
 #include <vector>
 
+#include "common_types.h"  // NOLINT(build/include)
 #include "common_video/include/video_bitrate_allocator.h"
 
 namespace webrtc {
+
+extern const float kSpatialLayeringRateScalingFactor;
+extern const float kTemporalLayeringRateScalingFactor;
 
 class SvcRateAllocator : public VideoBitrateAllocator {
  public:
