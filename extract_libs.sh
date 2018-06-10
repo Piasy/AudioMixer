@@ -1,5 +1,7 @@
 #!/bin/bash
 
-wget https://github.com/Piasy/AudioMixer/releases/download/libs-20180605/libs-20180605.zip && \
+TAG=libs-20180610
+
+wget https://github.com/Piasy/AudioMixer/releases/download/${TAG}/${TAG}.zip && \
 rm -rf libs && \
-unzip libs-20180605.zip
+unzip ${TAG}.zip
