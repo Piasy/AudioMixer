@@ -7,8 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8688511C20D0CE3200EC7098 /* morning-mono-16k.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8688511B20D0CE3200EC7098 /* morning-mono-16k.mp3 */; };
-		8688511E20D0E3CC00EC7098 /* morning.raw in Resources */ = {isa = PBXBuildFile; fileRef = 8688511D20D0E3CB00EC7098 /* morning.raw */; };
+		866A956620D164D600C7694D /* AudioMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 866A956520D164D600C7694D /* AudioMixer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		866A956D20D165E600C7694D /* morning-mono-16k.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 866A956820D165E500C7694D /* morning-mono-16k.mp3 */; };
+		866A956E20D165E600C7694D /* morning.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 866A956920D165E500C7694D /* morning.mp3 */; };
+		866A956F20D165E600C7694D /* iamyou.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 866A956A20D165E500C7694D /* iamyou.mp3 */; };
+		866A957020D165E600C7694D /* morning.raw in Resources */ = {isa = PBXBuildFile; fileRef = 866A956B20D165E500C7694D /* morning.raw */; };
+		866A957120D165E600C7694D /* lion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 866A956C20D165E500C7694D /* lion.mp3 */; };
 		869959A320CF447A009946FC /* audio_file_decoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595B20CF4479009946FC /* audio_file_decoder.h */; };
 		869959A420CF447A009946FC /* audio_source.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595C20CF4479009946FC /* audio_source.h */; };
 		869959A520CF447A009946FC /* audio_resampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595D20CF4479009946FC /* audio_resampler.h */; };
@@ -40,23 +44,20 @@
 		869959CD20CF447A009946FC /* PYAAudioMixerApi+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599820CF4479009946FC /* PYAAudioMixerApi+Private.h */; };
 		869959CE20CF447A009946FC /* PYAMixerConfig+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599920CF4479009946FC /* PYAMixerConfig+Private.h */; };
 		869959CF20CF447A009946FC /* PYAMixerSource+Private.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699599A20CF4479009946FC /* PYAMixerSource+Private.mm */; };
-		869959D020CF447A009946FC /* PYAAudioMixerApi.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599B20CF4479009946FC /* PYAAudioMixerApi.h */; };
+		869959D020CF447A009946FC /* PYAAudioMixerApi.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599B20CF4479009946FC /* PYAAudioMixerApi.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		869959D120CF447A009946FC /* PYAMixerSource+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599C20CF4479009946FC /* PYAMixerSource+Private.h */; };
 		869959D220CF447A009946FC /* PYAMixerConfig.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699599D20CF4479009946FC /* PYAMixerConfig.mm */; };
-		869959D320CF447A009946FC /* PYAMixerConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599E20CF4479009946FC /* PYAMixerConfig.h */; };
+		869959D320CF447A009946FC /* PYAMixerConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599E20CF4479009946FC /* PYAMixerConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		869959D420CF447A009946FC /* PYAMixerConfig+Private.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699599F20CF4479009946FC /* PYAMixerConfig+Private.mm */; };
 		869959D520CF447A009946FC /* PYAAudioMixerApi+Private.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959A020CF4479009946FC /* PYAAudioMixerApi+Private.mm */; };
 		869959D620CF447A009946FC /* PYAMixerSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959A120CF4479009946FC /* PYAMixerSource.mm */; };
-		869959D720CF447A009946FC /* PYAMixerSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959A220CF4479009946FC /* PYAMixerSource.h */; };
-		869959DB20CF453D009946FC /* PYAAudioMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959D920CF453D009946FC /* PYAAudioMixer.h */; };
+		869959D720CF447A009946FC /* PYAMixerSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959A220CF4479009946FC /* PYAMixerSource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		869959DB20CF453D009946FC /* PYAAudioMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959D920CF453D009946FC /* PYAAudioMixer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		869959DC20CF453D009946FC /* PYAAudioMixer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959DA20CF453D009946FC /* PYAAudioMixer.mm */; };
-		869959E620CF7D9F009946FC /* PYAAudioBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959E420CF7D9F009946FC /* PYAAudioBuffer.h */; };
+		869959E620CF7D9F009946FC /* PYAAudioBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959E420CF7D9F009946FC /* PYAAudioBuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		869959E720CF7D9F009946FC /* PYAAudioBuffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */; };
 		869959E920CF85CB009946FC /* audio_mixer_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 869959E820CF85CB009946FC /* audio_mixer_api.cpp */; };
 		869959EB20CF85E7009946FC /* PYAAudioMixerApi.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959EA20CF85E7009946FC /* PYAAudioMixerApi.mm */; };
-		869959F620CFB1D3009946FC /* iamyou.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 869959F420CFACB7009946FC /* iamyou.mp3 */; };
-		869959F720CFB1D6009946FC /* lion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 869959F320CFACB7009946FC /* lion.mp3 */; };
-		869959F820CFB1D8009946FC /* morning.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 869959F520CFACB7009946FC /* morning.mp3 */; };
 		BF_208404374351 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR_316246524774 /* Assets.xcassets */; };
 		BF_232288806286 /* AudioMixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FR_262413649868 /* AudioMixer.framework */; };
 		BF_387680161997 /* AudioMixer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = FR_262413649868 /* AudioMixer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -89,8 +90,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8688511B20D0CE3200EC7098 /* morning-mono-16k.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "morning-mono-16k.mp3"; path = "../../mp3/morning-mono-16k.mp3"; sourceTree = "<group>"; };
-		8688511D20D0E3CB00EC7098 /* morning.raw */ = {isa = PBXFileReference; lastKnownFileType = file; name = morning.raw; path = ../../mp3/morning.raw; sourceTree = "<group>"; };
+		866A956520D164D600C7694D /* AudioMixer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioMixer.h; sourceTree = "<group>"; };
+		866A956820D165E500C7694D /* morning-mono-16k.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "morning-mono-16k.mp3"; sourceTree = "<group>"; };
+		866A956920D165E500C7694D /* morning.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = morning.mp3; sourceTree = "<group>"; };
+		866A956A20D165E500C7694D /* iamyou.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = iamyou.mp3; sourceTree = "<group>"; };
+		866A956B20D165E500C7694D /* morning.raw */ = {isa = PBXFileReference; lastKnownFileType = file; path = morning.raw; sourceTree = "<group>"; };
+		866A956C20D165E500C7694D /* lion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = lion.mp3; sourceTree = "<group>"; };
 		8699595B20CF4479009946FC /* audio_file_decoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_file_decoder.h; sourceTree = "<group>"; };
 		8699595C20CF4479009946FC /* audio_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_source.h; sourceTree = "<group>"; };
 		8699595D20CF4479009946FC /* audio_resampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_resampler.h; sourceTree = "<group>"; };
@@ -137,9 +142,6 @@
 		869959E820CF85CB009946FC /* audio_mixer_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_mixer_api.cpp; sourceTree = "<group>"; };
 		869959EA20CF85E7009946FC /* PYAAudioMixerApi.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAAudioMixerApi.mm; sourceTree = "<group>"; };
 		869959EC20CFA502009946FC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		869959F320CFACB7009946FC /* lion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = lion.mp3; path = ../../mp3/lion.mp3; sourceTree = "<group>"; };
-		869959F420CFACB7009946FC /* iamyou.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = iamyou.mp3; path = ../../mp3/iamyou.mp3; sourceTree = "<group>"; };
-		869959F520CFACB7009946FC /* morning.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = morning.mp3; path = ../../mp3/morning.mp3; sourceTree = "<group>"; };
 		FR_166489251693 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		FR_262413649868 /* AudioMixer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AudioMixer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FR_316246524774 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -163,6 +165,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		866A956720D165E500C7694D /* mp3 */ = {
+			isa = PBXGroup;
+			children = (
+				866A956820D165E500C7694D /* morning-mono-16k.mp3 */,
+				866A956920D165E500C7694D /* morning.mp3 */,
+				866A956A20D165E500C7694D /* iamyou.mp3 */,
+				866A956B20D165E500C7694D /* morning.raw */,
+				866A956C20D165E500C7694D /* lion.mp3 */,
+			);
+			name = mp3;
+			path = ../mp3;
+			sourceTree = "<group>";
+		};
 		8699595A20CF4479009946FC /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -263,6 +278,7 @@
 		869959D820CF4521009946FC /* objc */ = {
 			isa = PBXGroup;
 			children = (
+				866A956520D164D600C7694D /* AudioMixer.h */,
 				869959EC20CFA502009946FC /* Info.plist */,
 				869959E420CF7D9F009946FC /* PYAAudioBuffer.h */,
 				869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */,
@@ -275,18 +291,13 @@
 		G_1132497265031 /* example */ = {
 			isa = PBXGroup;
 			children = (
-				8688511D20D0E3CB00EC7098 /* morning.raw */,
-				8688511B20D0CE3200EC7098 /* morning-mono-16k.mp3 */,
-				869959F420CFACB7009946FC /* iamyou.mp3 */,
-				869959F320CFACB7009946FC /* lion.mp3 */,
-				869959F520CFACB7009946FC /* morning.mp3 */,
 				FR_892106870585 /* AppDelegate.h */,
 				FR_892106870587 /* AppDelegate.m */,
 				FR_316246524774 /* Assets.xcassets */,
 				FR_592305279399 /* Info.plist */,
+				FR_166489251693 /* main.m */,
 				FR_653036302887 /* ViewController.h */,
 				FR_653036302879 /* ViewController.mm */,
-				FR_166489251693 /* main.m */,
 			);
 			path = example;
 			sourceTree = "<group>";
@@ -299,6 +310,7 @@
 				8699595A20CF4479009946FC /* src */,
 				869959D820CF4521009946FC /* objc */,
 				G_8620238527590 /* Products */,
+				866A956720D165E500C7694D /* mp3 */,
 				G_1132497265031 /* example */,
 			);
 			sourceTree = "<group>";
@@ -319,6 +331,12 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				866A956620D164D600C7694D /* AudioMixer.h in Headers */,
+				869959DB20CF453D009946FC /* PYAAudioMixer.h in Headers */,
+				869959D720CF447A009946FC /* PYAMixerSource.h in Headers */,
+				869959D020CF447A009946FC /* PYAAudioMixerApi.h in Headers */,
+				869959D320CF447A009946FC /* PYAMixerConfig.h in Headers */,
+				869959E620CF7D9F009946FC /* PYAAudioBuffer.h in Headers */,
 				869959B920CF447A009946FC /* DJICppWrapperCache+Private.h in Headers */,
 				869959CD20CF447A009946FC /* PYAAudioMixerApi+Private.h in Headers */,
 				869959BA20CF447A009946FC /* DJIError.h in Headers */,
@@ -336,15 +354,10 @@
 				869959A520CF447A009946FC /* audio_resampler.h in Headers */,
 				869959B220CF447A009946FC /* proxy_cache_interface.hpp in Headers */,
 				869959A920CF447A009946FC /* audio_mixer.h in Headers */,
-				869959DB20CF453D009946FC /* PYAAudioMixer.h in Headers */,
 				869959A420CF447A009946FC /* audio_source.h in Headers */,
-				869959D720CF447A009946FC /* PYAMixerSource.h in Headers */,
 				869959AE20CF447A009946FC /* audio_record_source.h in Headers */,
-				869959D020CF447A009946FC /* PYAAudioMixerApi.h in Headers */,
-				869959E620CF7D9F009946FC /* PYAAudioBuffer.h in Headers */,
 				869959A320CF447A009946FC /* audio_file_decoder.h in Headers */,
 				869959BE20CF447A009946FC /* DJIMarshal+Private.h in Headers */,
-				869959D320CF447A009946FC /* PYAMixerConfig.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -425,12 +438,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8688511C20D0CE3200EC7098 /* morning-mono-16k.mp3 in Resources */,
-				8688511E20D0E3CC00EC7098 /* morning.raw in Resources */,
-				869959F620CFB1D3009946FC /* iamyou.mp3 in Resources */,
+				866A956F20D165E600C7694D /* iamyou.mp3 in Resources */,
 				BF_208404374351 /* Assets.xcassets in Resources */,
-				869959F720CFB1D6009946FC /* lion.mp3 in Resources */,
-				869959F820CFB1D8009946FC /* morning.mp3 in Resources */,
+				866A957120D165E600C7694D /* lion.mp3 in Resources */,
+				866A957020D165E600C7694D /* morning.raw in Resources */,
+				866A956E20D165E600C7694D /* morning.mp3 in Resources */,
+				866A956D20D165E600C7694D /* morning-mono-16k.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

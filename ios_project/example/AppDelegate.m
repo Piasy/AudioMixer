@@ -26,8 +26,9 @@
 
 
 #import "AppDelegate.h"
-#import "PYAAudioMixer.h"
 #import "ViewController.h"
+
+#import <AudioMixer/AudioMixer.h>
 
 @interface AppDelegate ()
 

@@ -26,10 +26,9 @@
 
 //#import <AVFoundation/AVFoundation.h>
 
+#import <AudioMixer/AudioMixer.h>
+
 #import "ViewController.h"
-#import "PYAAudioMixer.h"
-#import "PYAMixerConfig.h"
-#import "PYAMixerSource.h"
 
 #include "audio_file_decoder.h"
 #include "audio_file_source.h"
@@ -426,39 +425,49 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doStopTest {
+    __weak ViewController* weakSelf = self;
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            if ([self stopAudioUnit]) {
+            ViewController* strongSelf = weakSelf;
+            if (!strongSelf) {
+                return;
+            }
+            if ([strongSelf stopAudioUnit]) {
                 NSLog(@"doStopTest success");
             }
-            if (_buffer) {
-                free(_buffer);
+            if (strongSelf->_buffer) {
+                free(strongSelf->_buffer);
             }
-            if (_resamplerInputBuffer) {
-                free(_resamplerInputBuffer);
+            if (strongSelf->_resamplerInputBuffer) {
+                free(strongSelf->_resamplerInputBuffer);
             }
-            if (_decoder) {
-                delete _decoder;
+            if (strongSelf->_decoder) {
+                delete strongSelf->_decoder;
             }
-            if (_resampler) {
-                delete _resampler;
+            if (strongSelf->_resampler) {
+                delete strongSelf->_resampler;
             }
-            if (_source) {
-                delete _source;
+            if (strongSelf->_source) {
+                delete strongSelf->_source;
             }
-            if (_resamplerReader) {
-                [_resamplerReader closeFile];
+            if (strongSelf->_resamplerReader) {
+                [strongSelf->_resamplerReader closeFile];
             }
-            if (_recordAndMixDumper) {
-                [_recordAndMixDumper closeFile];
+            if (strongSelf->_recordAndMixDumper) {
+                [strongSelf->_recordAndMixDumper closeFile];
             }
         });
 }
 
 - (void)doStartTest {
+    __weak ViewController* weakSelf = self;
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            if ([self startAudioUnit]) {
+            ViewController* strongSelf = weakSelf;
+            if (!strongSelf) {
+                return;
+            }
+            if ([strongSelf startAudioUnit]) {
                 NSLog(@"doStartTest success");
             }
         });
