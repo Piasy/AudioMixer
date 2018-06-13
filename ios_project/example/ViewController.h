@@ -36,5 +36,11 @@
                        numFrames:(UInt32)numFrames
                           ioData:(AudioBufferList*)ioData;
 
+- (OSStatus)notifyDeliverRecordedData:(AudioUnitRenderActionFlags*)flags
+                            timestamp:(const AudioTimeStamp*)timestamp
+                            busNumber:(UInt32)busNumber
+                            numFrames:(UInt32)numFrames
+                               ioData:(AudioBufferList*)ioData;
+
 @end
 
