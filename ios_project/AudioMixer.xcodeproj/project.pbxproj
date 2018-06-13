@@ -1,0 +1,778 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8688511C20D0CE3200EC7098 /* morning-mono-16k.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 8688511B20D0CE3200EC7098 /* morning-mono-16k.mp3 */; };
+		8688511E20D0E3CC00EC7098 /* morning.raw in Resources */ = {isa = PBXBuildFile; fileRef = 8688511D20D0E3CB00EC7098 /* morning.raw */; };
+		869959A320CF447A009946FC /* audio_file_decoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595B20CF4479009946FC /* audio_file_decoder.h */; };
+		869959A420CF447A009946FC /* audio_source.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595C20CF4479009946FC /* audio_source.h */; };
+		869959A520CF447A009946FC /* audio_resampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595D20CF4479009946FC /* audio_resampler.h */; };
+		869959A620CF447A009946FC /* audio_mixer_global.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699595E20CF4479009946FC /* audio_mixer_global.h */; };
+		869959A720CF447A009946FC /* audio_resampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699595F20CF4479009946FC /* audio_resampler.cpp */; };
+		869959A820CF447A009946FC /* audio_mixer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699596020CF4479009946FC /* audio_mixer.cpp */; };
+		869959A920CF447A009946FC /* audio_mixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699596120CF4479009946FC /* audio_mixer.h */; };
+		869959AA20CF447A009946FC /* audio_file_decoder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699596220CF4479009946FC /* audio_file_decoder.cpp */; };
+		869959AB20CF447A009946FC /* audio_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699596320CF4479009946FC /* audio_source.cpp */; };
+		869959AC20CF447A009946FC /* audio_mixer_global.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699596420CF4479009946FC /* audio_mixer_global.cpp */; };
+		869959AD20CF447A009946FC /* avx_helper.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699596520CF4479009946FC /* avx_helper.h */; };
+		869959AE20CF447A009946FC /* audio_record_source.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699596620CF4479009946FC /* audio_record_source.h */; };
+		869959AF20CF447A009946FC /* audio_file_source.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699596720CF4479009946FC /* audio_file_source.h */; };
+		869959B020CF447A009946FC /* audio_file_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699596820CF4479009946FC /* audio_file_source.cpp */; };
+		869959B120CF447A009946FC /* audio_record_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699596920CF4479009946FC /* audio_record_source.cpp */; };
+		869959B220CF447A009946FC /* proxy_cache_interface.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 8699596C20CF4479009946FC /* proxy_cache_interface.hpp */; };
+		869959B320CF447A009946FC /* proxy_cache_impl.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 8699596D20CF4479009946FC /* proxy_cache_impl.hpp */; };
+		869959B920CF447A009946FC /* DJICppWrapperCache+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699597920CF4479009946FC /* DJICppWrapperCache+Private.h */; };
+		869959BA20CF447A009946FC /* DJIError.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699597A20CF4479009946FC /* DJIError.h */; };
+		869959BB20CF447A009946FC /* DJIProxyCaches.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699597B20CF4479009946FC /* DJIProxyCaches.mm */; };
+		869959BC20CF447A009946FC /* DJIObjcWrapperCache+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699597C20CF4479009946FC /* DJIObjcWrapperCache+Private.h */; };
+		869959BD20CF447A009946FC /* DJIError.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699597D20CF4479009946FC /* DJIError.mm */; };
+		869959BE20CF447A009946FC /* DJIMarshal+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699597E20CF4479009946FC /* DJIMarshal+Private.h */; };
+		869959BF20CF447A009946FC /* djinni_common.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 8699597F20CF4479009946FC /* djinni_common.hpp */; };
+		869959C320CF447A009946FC /* audio_mixer_api.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 8699598C20CF4479009946FC /* audio_mixer_api.hpp */; };
+		869959C420CF447A009946FC /* mixer_source.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 8699598D20CF4479009946FC /* mixer_source.hpp */; };
+		869959C520CF447A009946FC /* mixer_source.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8699598E20CF4479009946FC /* mixer_source.cpp */; };
+		869959C620CF447A009946FC /* mixer_config.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 8699598F20CF4479009946FC /* mixer_config.hpp */; };
+		869959CD20CF447A009946FC /* PYAAudioMixerApi+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599820CF4479009946FC /* PYAAudioMixerApi+Private.h */; };
+		869959CE20CF447A009946FC /* PYAMixerConfig+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599920CF4479009946FC /* PYAMixerConfig+Private.h */; };
+		869959CF20CF447A009946FC /* PYAMixerSource+Private.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699599A20CF4479009946FC /* PYAMixerSource+Private.mm */; };
+		869959D020CF447A009946FC /* PYAAudioMixerApi.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599B20CF4479009946FC /* PYAAudioMixerApi.h */; };
+		869959D120CF447A009946FC /* PYAMixerSource+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599C20CF4479009946FC /* PYAMixerSource+Private.h */; };
+		869959D220CF447A009946FC /* PYAMixerConfig.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699599D20CF4479009946FC /* PYAMixerConfig.mm */; };
+		869959D320CF447A009946FC /* PYAMixerConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 8699599E20CF4479009946FC /* PYAMixerConfig.h */; };
+		869959D420CF447A009946FC /* PYAMixerConfig+Private.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8699599F20CF4479009946FC /* PYAMixerConfig+Private.mm */; };
+		869959D520CF447A009946FC /* PYAAudioMixerApi+Private.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959A020CF4479009946FC /* PYAAudioMixerApi+Private.mm */; };
+		869959D620CF447A009946FC /* PYAMixerSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959A120CF4479009946FC /* PYAMixerSource.mm */; };
+		869959D720CF447A009946FC /* PYAMixerSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959A220CF4479009946FC /* PYAMixerSource.h */; };
+		869959DB20CF453D009946FC /* PYAAudioMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959D920CF453D009946FC /* PYAAudioMixer.h */; };
+		869959DC20CF453D009946FC /* PYAAudioMixer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959DA20CF453D009946FC /* PYAAudioMixer.mm */; };
+		869959E620CF7D9F009946FC /* PYAAudioBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 869959E420CF7D9F009946FC /* PYAAudioBuffer.h */; };
+		869959E720CF7D9F009946FC /* PYAAudioBuffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */; };
+		869959E920CF85CB009946FC /* audio_mixer_api.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 869959E820CF85CB009946FC /* audio_mixer_api.cpp */; };
+		869959EB20CF85E7009946FC /* PYAAudioMixerApi.mm in Sources */ = {isa = PBXBuildFile; fileRef = 869959EA20CF85E7009946FC /* PYAAudioMixerApi.mm */; };
+		869959F620CFB1D3009946FC /* iamyou.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 869959F420CFACB7009946FC /* iamyou.mp3 */; };
+		869959F720CFB1D6009946FC /* lion.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 869959F320CFACB7009946FC /* lion.mp3 */; };
+		869959F820CFB1D8009946FC /* morning.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 869959F520CFACB7009946FC /* morning.mp3 */; };
+		BF_208404374351 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR_316246524774 /* Assets.xcassets */; };
+		BF_232288806286 /* AudioMixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FR_262413649868 /* AudioMixer.framework */; };
+		BF_387680161997 /* AudioMixer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = FR_262413649868 /* AudioMixer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		BF_461210773779 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = FR_653036302879 /* ViewController.mm */; };
+		BF_656202648573 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FR_166489251693 /* main.m */; };
+		BF_875310361989 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FR_892106870587 /* AppDelegate.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CIP_89311268552 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = P_2624136498680 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = NT_262413649868;
+			remoteInfo = AudioMixer;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CFBP_9914755544 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				BF_387680161997 /* AudioMixer.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		8688511B20D0CE3200EC7098 /* morning-mono-16k.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = "morning-mono-16k.mp3"; path = "../../mp3/morning-mono-16k.mp3"; sourceTree = "<group>"; };
+		8688511D20D0E3CB00EC7098 /* morning.raw */ = {isa = PBXFileReference; lastKnownFileType = file; name = morning.raw; path = ../../mp3/morning.raw; sourceTree = "<group>"; };
+		8699595B20CF4479009946FC /* audio_file_decoder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_file_decoder.h; sourceTree = "<group>"; };
+		8699595C20CF4479009946FC /* audio_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_source.h; sourceTree = "<group>"; };
+		8699595D20CF4479009946FC /* audio_resampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_resampler.h; sourceTree = "<group>"; };
+		8699595E20CF4479009946FC /* audio_mixer_global.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_mixer_global.h; sourceTree = "<group>"; };
+		8699595F20CF4479009946FC /* audio_resampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_resampler.cpp; sourceTree = "<group>"; };
+		8699596020CF4479009946FC /* audio_mixer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_mixer.cpp; sourceTree = "<group>"; };
+		8699596120CF4479009946FC /* audio_mixer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_mixer.h; sourceTree = "<group>"; };
+		8699596220CF4479009946FC /* audio_file_decoder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_file_decoder.cpp; sourceTree = "<group>"; };
+		8699596320CF4479009946FC /* audio_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_source.cpp; sourceTree = "<group>"; };
+		8699596420CF4479009946FC /* audio_mixer_global.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_mixer_global.cpp; sourceTree = "<group>"; };
+		8699596520CF4479009946FC /* avx_helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avx_helper.h; sourceTree = "<group>"; };
+		8699596620CF4479009946FC /* audio_record_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_record_source.h; sourceTree = "<group>"; };
+		8699596720CF4479009946FC /* audio_file_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = audio_file_source.h; sourceTree = "<group>"; };
+		8699596820CF4479009946FC /* audio_file_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_file_source.cpp; sourceTree = "<group>"; };
+		8699596920CF4479009946FC /* audio_record_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_record_source.cpp; sourceTree = "<group>"; };
+		8699596C20CF4479009946FC /* proxy_cache_interface.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = proxy_cache_interface.hpp; sourceTree = "<group>"; };
+		8699596D20CF4479009946FC /* proxy_cache_impl.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = proxy_cache_impl.hpp; sourceTree = "<group>"; };
+		8699597920CF4479009946FC /* DJICppWrapperCache+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DJICppWrapperCache+Private.h"; sourceTree = "<group>"; };
+		8699597A20CF4479009946FC /* DJIError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DJIError.h; sourceTree = "<group>"; };
+		8699597B20CF4479009946FC /* DJIProxyCaches.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DJIProxyCaches.mm; sourceTree = "<group>"; };
+		8699597C20CF4479009946FC /* DJIObjcWrapperCache+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DJIObjcWrapperCache+Private.h"; sourceTree = "<group>"; };
+		8699597D20CF4479009946FC /* DJIError.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DJIError.mm; sourceTree = "<group>"; };
+		8699597E20CF4479009946FC /* DJIMarshal+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DJIMarshal+Private.h"; sourceTree = "<group>"; };
+		8699597F20CF4479009946FC /* djinni_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = djinni_common.hpp; sourceTree = "<group>"; };
+		8699598C20CF4479009946FC /* audio_mixer_api.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = audio_mixer_api.hpp; sourceTree = "<group>"; };
+		8699598D20CF4479009946FC /* mixer_source.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mixer_source.hpp; sourceTree = "<group>"; };
+		8699598E20CF4479009946FC /* mixer_source.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mixer_source.cpp; sourceTree = "<group>"; };
+		8699598F20CF4479009946FC /* mixer_config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mixer_config.hpp; sourceTree = "<group>"; };
+		8699599820CF4479009946FC /* PYAAudioMixerApi+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PYAAudioMixerApi+Private.h"; sourceTree = "<group>"; };
+		8699599920CF4479009946FC /* PYAMixerConfig+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PYAMixerConfig+Private.h"; sourceTree = "<group>"; };
+		8699599A20CF4479009946FC /* PYAMixerSource+Private.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "PYAMixerSource+Private.mm"; sourceTree = "<group>"; };
+		8699599B20CF4479009946FC /* PYAAudioMixerApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PYAAudioMixerApi.h; sourceTree = "<group>"; };
+		8699599C20CF4479009946FC /* PYAMixerSource+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "PYAMixerSource+Private.h"; sourceTree = "<group>"; };
+		8699599D20CF4479009946FC /* PYAMixerConfig.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAMixerConfig.mm; sourceTree = "<group>"; };
+		8699599E20CF4479009946FC /* PYAMixerConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PYAMixerConfig.h; sourceTree = "<group>"; };
+		8699599F20CF4479009946FC /* PYAMixerConfig+Private.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "PYAMixerConfig+Private.mm"; sourceTree = "<group>"; };
+		869959A020CF4479009946FC /* PYAAudioMixerApi+Private.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "PYAAudioMixerApi+Private.mm"; sourceTree = "<group>"; };
+		869959A120CF4479009946FC /* PYAMixerSource.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAMixerSource.mm; sourceTree = "<group>"; };
+		869959A220CF4479009946FC /* PYAMixerSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PYAMixerSource.h; sourceTree = "<group>"; };
+		869959D920CF453D009946FC /* PYAAudioMixer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PYAAudioMixer.h; sourceTree = "<group>"; };
+		869959DA20CF453D009946FC /* PYAAudioMixer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAAudioMixer.mm; sourceTree = "<group>"; };
+		869959E420CF7D9F009946FC /* PYAAudioBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PYAAudioBuffer.h; sourceTree = "<group>"; };
+		869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAAudioBuffer.mm; sourceTree = "<group>"; };
+		869959E820CF85CB009946FC /* audio_mixer_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_mixer_api.cpp; sourceTree = "<group>"; };
+		869959EA20CF85E7009946FC /* PYAAudioMixerApi.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAAudioMixerApi.mm; sourceTree = "<group>"; };
+		869959EC20CFA502009946FC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		869959F320CFACB7009946FC /* lion.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = lion.mp3; path = ../../mp3/lion.mp3; sourceTree = "<group>"; };
+		869959F420CFACB7009946FC /* iamyou.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = iamyou.mp3; path = ../../mp3/iamyou.mp3; sourceTree = "<group>"; };
+		869959F520CFACB7009946FC /* morning.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = morning.mp3; path = ../../mp3/morning.mp3; sourceTree = "<group>"; };
+		FR_166489251693 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		FR_262413649868 /* AudioMixer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AudioMixer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FR_316246524774 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FR_592305279399 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FR_653036302879 /* ViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewController.mm; sourceTree = "<group>"; };
+		FR_653036302887 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		FR_892106870585 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		FR_892106870587 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		FR_893112685524 /* AudioMixerExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AudioMixerExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FBP_89311268552 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF_232288806286 /* AudioMixer.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8699595A20CF4479009946FC /* src */ = {
+			isa = PBXGroup;
+			children = (
+				8699596220CF4479009946FC /* audio_file_decoder.cpp */,
+				8699595B20CF4479009946FC /* audio_file_decoder.h */,
+				8699596820CF4479009946FC /* audio_file_source.cpp */,
+				8699596720CF4479009946FC /* audio_file_source.h */,
+				8699596420CF4479009946FC /* audio_mixer_global.cpp */,
+				8699595E20CF4479009946FC /* audio_mixer_global.h */,
+				8699596020CF4479009946FC /* audio_mixer.cpp */,
+				8699596120CF4479009946FC /* audio_mixer.h */,
+				8699596920CF4479009946FC /* audio_record_source.cpp */,
+				8699596620CF4479009946FC /* audio_record_source.h */,
+				8699595F20CF4479009946FC /* audio_resampler.cpp */,
+				8699595D20CF4479009946FC /* audio_resampler.h */,
+				8699596320CF4479009946FC /* audio_source.cpp */,
+				8699595C20CF4479009946FC /* audio_source.h */,
+				8699596520CF4479009946FC /* avx_helper.h */,
+			);
+			name = src;
+			path = ../src;
+			sourceTree = "<group>";
+		};
+		8699596A20CF4479009946FC /* djinni */ = {
+			isa = PBXGroup;
+			children = (
+				8699596B20CF4479009946FC /* support-lib */,
+			);
+			name = djinni;
+			path = ../djinni;
+			sourceTree = "<group>";
+		};
+		8699596B20CF4479009946FC /* support-lib */ = {
+			isa = PBXGroup;
+			children = (
+				8699596C20CF4479009946FC /* proxy_cache_interface.hpp */,
+				8699596D20CF4479009946FC /* proxy_cache_impl.hpp */,
+				8699597820CF4479009946FC /* objc */,
+				8699597F20CF4479009946FC /* djinni_common.hpp */,
+			);
+			path = "support-lib";
+			sourceTree = "<group>";
+		};
+		8699597820CF4479009946FC /* objc */ = {
+			isa = PBXGroup;
+			children = (
+				8699597920CF4479009946FC /* DJICppWrapperCache+Private.h */,
+				8699597A20CF4479009946FC /* DJIError.h */,
+				8699597B20CF4479009946FC /* DJIProxyCaches.mm */,
+				8699597C20CF4479009946FC /* DJIObjcWrapperCache+Private.h */,
+				8699597D20CF4479009946FC /* DJIError.mm */,
+				8699597E20CF4479009946FC /* DJIMarshal+Private.h */,
+			);
+			path = objc;
+			sourceTree = "<group>";
+		};
+		8699598220CF4479009946FC /* generated_src */ = {
+			isa = PBXGroup;
+			children = (
+				8699598B20CF4479009946FC /* cpp */,
+				8699599720CF4479009946FC /* objc */,
+			);
+			name = generated_src;
+			path = ../generated_src;
+			sourceTree = "<group>";
+		};
+		8699598B20CF4479009946FC /* cpp */ = {
+			isa = PBXGroup;
+			children = (
+				869959E820CF85CB009946FC /* audio_mixer_api.cpp */,
+				8699598C20CF4479009946FC /* audio_mixer_api.hpp */,
+				8699598F20CF4479009946FC /* mixer_config.hpp */,
+				8699598E20CF4479009946FC /* mixer_source.cpp */,
+				8699598D20CF4479009946FC /* mixer_source.hpp */,
+			);
+			path = cpp;
+			sourceTree = "<group>";
+		};
+		8699599720CF4479009946FC /* objc */ = {
+			isa = PBXGroup;
+			children = (
+				8699599B20CF4479009946FC /* PYAAudioMixerApi.h */,
+				869959EA20CF85E7009946FC /* PYAAudioMixerApi.mm */,
+				8699599820CF4479009946FC /* PYAAudioMixerApi+Private.h */,
+				869959A020CF4479009946FC /* PYAAudioMixerApi+Private.mm */,
+				8699599E20CF4479009946FC /* PYAMixerConfig.h */,
+				8699599D20CF4479009946FC /* PYAMixerConfig.mm */,
+				8699599920CF4479009946FC /* PYAMixerConfig+Private.h */,
+				8699599F20CF4479009946FC /* PYAMixerConfig+Private.mm */,
+				869959A220CF4479009946FC /* PYAMixerSource.h */,
+				869959A120CF4479009946FC /* PYAMixerSource.mm */,
+				8699599C20CF4479009946FC /* PYAMixerSource+Private.h */,
+				8699599A20CF4479009946FC /* PYAMixerSource+Private.mm */,
+			);
+			path = objc;
+			sourceTree = "<group>";
+		};
+		869959D820CF4521009946FC /* objc */ = {
+			isa = PBXGroup;
+			children = (
+				869959EC20CFA502009946FC /* Info.plist */,
+				869959E420CF7D9F009946FC /* PYAAudioBuffer.h */,
+				869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */,
+				869959D920CF453D009946FC /* PYAAudioMixer.h */,
+				869959DA20CF453D009946FC /* PYAAudioMixer.mm */,
+			);
+			path = objc;
+			sourceTree = "<group>";
+		};
+		G_1132497265031 /* example */ = {
+			isa = PBXGroup;
+			children = (
+				8688511D20D0E3CB00EC7098 /* morning.raw */,
+				8688511B20D0CE3200EC7098 /* morning-mono-16k.mp3 */,
+				869959F420CFACB7009946FC /* iamyou.mp3 */,
+				869959F320CFACB7009946FC /* lion.mp3 */,
+				869959F520CFACB7009946FC /* morning.mp3 */,
+				FR_892106870585 /* AppDelegate.h */,
+				FR_892106870587 /* AppDelegate.m */,
+				FR_316246524774 /* Assets.xcassets */,
+				FR_592305279399 /* Info.plist */,
+				FR_653036302887 /* ViewController.h */,
+				FR_653036302879 /* ViewController.mm */,
+				FR_166489251693 /* main.m */,
+			);
+			path = example;
+			sourceTree = "<group>";
+		};
+		G_8448771205358 = {
+			isa = PBXGroup;
+			children = (
+				8699596A20CF4479009946FC /* djinni */,
+				8699598220CF4479009946FC /* generated_src */,
+				8699595A20CF4479009946FC /* src */,
+				869959D820CF4521009946FC /* objc */,
+				G_8620238527590 /* Products */,
+				G_1132497265031 /* example */,
+			);
+			sourceTree = "<group>";
+		};
+		G_8620238527590 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FR_262413649868 /* AudioMixer.framework */,
+				FR_893112685524 /* AudioMixerExample.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		HBP_26241364986 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				869959B920CF447A009946FC /* DJICppWrapperCache+Private.h in Headers */,
+				869959CD20CF447A009946FC /* PYAAudioMixerApi+Private.h in Headers */,
+				869959BA20CF447A009946FC /* DJIError.h in Headers */,
+				869959C320CF447A009946FC /* audio_mixer_api.hpp in Headers */,
+				869959D120CF447A009946FC /* PYAMixerSource+Private.h in Headers */,
+				869959BF20CF447A009946FC /* djinni_common.hpp in Headers */,
+				869959B320CF447A009946FC /* proxy_cache_impl.hpp in Headers */,
+				869959AD20CF447A009946FC /* avx_helper.h in Headers */,
+				869959CE20CF447A009946FC /* PYAMixerConfig+Private.h in Headers */,
+				869959A620CF447A009946FC /* audio_mixer_global.h in Headers */,
+				869959BC20CF447A009946FC /* DJIObjcWrapperCache+Private.h in Headers */,
+				869959C620CF447A009946FC /* mixer_config.hpp in Headers */,
+				869959C420CF447A009946FC /* mixer_source.hpp in Headers */,
+				869959AF20CF447A009946FC /* audio_file_source.h in Headers */,
+				869959A520CF447A009946FC /* audio_resampler.h in Headers */,
+				869959B220CF447A009946FC /* proxy_cache_interface.hpp in Headers */,
+				869959A920CF447A009946FC /* audio_mixer.h in Headers */,
+				869959DB20CF453D009946FC /* PYAAudioMixer.h in Headers */,
+				869959A420CF447A009946FC /* audio_source.h in Headers */,
+				869959D720CF447A009946FC /* PYAMixerSource.h in Headers */,
+				869959AE20CF447A009946FC /* audio_record_source.h in Headers */,
+				869959D020CF447A009946FC /* PYAAudioMixerApi.h in Headers */,
+				869959E620CF7D9F009946FC /* PYAAudioBuffer.h in Headers */,
+				869959A320CF447A009946FC /* audio_file_decoder.h in Headers */,
+				869959BE20CF447A009946FC /* DJIMarshal+Private.h in Headers */,
+				869959D320CF447A009946FC /* PYAMixerConfig.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		NT_262413649868 /* AudioMixer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = "CL_262413649868-1" /* Build configuration list for PBXNativeTarget "AudioMixer" */;
+			buildPhases = (
+				SBP_26241364986 /* Sources */,
+				HBP_26241364986 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AudioMixer;
+			productName = AudioMixer;
+			productReference = FR_262413649868 /* AudioMixer.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		NT_893112685524 /* AudioMixerExample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CL_893112685524 /* Build configuration list for PBXNativeTarget "AudioMixerExample" */;
+			buildPhases = (
+				SBP_89311268552 /* Sources */,
+				RBP_89311268552 /* Resources */,
+				FBP_89311268552 /* Frameworks */,
+				CFBP_9914755544 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				TD_724330072017 /* PBXTargetDependency */,
+			);
+			name = AudioMixerExample;
+			productName = AudioMixerExample;
+			productReference = FR_893112685524 /* AudioMixerExample.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		P_2624136498680 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0920;
+				TargetAttributes = {
+					NT_262413649868 = {
+						DevelopmentTeam = 32VR5PEEGQ;
+						ProvisioningStyle = Automatic;
+					};
+					NT_893112685524 = {
+						DevelopmentTeam = 32VR5PEEGQ;
+					};
+				};
+			};
+			buildConfigurationList = CL_262413649868 /* Build configuration list for PBXProject "AudioMixer" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+			);
+			mainGroup = G_8448771205358;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				NT_262413649868 /* AudioMixer */,
+				NT_893112685524 /* AudioMixerExample */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RBP_89311268552 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8688511C20D0CE3200EC7098 /* morning-mono-16k.mp3 in Resources */,
+				8688511E20D0E3CC00EC7098 /* morning.raw in Resources */,
+				869959F620CFB1D3009946FC /* iamyou.mp3 in Resources */,
+				BF_208404374351 /* Assets.xcassets in Resources */,
+				869959F720CFB1D6009946FC /* lion.mp3 in Resources */,
+				869959F820CFB1D8009946FC /* morning.mp3 in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		SBP_26241364986 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				869959D520CF447A009946FC /* PYAAudioMixerApi+Private.mm in Sources */,
+				869959B120CF447A009946FC /* audio_record_source.cpp in Sources */,
+				869959CF20CF447A009946FC /* PYAMixerSource+Private.mm in Sources */,
+				869959EB20CF85E7009946FC /* PYAAudioMixerApi.mm in Sources */,
+				869959D220CF447A009946FC /* PYAMixerConfig.mm in Sources */,
+				869959AC20CF447A009946FC /* audio_mixer_global.cpp in Sources */,
+				869959E920CF85CB009946FC /* audio_mixer_api.cpp in Sources */,
+				869959D620CF447A009946FC /* PYAMixerSource.mm in Sources */,
+				869959AA20CF447A009946FC /* audio_file_decoder.cpp in Sources */,
+				869959C520CF447A009946FC /* mixer_source.cpp in Sources */,
+				869959A820CF447A009946FC /* audio_mixer.cpp in Sources */,
+				869959B020CF447A009946FC /* audio_file_source.cpp in Sources */,
+				869959BB20CF447A009946FC /* DJIProxyCaches.mm in Sources */,
+				869959DC20CF453D009946FC /* PYAAudioMixer.mm in Sources */,
+				869959BD20CF447A009946FC /* DJIError.mm in Sources */,
+				869959D420CF447A009946FC /* PYAMixerConfig+Private.mm in Sources */,
+				869959A720CF447A009946FC /* audio_resampler.cpp in Sources */,
+				869959AB20CF447A009946FC /* audio_source.cpp in Sources */,
+				869959E720CF7D9F009946FC /* PYAAudioBuffer.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SBP_89311268552 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BF_875310361989 /* AppDelegate.m in Sources */,
+				BF_461210773779 /* ViewController.mm in Sources */,
+				BF_656202648573 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		TD_724330072017 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = NT_262413649868 /* AudioMixer */;
+			targetProxy = CIP_89311268552 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BC_230601531905 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 32VR5PEEGQ;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				ENABLE_TESTABILITY = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/objc/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../libs/webrtc/lib/iOS",
+					"$(PROJECT_DIR)/../libs/ffmpeg/lib/iOS",
+				);
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DWEBRTC_POSIX",
+					"-DWEBRTC_IOS",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lz",
+					"-lbz2",
+					"-liconv",
+					"-lwebrtc",
+					"-lswresample",
+					"-lavformat",
+					"-lavcodec",
+					"-lavutil",
+					"-framework",
+					CoreMedia,
+					"-framework",
+					CoreVideo,
+					"-framework",
+					VideoToolbox,
+					"-framework",
+					AudioToolbox,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.piasy.AudioMixer;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include $(PROJECT_DIR)/../djinni/support-lib $(PROJECT_DIR)/../djinni/support-lib/objc $(PROJECT_DIR)/../generated_src/cpp $(PROJECT_DIR)/../generated_src/objc $(PROJECT_DIR)/../src";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		BC_479945831424 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.0;
+			};
+			name = Debug;
+		};
+		BC_496300163779 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 32VR5PEEGQ;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = NO;
+				ENABLE_TESTABILITY = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/objc/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../libs/webrtc/lib/iOS",
+					"$(PROJECT_DIR)/../libs/ffmpeg/lib/iOS",
+				);
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DWEBRTC_POSIX",
+					"-DWEBRTC_IOS",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-lz",
+					"-lbz2",
+					"-liconv",
+					"-lwebrtc",
+					"-lswresample",
+					"-lavformat",
+					"-lavcodec",
+					"-lavutil",
+					"-framework",
+					CoreMedia,
+					"-framework",
+					CoreVideo,
+					"-framework",
+					VideoToolbox,
+					"-framework",
+					AudioToolbox,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.piasy.AudioMixer;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include $(PROJECT_DIR)/../djinni/support-lib $(PROJECT_DIR)/../djinni/support-lib/objc $(PROJECT_DIR)/../generated_src/cpp $(PROJECT_DIR)/../generated_src/objc $(PROJECT_DIR)/../src";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		BC_881114754245 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 4.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BC_928798357395 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = 32VR5PEEGQ;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = example/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.piasy.AudioMixerExample;
+				SDKROOT = iphoneos;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BC_939092183956 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = 32VR5PEEGQ;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = example/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.piasy.AudioMixerExample;
+				SDKROOT = iphoneos;
+				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CL_262413649868 /* Build configuration list for PBXProject "AudioMixer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC_479945831424 /* Debug */,
+				BC_881114754245 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		"CL_262413649868-1" /* Build configuration list for PBXNativeTarget "AudioMixer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC_496300163779 /* Debug */,
+				BC_230601531905 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "";
+		};
+		CL_893112685524 /* Build configuration list for PBXNativeTarget "AudioMixerExample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC_928798357395 /* Debug */,
+				BC_939092183956 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "";
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = P_2624136498680 /* Project object */;
+}

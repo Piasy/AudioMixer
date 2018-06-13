@@ -13,7 +13,7 @@ public class AudioMixer extends AudioMixerApi {
 
     public AudioMixer(MixerConfig config) {
         mNativeMixer = (AudioMixerApi.CppProxy) AudioMixerApi.create(config);
-        mBuffer = new AudioBuffer(new byte[AudioBuffer.MAX_BUF_SIZE], 0);
+        mBuffer = new AudioBuffer(new byte[MAX_BUF_SIZE], 0);
     }
 
     public static synchronized void globalInitialize() {
@@ -23,11 +23,11 @@ public class AudioMixer extends AudioMixerApi {
             System.loadLibrary("c++_shared");
             System.loadLibrary("audio_mixer");
 
-            globalInitializeFFMPEG();
+            globalInitializeFFmpeg();
         }
     }
 
-    private static native void globalInitializeFFMPEG();
+    private static native void globalInitializeFFmpeg();
 
     private static native int nativeMix(long handle, byte[] buf);
 

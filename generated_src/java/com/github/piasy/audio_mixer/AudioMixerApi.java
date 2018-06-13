@@ -6,6 +6,10 @@ package com.github.piasy.audio_mixer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AudioMixerApi {
+    public static final int MAX_BUF_SIZE = 7680;
+
+    public static final int SAMPLE_SIZE = 2;
+
     public abstract void updateVolume(int ssrc, float volume);
 
     public abstract boolean addSource(MixerSource source);

@@ -4,8 +4,11 @@
 #import "PYAMixerConfig.h"
 #import "PYAMixerSource.h"
 #import <Foundation/Foundation.h>
+
 @class PYAAudioMixerApi;
 
+extern int32_t const PYAAudioMixerApiMaxBufSize;
+extern int32_t const PYAAudioMixerApiSampleSize;
 
 @interface PYAAudioMixerApi : NSObject
 
@@ -17,5 +20,7 @@
 - (BOOL)addSource:(nonnull PYAMixerSource *)source;
 
 - (BOOL)removeSource:(int32_t)ssrc;
+
+- (nullable void *)nativeMixer;
 
 @end

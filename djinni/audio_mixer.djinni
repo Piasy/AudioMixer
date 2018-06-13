@@ -28,4 +28,7 @@ audio_mixer_api = interface +c {
 
     add_source(source: mixer_source): bool;
     remove_source(ssrc: i32): bool;
+
+    const max_buf_size: i32 = 7680;
+    const sample_size: i32 = 2;
 }

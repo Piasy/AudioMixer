@@ -25,7 +25,7 @@ extern "C" {
 #define fromJ(type, handle) reinterpret_cast<type *>((handle))
 
 JNIEXPORT void JNICALL
-Java_com_github_piasy_audio_1mixer_AudioMixer_globalInitializeFFMPEG(JNIEnv* env, jclass type) {
+Java_com_github_piasy_audio_1mixer_AudioMixer_globalInitializeFFmpeg(JNIEnv* env, jclass type) {
     av_register_all();
 }
 

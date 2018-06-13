@@ -34,7 +34,7 @@ public class AudioFileDecoder {
         mNativeHandle = nativeInit(filepath);
 
         mSamplesPerBuf = getSampleRate() / (1000 / frameDurationMs);
-        int bufferSize = mSamplesPerBuf * getChannelNum() * AudioBuffer.SAMPLE_SIZE;
+        int bufferSize = mSamplesPerBuf * getChannelNum() * AudioMixer.SAMPLE_SIZE;
         mBuffer = new AudioBuffer(new byte[bufferSize], bufferSize);
     }
 

@@ -36,11 +36,11 @@ public class AudioResampler {
                 outputChannelNum);
 
         int inputSamplesPerBuf = inputSampleRate / (1000 / frameDurationMs);
-        int inputBufferSize = inputSamplesPerBuf * inputChannelNum * AudioBuffer.SAMPLE_SIZE;
+        int inputBufferSize = inputSamplesPerBuf * inputChannelNum * AudioMixer.SAMPLE_SIZE;
         mInputBuffer = new AudioBuffer(new byte[inputBufferSize], inputBufferSize);
 
         int outputBufferSize = outputSampleRate / (1000 / frameDurationMs)
-                               * outputChannelNum * AudioBuffer.SAMPLE_SIZE;
+                               * outputChannelNum * AudioMixer.SAMPLE_SIZE;
         // there may have some delay in swr, so output buffer may be lager
         outputBufferSize *= 2;
         mOutputBuffer = new AudioBuffer(new byte[outputBufferSize], 0);

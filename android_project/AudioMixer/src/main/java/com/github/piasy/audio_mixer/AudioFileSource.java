@@ -36,7 +36,7 @@ public class AudioFileSource {
     public AudioFileSource(String filepath, int outputSampleRate, int outputChannelNum,
             int frameDurationMs) {
         mNativeHandle = nativeInit(filepath, outputSampleRate, outputChannelNum, frameDurationMs);
-        mBuffer = new AudioBuffer(new byte[AudioBuffer.MAX_BUF_SIZE], 0);
+        mBuffer = new AudioBuffer(new byte[AudioMixer.MAX_BUF_SIZE], 0);
     }
 
     private static native long nativeInit(String filepath, int outputSampleRate,

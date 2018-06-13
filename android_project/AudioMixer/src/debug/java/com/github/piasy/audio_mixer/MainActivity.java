@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
                             outputChannelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
                                     : AudioFormat.CHANNEL_OUT_STEREO,
                             AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
+                            Math.max(minBufferSize, AudioMixer.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                             decoder.getChannelNum() == 1 ? AudioFormat.CHANNEL_OUT_MONO
                                     : AudioFormat.CHANNEL_OUT_STEREO,
                             AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
+                            Math.max(minBufferSize, AudioMixer.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
                             channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
                                     : AudioFormat.CHANNEL_OUT_STEREO,
                             AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
+                            Math.max(minBufferSize, AudioMixer.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
                             channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
                                     : AudioFormat.CHANNEL_OUT_STEREO,
                             AudioFormat.ENCODING_PCM_16BIT,
-                            Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE),
+                            Math.max(minBufferSize, AudioMixer.MAX_BUF_SIZE),
                             AudioTrack.MODE_STREAM);
             audioTrack.play();
 
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channel, audioFormat);
             AudioRecord recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
                     sampleRate, channel, audioFormat,
-                    Math.max(minBufferSize, AudioBuffer.MAX_BUF_SIZE));
+                    Math.max(minBufferSize, AudioMixer.MAX_BUF_SIZE));
             recorder.startRecording();
 
             AudioMixer mixer = new AudioMixer(new MixerConfig(
