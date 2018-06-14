@@ -18,6 +18,10 @@ allprojects {
 compile 'com.github.piasy:AudioMixer:1.0.0'
 ```
 
+### iOS
+
+Due to the file size limitation, publish with CocoaPods is difficult, so please [download the prebuilt `AudioMixer.framework`](https://github.com/Piasy/AudioMixer/releases) directly.
+
 ## Usage
 
 ### Android
@@ -64,6 +68,66 @@ if (buffer.getSize() > 0) {
 
 For more detailed info, please refer to [the source code](https://github.com/Piasy/AudioMixer/tree/master/android_project/AudioMixer/).
 
+### iOS
+
+Initialize:
+
+``` objc
+#import <AudioMixer/AudioMixer.h>
+
+[PYAAudioMixer globalInitializeFFmpeg];
+```
+
+Create mixer:
+
+``` objc
+#import <AudioMixer/AudioMixer.h>
+
+NSArray* mixerSources = @[
+    [PYAMixerSource
+        mixerSourceWithType:PYAMixerSourceTypeFile
+                       ssrc:1
+                     volume:1
+                       path:[self pathForFileName:@"morning.mp3"]
+                 sampleRate:0
+                 channelNum:0],
+    [PYAMixerSource mixerSourceWithType:PYAMixerSourceTypeRecord
+                                   ssrc:2
+                                 volume:1
+                                   path:@""
+                             sampleRate:_sampleRate
+                             channelNum:_channelNum],
+];
+PYAMixerConfig* config = [PYAMixerConfig mixerConfigWithSources:mixerSources
+                                               outputSampleRate:_sampleRate
+                                               outputChannelNum:_channelNum
+                                                frameDurationMs:10];
+_mixer = [[PYAAudioMixer alloc] initWithConfig:config];
+```
+
+Do mix with recorded data:
+
+``` objc
+_mixedBuffer = [_mixer addRecordedDataAndMix:_buffer size:mixerInputSize];
+```
+
+Do mix with file only:
+
+``` objc
+_mixedBuffer = [_mixer mix];
+```
+
+Use the mixed audio data:
+
+``` objc
+if (_mixedBuffer.size > 0) {
+  write([_recordAndMixDumper fileDescriptor], _mixedBuffer.data,
+        _mixedBuffer.size);
+}
+```
+
+For more detailed info, please refer to [the source code](https://github.com/Piasy/AudioMixer/tree/master/ios_project/).
+
 ## Dependencies
 
 + FFmpeg: 3.4.2
@@ -71,7 +135,7 @@ For more detailed info, please refer to [the source code](https://github.com/Pia
 
 ## Development
 
-+ Before run demo, push mp3 to sdcard: `adb push mp3 /sdcard/`
++ Before run Android demo, push mp3 to sdcard: `adb push mp3 /sdcard/`
 + Generate sources: `./run_djinni.sh`
 + Extract libs: `./extract_libs.sh`
 
@@ -82,6 +146,6 @@ For more detailed info, please refer to [the source code](https://github.com/Pia
 ## TODO
 
 + [ ] ffmpeg 4.0 audio decoder doesn't work
-+ [ ] iOS
++ [x] iOS
 + [ ] macOS
 + [ ] Windows
