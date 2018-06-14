@@ -174,6 +174,7 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doDecodeMono {
+    NSLog(@"doDecodeMono");
     _testType = TEST_DECODE_MONO;
 
     _sampleRate = 16000;
@@ -192,6 +193,7 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doResample {
+    NSLog(@"doResample");
     _testType = TEST_RESAMPLE;
 
     _resamplerInputSampleRate = 44100;
@@ -246,6 +248,7 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doDecodeAny {
+    NSLog(@"doDecodeAny");
     _testType = TEST_DECODE_ANY;
 
     _sampleRate = 48000;
@@ -286,6 +289,7 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doMix {
+    NSLog(@"doMix");
     _testType = TEST_MIX;
 
     _sampleRate = 48000;
@@ -346,6 +350,7 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doRecordAndMix {
+    NSLog(@"doRecordAndMix");
     _testType = TEST_RECORD_AND_MIX;
 
     _sampleRate = 48000;
@@ -425,6 +430,7 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doStopTest {
+    NSLog(@"doStopTest");
     __weak ViewController* weakSelf = self;
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -437,24 +443,31 @@ typedef NS_ENUM(NSInteger, TestType) {
             }
             if (strongSelf->_buffer) {
                 free(strongSelf->_buffer);
+                strongSelf->_buffer = nullptr;
             }
             if (strongSelf->_resamplerInputBuffer) {
                 free(strongSelf->_resamplerInputBuffer);
+                strongSelf->_resamplerInputBuffer = nullptr;
             }
             if (strongSelf->_decoder) {
                 delete strongSelf->_decoder;
+                strongSelf->_decoder = nullptr;
             }
             if (strongSelf->_resampler) {
                 delete strongSelf->_resampler;
+                strongSelf->_resampler = nullptr;
             }
             if (strongSelf->_source) {
                 delete strongSelf->_source;
+                strongSelf->_source = nullptr;
             }
             if (strongSelf->_resamplerReader) {
                 [strongSelf->_resamplerReader closeFile];
+                strongSelf->_resamplerReader = nil;
             }
             if (strongSelf->_recordAndMixDumper) {
                 [strongSelf->_recordAndMixDumper closeFile];
+                strongSelf->_recordAndMixDumper = nil;
             }
         });
 }
