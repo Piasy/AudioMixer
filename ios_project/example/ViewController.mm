@@ -24,9 +24,10 @@
  */
 //
 
-//#import <AVFoundation/AVFoundation.h>
-
 #import <AudioMixer/AudioMixer.h>
+
+#include <sdk/objc/Framework/Native/api/audio_device_module.h>
+#include <media/engine/adm_helpers.h>
 
 #import "ViewController.h"
 
@@ -35,35 +36,58 @@
 #include "audio_resampler.h"
 #include "audio_mixer_global.h"
 
-// A VP I/O unit's bus 1 connects to input hardware (microphone).
-static const AudioUnitElement kInputBus = 1;
-// A VP I/O unit's bus 0 connects to output hardware (speaker).
-static const AudioUnitElement kOutputBus = 0;
 static const int32_t kBytesPerSample = 2;
 
-OSStatus OnGetPlayoutData(void* in_ref_con, AudioUnitRenderActionFlags* flags,
-                          const AudioTimeStamp* time_stamp, UInt32 bus_number,
-                          UInt32 num_frames, AudioBufferList* io_data) {
-    ViewController* controller = (__bridge ViewController*)(in_ref_con);
-    return [controller notifyGetPlayoutData:flags
-                                  timestamp:time_stamp
-                                  busNumber:bus_number
-                                  numFrames:num_frames
-                                     ioData:io_data];
-}
+class SimpleAudioCallback : public webrtc::AudioTransport {
+public:
+    SimpleAudioCallback(ViewController* controller) : _controller(controller) {}
+    ~SimpleAudioCallback() {}
 
-OSStatus OnDeliverRecordedData(void* in_ref_con,
-                               AudioUnitRenderActionFlags* flags,
-                               const AudioTimeStamp* time_stamp,
-                               UInt32 bus_number, UInt32 num_frames,
-                               AudioBufferList* io_data) {
-    ViewController* controller = (__bridge ViewController*)(in_ref_con);
-    return [controller notifyDeliverRecordedData:flags
-                                       timestamp:time_stamp
-                                       busNumber:bus_number
-                                       numFrames:num_frames
-                                          ioData:io_data];
-}
+    int32_t RecordedDataIsAvailable(
+        const void* audioSamples, const size_t nSamples,
+        const size_t nBytesPerSample, const size_t nChannels,
+        const uint32_t samplesPerSec, const uint32_t totalDelayMS,
+        const int32_t clockDrift, const uint32_t currentMicLevel,
+        const bool keyPressed, uint32_t& newMicLevel) {
+        return [_controller RecordedDataIsAvailable:audioSamples
+                                           nSamples:nSamples
+                                    nBytesPerSample:nBytesPerSample
+                                          nChannels:nChannels
+                                      samplesPerSec:samplesPerSec
+                                       totalDelayMS:totalDelayMS
+                                         clockDrift:clockDrift
+                                    currentMicLevel:currentMicLevel
+                                         keyPressed:keyPressed];
+    }
+
+    // Implementation has to setup safe values for all specified out parameters.
+    int32_t NeedMorePlayData(const size_t nSamples,
+                             const size_t nBytesPerSample,
+                             const size_t nChannels,
+                             const uint32_t samplesPerSec, void* audioSamples,
+                             size_t& nSamplesOut,  // NOLINT
+                             int64_t* elapsed_time_ms, int64_t* ntp_time_ms) {
+        *elapsed_time_ms = 0;
+        *ntp_time_ms = 0;
+        nSamplesOut = [_controller NeedMorePlayData:nSamples
+                                    nBytesPerSample:nBytesPerSample
+                                          nChannels:nChannels
+                                      samplesPerSec:samplesPerSec
+                                       audioSamples:audioSamples];
+        return 0;
+    }
+
+    // only used by chrome
+    // Method to pull mixed render audio data from all active VoE channels.
+    // The data will not be passed as reference for audio processing internally.
+    void PullRenderData(int bits_per_sample, int sample_rate,
+                        size_t number_of_channels, size_t number_of_frames,
+                        void* audio_data, int64_t* elapsed_time_ms,
+                        int64_t* ntp_time_ms) {}
+
+private:
+    ViewController* _controller;
+};
 
 typedef NS_ENUM(NSInteger, TestType) {
     TEST_DECODE_MONO,
@@ -75,6 +99,9 @@ typedef NS_ENUM(NSInteger, TestType) {
 
 @implementation ViewController {
     AudioUnit _audioUnit;
+    
+    rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm;
+    SimpleAudioCallback* _callback;
 
     int32_t _sampleRate;
     int32_t _channelNum;
@@ -188,7 +215,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     [self doStartTest];
 }
 
-- (void)deliverMonoDecodedData:(void*)buf numFrames:(UInt32)numFrames {
+- (void)deliverMonoDecodedData:(void*)buf numFrames:(int32_t)numFrames {
     _decoder->Consume(&buf, numFrames);
 }
 
@@ -216,7 +243,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     [self doStartTest];
 }
 
-- (void)deliverResampledData:(void*)buf numFrames:(UInt32)numFrames {
+- (void)deliverResampledData:(void*)buf numFrames:(int32_t)numFrames {
     int32_t wantedSize = kBytesPerSample * _channelNum * numFrames;
     int32_t resampleInputSize = kBytesPerSample * _resamplerInputChannelNum *
                                 _resamplerInputSampleRate / 100;
@@ -264,7 +291,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     [self doStartTest];
 }
 
-- (void)deliverAnyDecodedData:(void*)buf numFrames:(UInt32)numFrames {
+- (void)deliverAnyDecodedData:(void*)buf numFrames:(int32_t)numFrames {
     int32_t wantedSize = numFrames * _channelNum * kBytesPerSample;
     int32_t decodeOutputSize =
         kBytesPerSample * _channelNum * _sampleRate / 100;
@@ -326,7 +353,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     [self doStartTest];
 }
 
-- (void)deliverMixedData:(void*)buf numFrames:(UInt32)numFrames {
+- (void)deliverMixedData:(void*)buf numFrames:(int32_t)numFrames {
     int32_t wantedSize = numFrames * _channelNum * kBytesPerSample;
 
     int32_t bufWritePos = 0;
@@ -356,12 +383,6 @@ typedef NS_ENUM(NSInteger, TestType) {
     _sampleRate = 48000;
     _channelNum = 1;
     _remainingData = 0;
-
-    /*AVAudioSession* mySession = [AVAudioSession sharedInstance];
-    [mySession setPreferredSampleRate:_sampleRate error:nil];
-    [mySession setPreferredIOBufferDuration:0.01 error:nil];
-    [mySession setCategory:AVAudioSessionCategoryRecord error:nil];
-    [mySession setActive:YES error:nil];*/
 
     NSArray* mixerSources = @[
         [PYAMixerSource
@@ -395,7 +416,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     [self doStartTest];
 }
 
-- (void)deliverRecordAndMixedData:(void*)buf numFrames:(UInt32)numFrames {
+- (void)deliverRecordAndMixedData:(const void*)buf numFrames:(int32_t)numFrames {
     int32_t recordedSize = numFrames * _channelNum * kBytesPerSample;
     int32_t mixerInputSize = kBytesPerSample * _channelNum * _sampleRate / 100;
 
@@ -429,299 +450,106 @@ typedef NS_ENUM(NSInteger, TestType) {
     }
 }
 
-- (void)doStopTest {
-    NSLog(@"doStopTest");
-    __weak ViewController* weakSelf = self;
-    dispatch_async(
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            ViewController* strongSelf = weakSelf;
-            if (!strongSelf) {
-                return;
-            }
-            if ([strongSelf stopAudioUnit]) {
-                NSLog(@"doStopTest success");
-            }
-            if (strongSelf->_buffer) {
-                free(strongSelf->_buffer);
-                strongSelf->_buffer = nullptr;
-            }
-            if (strongSelf->_resamplerInputBuffer) {
-                free(strongSelf->_resamplerInputBuffer);
-                strongSelf->_resamplerInputBuffer = nullptr;
-            }
-            if (strongSelf->_decoder) {
-                delete strongSelf->_decoder;
-                strongSelf->_decoder = nullptr;
-            }
-            if (strongSelf->_resampler) {
-                delete strongSelf->_resampler;
-                strongSelf->_resampler = nullptr;
-            }
-            if (strongSelf->_source) {
-                delete strongSelf->_source;
-                strongSelf->_source = nullptr;
-            }
-            if (strongSelf->_resamplerReader) {
-                [strongSelf->_resamplerReader closeFile];
-                strongSelf->_resamplerReader = nil;
-            }
-            if (strongSelf->_recordAndMixDumper) {
-                [strongSelf->_recordAndMixDumper closeFile];
-                strongSelf->_recordAndMixDumper = nil;
-            }
-        });
-}
-
 - (void)doStartTest {
-    __weak ViewController* weakSelf = self;
-    dispatch_async(
-        dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            ViewController* strongSelf = weakSelf;
-            if (!strongSelf) {
-                return;
-            }
-            if ([strongSelf startAudioUnit]) {
-                NSLog(@"doStartTest success");
-            }
-        });
-}
-
-- (bool)startAudioUnit {
-    AudioComponentDescription desc;
-    desc.componentType = kAudioUnitType_Output;
-    desc.componentSubType = kAudioUnitSubType_VoiceProcessingIO;
-    desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-    desc.componentFlags = 0;
-    desc.componentFlagsMask = 0;
-
-    // Obtain an audio unit instance given the description.
-    AudioComponent component = AudioComponentFindNext(nil, &desc);
-    // Create a Voice Processing IO audio unit.
-    OSStatus result = noErr;
-    result = AudioComponentInstanceNew(component, &_audioUnit);
-    if (result != noErr) {
-        _audioUnit = nil;
-        NSLog(@"AudioComponentInstanceNew failed. Error=%ld.", (long)result);
-        return false;
-    }
-
-    AudioStreamBasicDescription format = [self getFormat];
-    UInt32 size = sizeof(format);
+    _adm = webrtc::CreateAudioDeviceModule();
+    webrtc::adm_helpers::Init(_adm);
+    _callback = new SimpleAudioCallback(self);
+    _adm->RegisterAudioCallback(_callback);
 
     if (_testType == TEST_RECORD_AND_MIX) {
-        // Enable input on the input scope of the input element.
-        UInt32 flag = 1;
-        result = AudioUnitSetProperty(
-            _audioUnit, kAudioOutputUnitProperty_EnableIO,
-            kAudioUnitScope_Input, kInputBus, &flag, sizeof(flag));
-        if (result != noErr) {
-            [self destroyAudioUnit];
-            NSLog(@"Failed to enable input on input scope of input element. "
-                   "Error=%ld.",
-                  (long)result);
-            return false;
-        }
-
-        // Set the format on the output scope of the input element/bus.
-        result = AudioUnitSetProperty(
-            _audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output,
-            kInputBus, &format, size);
-        if (result != noErr) {
-            NSLog(@"Failed to set format on output scope of input bus. "
-                   "Error=%ld.",
-                  (long)result);
-            return false;
-        }
-
-        // Specify the callback to be called by the I/O thread to us when input
-        // audio is available. The recorded samples can then be obtained by
-        // calling the AudioUnitRender() method.
-        AURenderCallbackStruct callback;
-        callback.inputProc = OnDeliverRecordedData;
-        callback.inputProcRefCon = (__bridge void* _Nullable)(self);
-        result = AudioUnitSetProperty(
-            _audioUnit, kAudioOutputUnitProperty_SetInputCallback,
-            kAudioUnitScope_Global, kInputBus, &callback, sizeof(callback));
-        if (result != noErr) {
-            [self destroyAudioUnit];
-            NSLog(@"Failed to specify the input callback on the input bus. "
-                   "Error=%ld.",
-                  (long)result);
-            return false;
+        if (_adm->InitRecording() == 0) {
+            _adm->StartRecording();
+        } else {
+            NSLog(@"start record fail");
         }
     } else {
-        // Enable output on the output scope of the output element.
-        UInt32 flag = 1;
-        result = AudioUnitSetProperty(
-            _audioUnit, kAudioOutputUnitProperty_EnableIO,
-            kAudioUnitScope_Output, kOutputBus, &flag, sizeof(flag));
-        if (result != noErr) {
-            [self destroyAudioUnit];
-            NSLog(@"Failed to enable output on output scope of output element. "
-                   "Error=%ld.",
-                  (long)result);
-            return false;
-        }
-
-        // Set the format on the input scope of the output element/bus.
-        result = AudioUnitSetProperty(
-            _audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input,
-            kOutputBus, &format, size);
-        if (result != noErr) {
-            NSLog(@"Failed to set format on input scope of output bus. "
-                   "Error=%ld.",
-                  (long)result);
-            return false;
-        }
-
-        // Specify the callback function that provides audio samples to the
-        // audio unit.
-        AURenderCallbackStruct callback;
-        callback.inputProc = OnGetPlayoutData;
-        callback.inputProcRefCon = (__bridge void* _Nullable)(self);
-        result = AudioUnitSetProperty(
-            _audioUnit, kAudioUnitProperty_SetRenderCallback,
-            kAudioUnitScope_Input, kOutputBus, &callback, sizeof(callback));
-        if (result != noErr) {
-            [self destroyAudioUnit];
-            NSLog(@"Failed to specify the render callback on the output bus. "
-                   "Error=%ld.",
-                  (long)result);
-            return false;
+        if (_adm->InitPlayout() == 0) {
+            _adm->StartPlayout();
+        } else {
+            NSLog(@"start play fail");
         }
     }
-
-    // Initialize the Voice Processing I/O unit instance.
-    // Calls to AudioUnitInitialize() can fail if called back-to-back on
-    // different ADM instances. The error message in this case is -66635 which
-    // is undocumented. Tests have shown that calling AudioUnitInitialize a
-    // second time, after a short sleep, avoids this issue.
-    // See webrtc:5166 for details.
-    int failed_initalize_attempts = 0;
-    result = AudioUnitInitialize(_audioUnit);
-    while (result != noErr) {
-        NSLog(@"Failed to initialize the Voice Processing I/O unit. "
-               "Error=%ld.",
-              (long)result);
-        ++failed_initalize_attempts;
-        if (failed_initalize_attempts == 3) {
-            // Max number of initialization attempts exceeded, hence abort.
-            [self destroyAudioUnit];
-            NSLog(@"Too many initialization attempts.");
-            return false;
-        }
-        NSLog(@"Pause 100ms and try audio unit initialization again...");
-        [NSThread sleepForTimeInterval:0.1f];
-        result = AudioUnitInitialize(_audioUnit);
-    }
-    NSLog(@"Voice Processing I/O unit is now initialized.");
-
-    result = AudioOutputUnitStart(_audioUnit);
-    if (result != noErr) {
-        [self destroyAudioUnit];
-        NSLog(@"Failed to start audio unit. Error=%ld", (long)result);
-        return false;
-    }
-
-    NSLog(@"Started audio unit");
-    return true;
 }
 
-- (AudioStreamBasicDescription)getFormat {
-    // Set the application formats for input and output:
-    // - use same format in both directions
-    // - avoid resampling in the I/O unit by using the hardware sample rate
-    // - linear PCM => noncompressed audio data format with one frame per packet
-    // - no need to specify interleaving since only mono is supported
-    AudioStreamBasicDescription format;
-    format.mSampleRate = _sampleRate;
-    format.mFormatID = kAudioFormatLinearPCM;
-    format.mFormatFlags =
-        kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked;
-    format.mBytesPerPacket = kBytesPerSample;
-    format.mFramesPerPacket = 1;  // uncompressed.
-    format.mBytesPerFrame = kBytesPerSample;
-    format.mChannelsPerFrame = _channelNum;
-    format.mBitsPerChannel = 8 * kBytesPerSample;
-    return format;
+- (void)doStopTest {
+    NSLog(@"doStopTest");
+    if (_buffer) {
+        free(_buffer);
+        _buffer = nullptr;
+    }
+    if (_resamplerInputBuffer) {
+        free(_resamplerInputBuffer);
+        _resamplerInputBuffer = nullptr;
+    }
+    if (_decoder) {
+        delete _decoder;
+        _decoder = nullptr;
+    }
+    if (_resampler) {
+        delete _resampler;
+        _resampler = nullptr;
+    }
+    if (_source) {
+        delete _source;
+        _source = nullptr;
+    }
+    if (_resamplerReader) {
+        [_resamplerReader closeFile];
+        _resamplerReader = nil;
+    }
+    if (_recordAndMixDumper) {
+        [_recordAndMixDumper closeFile];
+        _recordAndMixDumper = nil;
+    }
+
+    if (_testType == TEST_RECORD_AND_MIX) {
+        _adm->StopRecording();
+    } else {
+        _adm->StopPlayout();
+    }
+    _adm->Terminate();
+    _adm->RegisterAudioCallback(nullptr);
+    _adm = nullptr;
 }
 
-- (OSStatus)notifyGetPlayoutData:(AudioUnitRenderActionFlags*)flags
-                       timestamp:(const AudioTimeStamp*)timestamp
-                       busNumber:(UInt32)busNumber
-                       numFrames:(UInt32)numFrames
-                          ioData:(AudioBufferList*)ioData {
-    AudioBuffer* audioBuffer = &ioData->mBuffers[0];
+- (int32_t)RecordedDataIsAvailable:(const void*)audioSamples
+                          nSamples:(size_t)nSamples
+                   nBytesPerSample:(size_t)nBytesPerSample
+                         nChannels:(size_t)nChannels
+                     samplesPerSec:(uint32_t)samplesPerSec
+                      totalDelayMS:(uint32_t)totalDelayMS
+                        clockDrift:(int32_t)clockDrift
+                   currentMicLevel:(uint32_t)currentMicLevel
+                        keyPressed:(bool)keyPressed {
+    [self deliverRecordAndMixedData:audioSamples numFrames:(int32_t)nSamples];
+    return 0;
+}
 
+- (size_t)NeedMorePlayData:(size_t)nSamples
+           nBytesPerSample:(size_t)nBytesPerSample
+                 nChannels:(size_t)nChannels
+             samplesPerSec:(uint32_t)samplesPerSec
+              audioSamples:(void*)audioSamples {
     switch (_testType) {
         case TEST_DECODE_MONO:
-            [self deliverMonoDecodedData:audioBuffer->mData
-                               numFrames:numFrames];
+            [self deliverMonoDecodedData:audioSamples
+                               numFrames:(int32_t)nSamples];
             break;
         case TEST_RESAMPLE:
-            [self deliverResampledData:audioBuffer->mData numFrames:numFrames];
+            [self deliverResampledData:audioSamples
+                             numFrames:(int32_t)nSamples];
             break;
         case TEST_DECODE_ANY:
-            [self deliverAnyDecodedData:audioBuffer->mData numFrames:numFrames];
+            [self deliverAnyDecodedData:audioSamples
+                              numFrames:(int32_t)nSamples];
             break;
         case TEST_MIX:
-            [self deliverMixedData:audioBuffer->mData numFrames:numFrames];
+            [self deliverMixedData:audioSamples numFrames:(int32_t)nSamples];
             break;
         default:
-            break;
+            return 0;
     }
-
-    return noErr;
-}
-
-- (OSStatus)notifyDeliverRecordedData:(AudioUnitRenderActionFlags*)flags
-                            timestamp:(const AudioTimeStamp*)timestamp
-                            busNumber:(UInt32)busNumber
-                            numFrames:(UInt32)numFrames
-                               ioData:(AudioBufferList*)ioData {
-    AudioBufferList buffers;
-    buffers.mNumberBuffers = 1;
-    buffers.mBuffers[0].mData = NULL;
-    buffers.mBuffers[0].mDataByteSize = numFrames * kBytesPerSample;
-    buffers.mBuffers[0].mNumberChannels = _channelNum;
-
-    OSStatus status = AudioUnitRender(_audioUnit, flags, timestamp, busNumber,
-                                      numFrames, &buffers);
-
-    if (status != noErr) {
-        NSLog(@"notifyDeliverRecordedData error: %d", (int)status);
-        return status;
-    }
-
-    AudioBuffer* audioBuffer = &buffers.mBuffers[0];
-    [self deliverRecordAndMixedData:audioBuffer->mData numFrames:numFrames];
-    return noErr;
-}
-
-- (bool)stopAudioUnit {
-    if (!_audioUnit) {
-        return false;
-    }
-    OSStatus result = AudioOutputUnitStop(_audioUnit);
-    if (result != noErr) {
-        NSLog(@"Failed to stop audio unit. Error=%ld", (long)result);
-    }
-    [self destroyAudioUnit];
-    return true;
-}
-
-- (bool)destroyAudioUnit {
-    if (!_audioUnit) {
-        return false;
-    }
-
-    OSStatus result = AudioUnitUninitialize(_audioUnit);
-    if (result != noErr) {
-        NSLog(@"Failed to uninitialize audio unit. Error=%ld", (long)result);
-        return false;
-    }
-    NSLog(@"Uninitialized audio unit.");
-    return true;
+    return nSamples;
 }
 
 - (NSString*)pathForFileName:(NSString*)fileName {
@@ -745,6 +573,5 @@ typedef NS_ENUM(NSInteger, TestType) {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
 
 @end

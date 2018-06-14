@@ -30,17 +30,21 @@
 
 @interface ViewController : UIViewController
 
-- (OSStatus)notifyGetPlayoutData:(AudioUnitRenderActionFlags*)flags
-                       timestamp:(const AudioTimeStamp*)timestamp
-                       busNumber:(UInt32)busNumber
-                       numFrames:(UInt32)numFrames
-                          ioData:(AudioBufferList*)ioData;
+- (int32_t)RecordedDataIsAvailable:(const void*)audioSamples
+                           nSamples:(size_t)nSamples
+                    nBytesPerSample:(size_t)nBytesPerSample
+                          nChannels:(size_t)nChannels
+                      samplesPerSec:(uint32_t)samplesPerSec
+                       totalDelayMS:(uint32_t)totalDelayMS
+                         clockDrift:(int32_t)clockDrift
+                    currentMicLevel:(uint32_t)currentMicLevel
+                         keyPressed:(bool)keyPressed;
 
-- (OSStatus)notifyDeliverRecordedData:(AudioUnitRenderActionFlags*)flags
-                            timestamp:(const AudioTimeStamp*)timestamp
-                            busNumber:(UInt32)busNumber
-                            numFrames:(UInt32)numFrames
-                               ioData:(AudioBufferList*)ioData;
+- (size_t)NeedMorePlayData:(size_t)nSamples
+            nBytesPerSample:(size_t)nBytesPerSample
+                  nChannels:(size_t)nChannels
+              samplesPerSec:(uint32_t)samplesPerSec
+               audioSamples:(void*)audioSamples;
 
 @end
 

@@ -732,11 +732,35 @@
 				INFOPLIST_FILE = example/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_LDFLAGS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../libs/webrtc/lib/iOS";
+				OTHER_CFLAGS = (
+					"-DWEBRTC_POSIX",
+					"-DWEBRTC_IOS",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lnative_api_audio_device_module",
+					"-laudio_device",
+					"-lwebrtc",
+					"-framework",
+					CoreMedia,
+					"-framework",
+					CoreVideo,
+					"-framework",
+					VideoToolbox,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					AVFoundation,
+					"-framework",
+					UIKit,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.piasy.AudioMixerExample;
 				SDKROOT = iphoneos;
 				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7 armv7s";
 			};
 			name = Debug;
 		};
@@ -751,11 +775,35 @@
 				INFOPLIST_FILE = example/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				OTHER_LDFLAGS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(PROJECT_DIR)/../libs/webrtc/lib/iOS";
+				OTHER_CFLAGS = (
+					"-DWEBRTC_POSIX",
+					"-DWEBRTC_IOS",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lnative_api_audio_device_module",
+					"-laudio_device",
+					"-lwebrtc",
+					"-framework",
+					CoreMedia,
+					"-framework",
+					CoreVideo,
+					"-framework",
+					VideoToolbox,
+					"-framework",
+					AudioToolbox,
+					"-framework",
+					AVFoundation,
+					"-framework",
+					UIKit,
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.piasy.AudioMixerExample;
 				SDKROOT = iphoneos;
 				SYSTEM_HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7 armv7s";
 			};
 			name = Release;
 		};
