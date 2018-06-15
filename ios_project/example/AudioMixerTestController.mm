@@ -98,6 +98,7 @@ private:
 };
 
 typedef NS_ENUM(NSInteger, TestType) {
+    TEST_NONE,
     TEST_DECODE_MONO,
     TEST_RESAMPLE,
     TEST_DECODE_ANY,
@@ -132,8 +133,20 @@ typedef NS_ENUM(NSInteger, TestType) {
     NSFileHandle* _recordAndMixDumper;
 }
 
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _testType = TEST_NONE;
+    }
+    return self;
+}
+
 - (void)doDecodeMono {
     NSLog(@"doDecodeMono");
+    if (_testType != TEST_NONE) {
+        NSLog(@"test already started: %ld", (long)_testType);
+        return;
+    }
     _testType = TEST_DECODE_MONO;
 
     _sampleRate = 16000;
@@ -153,6 +166,10 @@ typedef NS_ENUM(NSInteger, TestType) {
 
 - (void)doResample {
     NSLog(@"doResample");
+    if (_testType != TEST_NONE) {
+        NSLog(@"test already started: %ld", (long)_testType);
+        return;
+    }
     _testType = TEST_RESAMPLE;
 
     _resamplerInputSampleRate = 44100;
@@ -208,6 +225,10 @@ typedef NS_ENUM(NSInteger, TestType) {
 
 - (void)doDecodeAny {
     NSLog(@"doDecodeAny");
+    if (_testType != TEST_NONE) {
+        NSLog(@"test already started: %ld", (long)_testType);
+        return;
+    }
     _testType = TEST_DECODE_ANY;
 
     _sampleRate = 48000;
@@ -249,6 +270,10 @@ typedef NS_ENUM(NSInteger, TestType) {
 
 - (void)doMix {
     NSLog(@"doMix");
+    if (_testType != TEST_NONE) {
+        NSLog(@"test already started: %ld", (long)_testType);
+        return;
+    }
     _testType = TEST_MIX;
 
     _sampleRate = 48000;
@@ -310,6 +335,10 @@ typedef NS_ENUM(NSInteger, TestType) {
 
 - (void)doRecordAndMix {
     NSLog(@"doRecordAndMix");
+    if (_testType != TEST_NONE) {
+        NSLog(@"test already started: %ld", (long)_testType);
+        return;
+    }
     _testType = TEST_RECORD_AND_MIX;
 
     _sampleRate = 48000;
@@ -447,6 +476,8 @@ typedef NS_ENUM(NSInteger, TestType) {
     _adm->Terminate();
     _adm->RegisterAudioCallback(nullptr);
     _adm = nullptr;
+
+    _testType = TEST_NONE;
 }
 
 - (int32_t)RecordedDataIsAvailable:(const void*)audioSamples

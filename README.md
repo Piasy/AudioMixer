@@ -18,7 +18,7 @@ allprojects {
 compile 'com.github.piasy:AudioMixer:1.0.0'
 ```
 
-### iOS
+### iOS & macOS
 
 Due to the file size limitation, publish with CocoaPods is difficult, so please [download the prebuilt `AudioMixer.framework`](https://github.com/Piasy/AudioMixer/releases) directly.
 
@@ -68,7 +68,7 @@ if (buffer.getSize() > 0) {
 
 For more detailed info, please refer to [the source code](https://github.com/Piasy/AudioMixer/tree/master/android_project/AudioMixer/).
 
-### iOS
+### iOS & macOS
 
 Initialize:
 
@@ -148,5 +148,5 @@ For more detailed info, please refer to [the source code](https://github.com/Pia
 
 + [ ] ffmpeg 4.0 audio decoder doesn't work
 + [x] iOS
-+ [ ] macOS
++ [x] macOS
 + [ ] Windows
