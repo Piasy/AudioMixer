@@ -2,7 +2,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Piasy
+ * Copyright (c) 2018 Piasy
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,36 @@
 //
 
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-@interface ViewController : UIViewController
+@interface AudioMixerTestController : NSObject
+
+- (void)doDecodeMono;
+
+- (void)doResample;
+
+- (void)doDecodeAny;
+
+- (void)doMix;
+
+- (void)doRecordAndMix;
+
+- (void)doStopTest;
+
+- (int32_t)RecordedDataIsAvailable:(const void*)audioSamples
+                           nSamples:(size_t)nSamples
+                    nBytesPerSample:(size_t)nBytesPerSample
+                          nChannels:(size_t)nChannels
+                      samplesPerSec:(uint32_t)samplesPerSec
+                       totalDelayMS:(uint32_t)totalDelayMS
+                         clockDrift:(int32_t)clockDrift
+                    currentMicLevel:(uint32_t)currentMicLevel
+                         keyPressed:(bool)keyPressed;
+
+- (size_t)NeedMorePlayData:(size_t)nSamples
+            nBytesPerSample:(size_t)nBytesPerSample
+                  nChannels:(size_t)nChannels
+              samplesPerSec:(uint32_t)samplesPerSec
+               audioSamples:(void*)audioSamples;
 
 @end
-

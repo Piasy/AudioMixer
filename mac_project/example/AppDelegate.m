@@ -24,10 +24,25 @@
  */
 //
 
+#import <AudioMixer/AudioMixer.h>
 
-#import <UIKit/UIKit.h>
+#import "AppDelegate.h"
 
-@interface ViewController : UIViewController
+@interface AppDelegate ()
 
 @end
 
+@implementation AppDelegate
+
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    // Insert code here to initialize your application
+    [PYAAudioMixer globalInitializeFFmpeg];
+}
+
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification {
+    // Insert code here to tear down your application
+}
+
+
+@end

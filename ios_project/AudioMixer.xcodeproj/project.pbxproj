@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8634187320D3E89400C144CB /* AudioMixerTestController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 86D17F9920D3E4CA00DFFEAC /* AudioMixerTestController.mm */; };
 		866A956620D164D600C7694D /* AudioMixer.h in Headers */ = {isa = PBXBuildFile; fileRef = 866A956520D164D600C7694D /* AudioMixer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		866A956D20D165E600C7694D /* morning-mono-16k.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 866A956820D165E500C7694D /* morning-mono-16k.mp3 */; };
 		866A956E20D165E600C7694D /* morning.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 866A956920D165E500C7694D /* morning.mp3 */; };
@@ -61,7 +62,7 @@
 		BF_208404374351 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FR_316246524774 /* Assets.xcassets */; };
 		BF_232288806286 /* AudioMixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FR_262413649868 /* AudioMixer.framework */; };
 		BF_387680161997 /* AudioMixer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = FR_262413649868 /* AudioMixer.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		BF_461210773779 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = FR_653036302879 /* ViewController.mm */; };
+		BF_461210773779 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = FR_653036302879 /* ViewController.m */; };
 		BF_656202648573 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = FR_166489251693 /* main.m */; };
 		BF_875310361989 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = FR_892106870587 /* AppDelegate.m */; };
 /* End PBXBuildFile section */
@@ -141,12 +142,13 @@
 		869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAAudioBuffer.mm; sourceTree = "<group>"; };
 		869959E820CF85CB009946FC /* audio_mixer_api.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audio_mixer_api.cpp; sourceTree = "<group>"; };
 		869959EA20CF85E7009946FC /* PYAAudioMixerApi.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PYAAudioMixerApi.mm; sourceTree = "<group>"; };
-		869959EC20CFA502009946FC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		86D17F9820D3E4CA00DFFEAC /* AudioMixerTestController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioMixerTestController.h; sourceTree = "<group>"; };
+		86D17F9920D3E4CA00DFFEAC /* AudioMixerTestController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AudioMixerTestController.mm; sourceTree = "<group>"; };
 		FR_166489251693 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		FR_262413649868 /* AudioMixer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AudioMixer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FR_316246524774 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FR_592305279399 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		FR_653036302879 /* ViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ViewController.mm; sourceTree = "<group>"; };
+		FR_653036302879 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
 		FR_653036302887 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		FR_892106870585 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		FR_892106870587 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -279,7 +281,6 @@
 			isa = PBXGroup;
 			children = (
 				866A956520D164D600C7694D /* AudioMixer.h */,
-				869959EC20CFA502009946FC /* Info.plist */,
 				869959E420CF7D9F009946FC /* PYAAudioBuffer.h */,
 				869959E520CF7D9F009946FC /* PYAAudioBuffer.mm */,
 				869959D920CF453D009946FC /* PYAAudioMixer.h */,
@@ -297,7 +298,9 @@
 				FR_592305279399 /* Info.plist */,
 				FR_166489251693 /* main.m */,
 				FR_653036302887 /* ViewController.h */,
-				FR_653036302879 /* ViewController.mm */,
+				FR_653036302879 /* ViewController.m */,
+				86D17F9820D3E4CA00DFFEAC /* AudioMixerTestController.h */,
+				86D17F9920D3E4CA00DFFEAC /* AudioMixerTestController.mm */,
 			);
 			path = example;
 			sourceTree = "<group>";
@@ -481,7 +484,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				BF_875310361989 /* AppDelegate.m in Sources */,
-				BF_461210773779 /* ViewController.mm in Sources */,
+				BF_461210773779 /* ViewController.m in Sources */,
+				8634187320D3E89400C144CB /* AudioMixerTestController.mm in Sources */,
 				BF_656202648573 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -511,7 +515,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_BITCODE = NO;
 				ENABLE_TESTABILITY = YES;
-				INFOPLIST_FILE = "$(SRCROOT)/objc/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -627,7 +631,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_BITCODE = NO;
 				ENABLE_TESTABILITY = YES;
-				INFOPLIST_FILE = "$(SRCROOT)/objc/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";

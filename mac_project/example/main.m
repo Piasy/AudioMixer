@@ -25,9 +25,8 @@
 //
 
 
-#import <UIKit/UIKit.h>
+#import <Cocoa/Cocoa.h>
 
-@interface ViewController : UIViewController
-
-@end
-
+int main(int argc, const char * argv[]) {
+    return NSApplicationMain(argc, argv);
+}

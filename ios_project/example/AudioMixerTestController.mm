@@ -2,7 +2,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Piasy
+ * Copyright (c) 2018 Piasy
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,23 +24,31 @@
  */
 //
 
+
 #import <AudioMixer/AudioMixer.h>
 
 #include <sdk/objc/Framework/Native/api/audio_device_module.h>
 #include <media/engine/adm_helpers.h>
-
-#import "ViewController.h"
 
 #include "audio_file_decoder.h"
 #include "audio_file_source.h"
 #include "audio_resampler.h"
 #include "audio_mixer_global.h"
 
+#import "AudioMixerTestController.h"
+
+#if defined(WEBRTC_IOS)
+#define kChannelNum 1
+#else
+#define kChannelNum 2
+#endif
+
 static const int32_t kBytesPerSample = 2;
 
 class SimpleAudioCallback : public webrtc::AudioTransport {
 public:
-    SimpleAudioCallback(ViewController* controller) : _controller(controller) {}
+    SimpleAudioCallback(AudioMixerTestController* controller)
+        : _controller(controller) {}
     ~SimpleAudioCallback() {}
 
     int32_t RecordedDataIsAvailable(
@@ -86,7 +94,7 @@ public:
                         int64_t* ntp_time_ms) {}
 
 private:
-    ViewController* _controller;
+    AudioMixerTestController* _controller;
 };
 
 typedef NS_ENUM(NSInteger, TestType) {
@@ -97,9 +105,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     TEST_RECORD_AND_MIX,
 };
 
-@implementation ViewController {
-    AudioUnit _audioUnit;
-    
+@implementation AudioMixerTestController {
     rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm;
     SimpleAudioCallback* _callback;
 
@@ -126,86 +132,12 @@ typedef NS_ENUM(NSInteger, TestType) {
     NSFileHandle* _recordAndMixDumper;
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-
-    CGRect screen = [[UIScreen mainScreen] bounds];
-
-    UIButton* decodeMono = [UIButton buttonWithType:UIButtonTypeSystem];
-    [decodeMono setTitle:@"DecodeMono" forState:UIControlStateNormal];
-    decodeMono.titleLabel.font = [UIFont systemFontOfSize:20.0f];
-    decodeMono.frame = CGRectMake((screen.size.width - 200) / 2, 80, 200, 40);
-
-    [decodeMono addTarget:self
-                   action:@selector(doDecodeMono)
-         forControlEvents:UIControlEventTouchUpInside];
-
-    [self.view addSubview:decodeMono];
-
-    UIButton* resample = [UIButton buttonWithType:UIButtonTypeSystem];
-    [resample setTitle:@"Resample" forState:UIControlStateNormal];
-    resample.titleLabel.font = [UIFont systemFontOfSize:20.0f];
-    resample.frame = CGRectMake((screen.size.width - 200) / 2, 130, 200, 40);
-
-    [resample addTarget:self
-                  action:@selector(doResample)
-        forControlEvents:UIControlEventTouchUpInside];
-
-    [self.view addSubview:resample];
-
-    UIButton* decodeAny = [UIButton buttonWithType:UIButtonTypeSystem];
-    [decodeAny setTitle:@"DecodeAny" forState:UIControlStateNormal];
-    decodeAny.titleLabel.font = [UIFont systemFontOfSize:20.0f];
-    decodeAny.frame = CGRectMake((screen.size.width - 200) / 2, 180, 200, 40);
-
-    [decodeAny addTarget:self
-                  action:@selector(doDecodeAny)
-        forControlEvents:UIControlEventTouchUpInside];
-
-    [self.view addSubview:decodeAny];
-
-    UIButton* mix = [UIButton buttonWithType:UIButtonTypeSystem];
-    [mix setTitle:@"Mix" forState:UIControlStateNormal];
-    mix.titleLabel.font = [UIFont systemFontOfSize:20.0f];
-    mix.frame = CGRectMake((screen.size.width - 200) / 2, 230, 200, 40);
-
-    [mix addTarget:self
-                  action:@selector(doMix)
-        forControlEvents:UIControlEventTouchUpInside];
-
-    [self.view addSubview:mix];
-
-    UIButton* recordAndMix = [UIButton buttonWithType:UIButtonTypeSystem];
-    [recordAndMix setTitle:@"RecordAndMix" forState:UIControlStateNormal];
-    recordAndMix.titleLabel.font = [UIFont systemFontOfSize:20.0f];
-    recordAndMix.frame =
-        CGRectMake((screen.size.width - 200) / 2, 280, 200, 40);
-
-    [recordAndMix addTarget:self
-                     action:@selector(doRecordAndMix)
-           forControlEvents:UIControlEventTouchUpInside];
-
-    [self.view addSubview:recordAndMix];
-
-    UIButton* stop = [UIButton buttonWithType:UIButtonTypeSystem];
-    [stop setTitle:@"Stop" forState:UIControlStateNormal];
-    stop.titleLabel.font = [UIFont systemFontOfSize:20.0f];
-    stop.frame = CGRectMake((screen.size.width - 200) / 2, 380, 200, 40);
-
-    [stop addTarget:self
-                  action:@selector(doStopTest)
-        forControlEvents:UIControlEventTouchUpInside];
-
-    [self.view addSubview:stop];
-}
-
 - (void)doDecodeMono {
     NSLog(@"doDecodeMono");
     _testType = TEST_DECODE_MONO;
 
     _sampleRate = 16000;
-    _channelNum = 1;
+    _channelNum = kChannelNum;
     _remainingData = 0;
 
     _decoder = new audio_mixer::AudioFileDecoder(
@@ -226,7 +158,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     _resamplerInputSampleRate = 44100;
     _resamplerInputChannelNum = 2;
     _sampleRate = 16000;
-    _channelNum = 1;
+    _channelNum = kChannelNum;
     _remainingData = 0;
 
     _resampler = new audio_mixer::AudioResampler(
@@ -279,7 +211,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     _testType = TEST_DECODE_ANY;
 
     _sampleRate = 48000;
-    _channelNum = 1;
+    _channelNum = kChannelNum;
     _remainingData = 0;
 
     _source = new audio_mixer::AudioFileSource(
@@ -320,7 +252,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     _testType = TEST_MIX;
 
     _sampleRate = 48000;
-    _channelNum = 1;
+    _channelNum = kChannelNum;
     _remainingData = 0;
 
     NSArray* mixerSources = @[
@@ -381,7 +313,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     _testType = TEST_RECORD_AND_MIX;
 
     _sampleRate = 48000;
-    _channelNum = 1;
+    _channelNum = kChannelNum;
     _remainingData = 0;
 
     NSArray* mixerSources = @[
@@ -451,7 +383,12 @@ typedef NS_ENUM(NSInteger, TestType) {
 }
 
 - (void)doStartTest {
+#if defined(WEBRTC_IOS)
     _adm = webrtc::CreateAudioDeviceModule();
+#else
+    _adm = webrtc::AudioDeviceModule::Create(
+        webrtc::AudioDeviceModule::kPlatformDefaultAudio);
+#endif
     webrtc::adm_helpers::Init(_adm);
     _callback = new SimpleAudioCallback(self);
     _adm->RegisterAudioCallback(_callback);
@@ -567,11 +504,6 @@ typedef NS_ENUM(NSInteger, TestType) {
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory
                                                    inDomains:NSUserDomainMask]
         lastObject];
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 @end
