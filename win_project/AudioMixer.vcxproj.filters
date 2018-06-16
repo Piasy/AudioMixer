@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{779c0ebf-89ca-4e74-aa8c-c5a4a8f8c49c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="generated_src">
+      <UniqueIdentifier>{dbe80403-f3bc-44a5-8e1b-ef7e26450c72}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\audio_file_decoder.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio_file_source.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio_mixer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio_mixer_global.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio_record_source.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio_resampler.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\audio_source.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\generated_src\cpp\audio_mixer_api.cpp">
+      <Filter>generated_src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\generated_src\cpp\mixer_source.cpp">
+      <Filter>generated_src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\audio_file_decoder.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio_file_source.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio_mixer.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio_mixer_global.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio_record_source.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio_resampler.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\audio_source.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\avx_helper.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\generated_src\cpp\audio_mixer_api.hpp">
+      <Filter>generated_src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\generated_src\cpp\mixer_config.hpp">
+      <Filter>generated_src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\generated_src\cpp\mixer_source.hpp">
+      <Filter>generated_src</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
