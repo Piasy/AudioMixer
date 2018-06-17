@@ -2,6 +2,10 @@
 // Created by Piasy on 2018/5/28.
 //
 
+#ifdef WEBRTC_WIN
+#include <WinSock2.h>
+#endif
+
 #include <modules/audio_mixer/audio_mixer_impl.h>
 
 #include "audio_record_source.h"

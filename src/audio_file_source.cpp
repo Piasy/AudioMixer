@@ -2,6 +2,10 @@
 // Created by Piasy on 29/10/2017.
 //
 
+#ifdef WEBRTC_WIN
+#include <WinSock2.h>
+#endif
+
 #include <rtc_base/checks.h>
 #include <modules/audio_mixer/audio_mixer_impl.h>
 
@@ -33,7 +37,7 @@ AudioFileSource::AudioFileSource(int32_t ssrc, const std::string& filepath,
             reinterpret_cast<uint8_t***>(&input_buffer_), nullptr, input_channel_num_,
             input_samples_, input_format_, 0
     );
-    RTC_CHECK(error >= 0) << av_err2str(error);
+    //RTC_CHECK(error >= 0) << av_err2str(error);
 
     resampler_.reset(new AudioResampler(input_format_, input_sample_rate_, input_channel_num_,
                                         kOutputSampleFormat, output_sample_rate_,

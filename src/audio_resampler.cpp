@@ -35,7 +35,7 @@ AudioResampler::AudioResampler(
     av_opt_set_sample_fmt(context_.get(), "out_sample_fmt", output_format_, 0);
 
     int32_t error = swr_init(context_.get());
-    RTC_CHECK(error >= 0) << av_err2str(error);
+    //RTC_CHECK(error >= 0) << av_err2str(error);
 }
 
 int32_t AudioResampler::Resample(void** input_buffer, int32_t input_size, void** output_buffer) {

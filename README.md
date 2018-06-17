@@ -143,6 +143,7 @@ For more detailed info, please refer to [the source code](https://github.com/Pia
 ## Caveat
 
 + Due to the limitation of WebRTC, `frameDurationMs` must be 10ms, and we must mix 10ms's audio data each time;
++ Windows support is possible theoretically, but that's a nightmare, so I give it up :(
 
 ## TODO
 

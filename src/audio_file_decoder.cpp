@@ -2,6 +2,10 @@
 // Created by Piasy on 08/11/2017.
 //
 
+#ifdef WEBRTC_WIN
+#include <WinSock2.h>
+#endif
+
 #include <algorithm>
 
 #include <rtc_base/checks.h>
@@ -22,17 +26,17 @@ AudioFileDecoder::AudioFileDecoder(const std::string& filepath) : packet_consume
     {
         AVFormatContext* format_context = nullptr;
         int32_t error = avformat_open_input(&format_context, filepath.c_str(), nullptr, nullptr);
-        RTC_CHECK(error >= 0) << av_err2str(error);
+        //RTC_CHECK(error >= 0) << av_err2str(error);
 
         format_context_.reset(format_context);
     }
 
     AVCodec* codec;
     int32_t error = avformat_find_stream_info(format_context_.get(), nullptr);
-    RTC_CHECK(error >= 0) << av_err2str(error);
+    //RTC_CHECK(error >= 0) << av_err2str(error);
 
     stream_no_ = av_find_best_stream(format_context_.get(), AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
-    RTC_CHECK(stream_no_ >= 0) << av_err2str(stream_no_);
+    //RTC_CHECK(stream_no_ >= 0) << av_err2str(stream_no_);
 
     if (!(codec = avcodec_find_decoder(format_context_->streams[stream_no_]->codecpar->codec_id))) {
         RTC_CHECK(false) << "avcodec_find_decoder fail";
@@ -41,10 +45,10 @@ AudioFileDecoder::AudioFileDecoder(const std::string& filepath) : packet_consume
     RTC_CHECK(codec_context_.get()) << "avcodec_alloc_context3 fail";
     error = avcodec_parameters_to_context(codec_context_.get(),
                                           format_context_->streams[stream_no_]->codecpar);
-    RTC_CHECK(error >= 0) << av_err2str(error);
+    //RTC_CHECK(error >= 0) << av_err2str(error);
 
     error = avcodec_open2(codec_context_.get(), codec, nullptr);
-    RTC_CHECK(error >= 0) << av_err2str(error);
+    //RTC_CHECK(error >= 0) << av_err2str(error);
 
     fifo_capacity_ = 10 * codec_context_->sample_rate
                      / (1000 / webrtc::AudioMixerImpl::kFrameDurationInMs);
@@ -101,7 +105,7 @@ void AudioFileDecoder::FillDecoder() {
         if (error == AVERROR(EAGAIN) || error == AVERROR_EOF) {
             break;
         }
-        RTC_CHECK(false) << av_err2str(error);
+        //RTC_CHECK(false) << av_err2str(error);
     }
 }
 
