@@ -236,7 +236,7 @@ typedef NS_ENUM(NSInteger, TestType) {
     _remainingData = 0;
 
     _source = new audio_mixer::AudioFileSource(
-        1, [[self pathForFileName:@"morning.mp3"]
+        1, [[self pathForFileName:@"morning-48k.mp3"]
                cStringUsingEncoding:NSUTF8StringEncoding],
         _sampleRate, _channelNum, 10, 1);
     _buffer = malloc(7680);
@@ -285,26 +285,26 @@ typedef NS_ENUM(NSInteger, TestType) {
             mixerSourceWithType:PYAMixerSourceTypeFile
                            ssrc:1
                          volume:1
-                           path:[self pathForFileName:@"morning.mp3"]
+                           path:[self pathForFileName:@"morning-48k.mp3"]
                      sampleRate:0
                      channelNum:0],
         [PYAMixerSource mixerSourceWithType:PYAMixerSourceTypeFile
                                        ssrc:2
                                      volume:1
-                                       path:[self pathForFileName:@"iamyou.mp3"]
+                                       path:[self pathForFileName:@"iamyou-48k.mp3"]
                                  sampleRate:0
                                  channelNum:0],
         [PYAMixerSource mixerSourceWithType:PYAMixerSourceTypeFile
                                        ssrc:3
                                      volume:1
-                                       path:[self pathForFileName:@"lion.mp3"]
+                                       path:[self pathForFileName:@"lion-48k.mp3"]
                                  sampleRate:0
                                  channelNum:0],
     ];
     PYAMixerConfig* config = [PYAMixerConfig mixerConfigWithSources:mixerSources
                                                    outputSampleRate:_sampleRate
                                                    outputChannelNum:_channelNum
-                                                    frameDurationMs:10];
+                                                    frameDurationMs:3];
     _mixer = [[PYAAudioMixer alloc] initWithConfig:config];
 
     [self doStartTest];
@@ -350,7 +350,7 @@ typedef NS_ENUM(NSInteger, TestType) {
             mixerSourceWithType:PYAMixerSourceTypeFile
                            ssrc:1
                          volume:1
-                           path:[self pathForFileName:@"morning.mp3"]
+                           path:[self pathForFileName:@"morning-48k.mp3"]
                      sampleRate:0
                      channelNum:0],
         [PYAMixerSource mixerSourceWithType:PYAMixerSourceTypeRecord

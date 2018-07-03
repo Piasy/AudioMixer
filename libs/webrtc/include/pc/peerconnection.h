@@ -113,9 +113,6 @@ class PeerConnection : public PeerConnectionInternal,
   // Version of the above method that returns the full certificate chain.
   std::unique_ptr<rtc::SSLCertChain> GetRemoteAudioSSLCertChain();
 
-  rtc::scoped_refptr<DtmfSenderInterface> CreateDtmfSender(
-      AudioTrackInterface* track) override;
-
   rtc::scoped_refptr<RtpSenderInterface> CreateSender(
       const std::string& kind,
       const std::string& stream_id) override;
@@ -247,11 +244,11 @@ class PeerConnection : public PeerConnectionInternal,
     return sctp_data_channels_;
   }
 
-  rtc::Optional<std::string> sctp_content_name() const override {
+  absl::optional<std::string> sctp_content_name() const override {
     return sctp_mid_;
   }
 
-  rtc::Optional<std::string> sctp_transport_name() const override;
+  absl::optional<std::string> sctp_transport_name() const override;
 
   cricket::CandidateStatsList GetPooledCandidateStats() const override;
   std::map<std::string, std::string> GetTransportNamesByMid() const override;
@@ -267,6 +264,10 @@ class PeerConnection : public PeerConnectionInternal,
   bool IceRestartPending(const std::string& content_name) const override;
   bool NeedsIceRestart(const std::string& content_name) const override;
   bool GetSslRole(const std::string& content_name, rtc::SSLRole* role) override;
+
+  void ReturnHistogramVeryQuicklyForTesting() {
+    return_histogram_very_quickly_ = true;
+  }
 
  protected:
   ~PeerConnection() override;
@@ -363,6 +364,7 @@ class PeerConnection : public PeerConnectionInternal,
 
   rtc::scoped_refptr<RtpSenderProxyWithInternal<RtpSenderInternal>>
   CreateSender(cricket::MediaType media_type,
+               const std::string& id,
                rtc::scoped_refptr<MediaStreamTrackInterface> track,
                const std::vector<std::string>& stream_ids);
 
@@ -516,9 +518,9 @@ class PeerConnection : public PeerConnectionInternal,
       const SessionDescriptionInterface* session_desc,
       RtpTransceiverDirection audio_direction,
       RtpTransceiverDirection video_direction,
-      rtc::Optional<size_t>* audio_index,
-      rtc::Optional<size_t>* video_index,
-      rtc::Optional<size_t>* data_index,
+      absl::optional<size_t>* audio_index,
+      absl::optional<size_t>* video_index,
+      absl::optional<size_t>* data_index,
       cricket::MediaSessionOptions* session_options);
 
   // Generates the active MediaDescriptionOptions for the local data channel
@@ -534,7 +536,7 @@ class PeerConnection : public PeerConnectionInternal,
   // Returns the MID for the data section associated with either the
   // RtpDataChannel or SCTP data channel, if it has been set. If no data
   // channels are configured this will return nullopt.
-  rtc::Optional<std::string> GetDataMid() const;
+  absl::optional<std::string> GetDataMid() const;
 
   // Remove all local and remote senders of type |media_type|.
   // Called when a media type is rejected (m-line set to port 0).
@@ -655,7 +657,10 @@ class PeerConnection : public PeerConnectionInternal,
   DataChannel* FindDataChannelBySid(int sid) const;
 
   // Called when first configuring the port allocator.
-  bool InitializePortAllocator_n(const RTCConfiguration& configuration);
+  bool InitializePortAllocator_n(
+      const cricket::ServerAddresses& stun_servers,
+      const std::vector<cricket::RelayServerConfig>& turn_servers,
+      const RTCConfiguration& configuration);
   // Called when SetConfiguration is called to apply the supported subset
   // of the configuration on the network thread.
   bool ReconfigurePortAllocator_n(
@@ -665,7 +670,7 @@ class PeerConnection : public PeerConnectionInternal,
       int candidate_pool_size,
       bool prune_turn_ports,
       webrtc::TurnCustomizer* turn_customizer,
-      rtc::Optional<int> stun_candidate_keepalive_interval);
+      absl::optional<int> stun_candidate_keepalive_interval);
 
   void SetMetricObserver_n(UMAObserver* observer);
 
@@ -976,7 +981,7 @@ class PeerConnection : public PeerConnectionInternal,
 
   std::unique_ptr<cricket::SctpTransportInternal> sctp_transport_;
   // |sctp_mid_| is the content name (MID) in SDP.
-  rtc::Optional<std::string> sctp_mid_;
+  absl::optional<std::string> sctp_mid_;
   // Value cached on signaling thread. Only updated when SctpReadyToSendData
   // fires on the signaling thread.
   bool sctp_ready_to_send_data_ = false;
@@ -1020,6 +1025,7 @@ class PeerConnection : public PeerConnectionInternal,
   cricket::VideoOptions video_options_;
 
   int usage_event_accumulator_ = 0;
+  bool return_histogram_very_quickly_ = false;
 };
 
 }  // namespace webrtc

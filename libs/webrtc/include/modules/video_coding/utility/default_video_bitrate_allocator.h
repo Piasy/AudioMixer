@@ -11,7 +11,7 @@
 #ifndef MODULES_VIDEO_CODING_UTILITY_DEFAULT_VIDEO_BITRATE_ALLOCATOR_H_
 #define MODULES_VIDEO_CODING_UTILITY_DEFAULT_VIDEO_BITRATE_ALLOCATOR_H_
 
-#include "common_types.h"  // NOLINT(build/include)
+#include "api/video_codecs/video_codec.h"
 #include "common_video/include/video_bitrate_allocator.h"
 
 namespace webrtc {
@@ -23,7 +23,6 @@ class DefaultVideoBitrateAllocator : public VideoBitrateAllocator {
 
   VideoBitrateAllocation GetAllocation(uint32_t total_bitrate,
                                        uint32_t framerate) override;
-  uint32_t GetPreferredBitrateBps(uint32_t framerate) override;
 
  private:
   const VideoCodec codec_;

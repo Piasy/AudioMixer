@@ -131,14 +131,13 @@ For more detailed info, please refer to [the source code](https://github.com/Pia
 ## Dependencies
 
 + FFmpeg: 3.4.2
-+ WebRTC: #23505
++ WebRTC: #23794
 
 ## Development
 
 + Before run Android demo, push mp3 to sdcard: `adb push mp3 /sdcard/`
 + Generate sources: `./run_djinni.sh`
 + Extract libs: `./extract_libs.sh`
-+ Extract WebRTC ADM libs: `./extract_webrtc_objc_libs.sh`
 
 ## Caveat
 

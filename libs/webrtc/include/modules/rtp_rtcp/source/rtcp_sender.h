@@ -14,12 +14,11 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <sstream>
 #include <string>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/call/transport.h"
-#include "api/optional.h"
 #include "api/video/video_bitrate_allocation.h"
 #include "modules/remote_bitrate_estimator/include/bwe_defines.h"
 #include "modules/remote_bitrate_estimator/include/remote_bitrate_estimator.h"
@@ -40,21 +39,6 @@ namespace webrtc {
 
 class ModuleRtpRtcpImpl;
 class RtcEventLog;
-
-class NACKStringBuilder {
- public:
-  NACKStringBuilder();
-  ~NACKStringBuilder();
-
-  void PushNACK(uint16_t nack);
-  std::string GetResult();
-
- private:
-  std::ostringstream stream_;
-  int count_;
-  uint16_t prevNack_;
-  bool consecutive_;
-};
 
 class RTCPSender {
  public:
@@ -253,7 +237,7 @@ class RTCPSender {
       RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
   // XR VoIP metric
-  rtc::Optional<RTCPVoIPMetric> xr_voip_metric_
+  absl::optional<RTCPVoIPMetric> xr_voip_metric_
       RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
   RtcpPacketTypeCounterObserver* const packet_type_counter_observer_;
@@ -262,7 +246,7 @@ class RTCPSender {
 
   RtcpNackStats nack_stats_ RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
-  rtc::Optional<VideoBitrateAllocation> video_bitrate_allocation_
+  absl::optional<VideoBitrateAllocation> video_bitrate_allocation_
       RTC_GUARDED_BY(critical_section_rtcp_sender_);
 
   void SetFlag(uint32_t type, bool is_volatile)

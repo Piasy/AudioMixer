@@ -26,7 +26,7 @@
 namespace rtc {
 class BasicNetworkManager;
 class BasicPacketSocketFactory;
-}
+}  // namespace rtc
 
 namespace webrtc {
 
@@ -62,6 +62,12 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
 
   bool Initialize();
 
+  RtpCapabilities GetRtpSenderCapabilities(
+      cricket::MediaType kind) const override;
+
+  RtpCapabilities GetRtpReceiverCapabilities(
+      cricket::MediaType kind) const override;
+
   rtc::scoped_refptr<MediaStreamInterface> CreateLocalMediaStream(
       const std::string& stream_id) override;
 
@@ -82,9 +88,9 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
       const std::string& id,
       VideoTrackSourceInterface* video_source) override;
 
-  rtc::scoped_refptr<AudioTrackInterface>
-      CreateAudioTrack(const std::string& id,
-                       AudioSourceInterface* audio_source) override;
+  rtc::scoped_refptr<AudioTrackInterface> CreateAudioTrack(
+      const std::string& id,
+      AudioSourceInterface* audio_source) override;
 
   bool StartAecDump(rtc::PlatformFile file, int64_t max_size_bytes) override;
   void StopAecDump() override;
@@ -121,6 +127,10 @@ class PeerConnectionFactory : public PeerConnectionFactoryInterface {
   // PeerConnectionFactory.
   explicit PeerConnectionFactory(
       PeerConnectionFactoryDependencies dependencies);
+
+  // Hook to let testing framework insert actions between
+  // "new RTCPeerConnection" and "pc.Initialize"
+  virtual void ActionsBeforeInitializeForTesting(PeerConnectionInterface*) {}
 
   virtual ~PeerConnectionFactory();
 

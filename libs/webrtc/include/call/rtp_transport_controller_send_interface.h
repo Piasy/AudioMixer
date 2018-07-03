@@ -15,9 +15,9 @@
 
 #include <string>
 
-#include "api/optional.h"
+#include "absl/types/optional.h"
+#include "api/bitrate_constraints.h"
 #include "api/transport/bitrate_settings.h"
-#include "call/bitrate_constraints.h"
 
 namespace rtc {
 struct SentPacket;
@@ -110,6 +110,8 @@ class RtpTransportControllerSendInterface {
       const BitrateConstraints& constraints) = 0;
   virtual void SetClientBitratePreferences(
       const BitrateSettings& preferences) = 0;
+
+  virtual void SetAllocatedBitrateWithoutFeedback(uint32_t bitrate_bps) = 0;
 };
 
 }  // namespace webrtc

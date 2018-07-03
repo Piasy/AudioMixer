@@ -19,6 +19,7 @@
 
 #include "api/candidate.h"
 #include "api/peerconnectioninterface.h"
+#include "logging/rtc_event_log/rtc_event_log.h"
 #include "media/sctp/sctptransportinternal.h"
 #include "p2p/base/dtlstransport.h"
 #include "p2p/base/p2ptransportchannel.h"
@@ -77,6 +78,8 @@ class JsepTransportController : public sigslot::has_slots<>,
     // Used to inject the ICE/DTLS transports created externally.
     cricket::TransportFactoryInterface* external_transport_factory = nullptr;
     Observer* transport_observer = nullptr;
+    bool active_reset_srtp_params = false;
+    RtcEventLog* event_log = nullptr;
   };
 
   // The ICE related events are signaled on the |signaling_thread|.
@@ -143,7 +146,7 @@ class JsepTransportController : public sigslot::has_slots<>,
   std::unique_ptr<rtc::SSLCertChain> GetRemoteSSLCertChain(
       const std::string& mid) const;
   // Get negotiated role, if one has been negotiated.
-  rtc::Optional<rtc::SSLRole> GetDtlsRole(const std::string& mid) const;
+  absl::optional<rtc::SSLRole> GetDtlsRole(const std::string& mid) const;
 
   // TODO(deadbeef): GetStats isn't const because all the way down to
   // OpenSSLStreamAdapter, GetSslCipherSuite and GetDtlsSrtpCryptoSuite are not
@@ -152,6 +155,8 @@ class JsepTransportController : public sigslot::has_slots<>,
   void SetMetricsObserver(webrtc::MetricsObserverInterface* metrics_observer);
 
   bool initial_offerer() const { return initial_offerer_ && *initial_offerer_; }
+
+  void SetActiveResetSrtpParams(bool active_reset_srtp_params);
 
   // All of these signals are fired on the signaling thread.
 
@@ -201,8 +206,8 @@ class JsepTransportController : public sigslot::has_slots<>,
       const std::vector<int>& encrypted_extension_ids,
       int rtp_abs_sendtime_extn_id);
 
-  rtc::Optional<std::string> bundled_mid() const {
-    rtc::Optional<std::string> bundled_mid;
+  absl::optional<std::string> bundled_mid() const {
+    absl::optional<std::string> bundled_mid;
     if (bundle_group_ && bundle_group_->FirstContentName()) {
       bundled_mid = *(bundle_group_->FirstContentName());
     }
@@ -307,9 +312,9 @@ class JsepTransportController : public sigslot::has_slots<>,
   Config config_;
   const cricket::SessionDescription* local_desc_ = nullptr;
   const cricket::SessionDescription* remote_desc_ = nullptr;
-  rtc::Optional<bool> initial_offerer_;
+  absl::optional<bool> initial_offerer_;
 
-  rtc::Optional<cricket::ContentGroup> bundle_group_;
+  absl::optional<cricket::ContentGroup> bundle_group_;
 
   cricket::IceConfig ice_config_;
   cricket::IceRole ice_role_ = cricket::ICEROLE_CONTROLLING;
@@ -317,7 +322,7 @@ class JsepTransportController : public sigslot::has_slots<>,
   rtc::scoped_refptr<rtc::RTCCertificate> certificate_;
   rtc::AsyncInvoker invoker_;
 
-  webrtc::MetricsObserverInterface* metrics_observer_ = nullptr;
+  MetricsObserverInterface* metrics_observer_ = nullptr;
 
   RTC_DISALLOW_COPY_AND_ASSIGN(JsepTransportController);
 };

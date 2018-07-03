@@ -171,9 +171,7 @@ class FakeDtlsTransport : public DtlsTransportInternal {
     *crypto_suite = crypto_suite_;
     return true;
   }
-  void SetSrtpCryptoSuite(int crypto_suite) {
-    crypto_suite_ = crypto_suite;
-  }
+  void SetSrtpCryptoSuite(int crypto_suite) { crypto_suite_ = crypto_suite; }
   bool GetSslCipherSuite(int* cipher_suite) override { return false; }
   rtc::scoped_refptr<rtc::RTCCertificate> GetLocalCertificate() const override {
     return local_cert_;
@@ -225,7 +223,7 @@ class FakeDtlsTransport : public DtlsTransportInternal {
   }
   int GetError() override { return ice_transport_->GetError(); }
 
-  rtc::Optional<rtc::NetworkRoute> network_route() const override {
+  absl::optional<rtc::NetworkRoute> network_route() const override {
     return ice_transport_->network_route();
   }
 
@@ -257,7 +255,7 @@ class FakeDtlsTransport : public DtlsTransportInternal {
     SignalWritableState(this);
   }
 
-  void OnNetworkRouteChanged(rtc::Optional<rtc::NetworkRoute> network_route) {
+  void OnNetworkRouteChanged(absl::optional<rtc::NetworkRoute> network_route) {
     SignalNetworkRouteChanged(network_route);
   }
 
@@ -271,7 +269,7 @@ class FakeDtlsTransport : public DtlsTransportInternal {
   bool do_dtls_ = false;
   rtc::SSLProtocolVersion ssl_max_version_ = rtc::SSL_PROTOCOL_DTLS_12;
   rtc::SSLFingerprint dtls_fingerprint_;
-  rtc::Optional<rtc::SSLRole> dtls_role_;
+  absl::optional<rtc::SSLRole> dtls_role_;
   int crypto_suite_ = rtc::SRTP_AES128_CM_SHA1_80;
   rtc::CryptoOptions crypto_options_;
 

@@ -91,8 +91,7 @@ FILE* OpenFile(const std::string& filename, const char* mode);
 
 size_t SamplesFromRate(int rate);
 
-void SetFrameSampleRate(AudioFrame* frame,
-                        int sample_rate_hz);
+void SetFrameSampleRate(AudioFrame* frame, int sample_rate_hz);
 
 template <typename T>
 void SetContainerFormat(int sample_rate_hz,
@@ -130,28 +129,18 @@ float ComputeSNR(const T* ref, const T* test, size_t length, float* variance) {
 
 // Returns a vector<T> parsed from whitespace delimited values in to_parse,
 // or an empty vector if the string could not be parsed.
-template<typename T>
+template <typename T>
 std::vector<T> ParseList(const std::string& to_parse) {
   std::vector<T> values;
 
   std::istringstream str(to_parse);
   std::copy(
-      std::istream_iterator<T>(str),
-      std::istream_iterator<T>(),
+      std::istream_iterator<T>(str),  // no-presubmit-check TODO(webrtc:8982)
+      std::istream_iterator<T>(),     // no-presubmit-check TODO(webrtc:8982)
       std::back_inserter(values));
 
   return values;
 }
-
-// Parses the array geometry from the command line.
-//
-// If a vector with size != num_mics is returned, an error has occurred and an
-// appropriate error message has been printed to stdout.
-std::vector<Point> ParseArrayGeometry(const std::string& mic_positions,
-                                      size_t num_mics);
-
-// Same as above, but without the num_mics check for when it isn't available.
-std::vector<Point> ParseArrayGeometry(const std::string& mic_positions);
 
 }  // namespace webrtc
 

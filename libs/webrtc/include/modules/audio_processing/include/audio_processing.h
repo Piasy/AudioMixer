@@ -18,14 +18,13 @@
 
 #include <math.h>
 #include <stddef.h>  // size_t
-#include <stdio.h>  // FILE
+#include <stdio.h>   // FILE
 #include <string.h>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/audio/echo_canceller3_config.h"
 #include "api/audio/echo_control.h"
-#include "api/optional.h"
-#include "modules/audio_processing/beamformer/array_util.h"
 #include "modules/audio_processing/include/audio_generator.h"
 #include "modules/audio_processing/include/audio_processing_statistics.h"
 #include "modules/audio_processing/include/config.h"
@@ -43,8 +42,6 @@ struct AecCore;
 class AecDump;
 class AudioBuffer;
 class AudioFrame;
-
-class NonlinearBeamformer;
 
 class StreamConfig;
 class ProcessingConfig;
@@ -145,22 +142,6 @@ struct ExperimentalNs {
   explicit ExperimentalNs(bool enabled) : enabled(enabled) {}
   static const ConfigOptionID identifier = ConfigOptionID::kExperimentalNs;
   bool enabled;
-};
-
-// Use to enable beamforming. Must be provided through the constructor. It will
-// have no impact if used with AudioProcessing::SetExtraOptions().
-struct Beamforming {
-  Beamforming();
-  Beamforming(bool enabled, const std::vector<Point>& array_geometry);
-  Beamforming(bool enabled,
-              const std::vector<Point>& array_geometry,
-              SphericalPointf target_direction);
-  ~Beamforming();
-
-  static const ConfigOptionID identifier = ConfigOptionID::kBeamforming;
-  const bool enabled;
-  const std::vector<Point> array_geometry;
-  const SphericalPointf target_direction;
 };
 
 // Use to enable intelligibility enhancer in audio processing.
@@ -673,12 +654,9 @@ class AudioProcessingBuilder {
   // The AudioProcessingBuilder takes ownership of the render_pre_processing.
   AudioProcessingBuilder& SetRenderPreProcessing(
       std::unique_ptr<CustomProcessing> render_pre_processing);
-  // The AudioProcessingBuilder takes ownership of the nonlinear beamformer.
-  AudioProcessingBuilder& SetNonlinearBeamformer(
-      std::unique_ptr<NonlinearBeamformer> nonlinear_beamformer);
   // The AudioProcessingBuilder takes ownership of the echo_detector.
   AudioProcessingBuilder& SetEchoDetector(
-      std::unique_ptr<EchoDetector> echo_detector);
+      rtc::scoped_refptr<EchoDetector> echo_detector);
   // This creates an APM instance using the previously set components. Calling
   // the Create function resets the AudioProcessingBuilder to its initial state.
   AudioProcessing* Create();
@@ -688,8 +666,7 @@ class AudioProcessingBuilder {
   std::unique_ptr<EchoControlFactory> echo_control_factory_;
   std::unique_ptr<CustomProcessing> capture_post_processing_;
   std::unique_ptr<CustomProcessing> render_pre_processing_;
-  std::unique_ptr<NonlinearBeamformer> nonlinear_beamformer_;
-  std::unique_ptr<EchoDetector> echo_detector_;
+  rtc::scoped_refptr<EchoDetector> echo_detector_;
   RTC_DISALLOW_COPY_AND_ASSIGN(AudioProcessingBuilder);
 };
 
@@ -742,8 +719,8 @@ class StreamConfig {
 
  private:
   static size_t calculate_frames(int sample_rate_hz) {
-    return static_cast<size_t>(
-        AudioProcessing::kChunkSizeMs * sample_rate_hz / 1000);
+    return static_cast<size_t>(AudioProcessing::kChunkSizeMs * sample_rate_hz /
+                               1000);
   }
 
   int sample_rate_hz_;
@@ -892,7 +869,8 @@ class EchoCancellation {
   // Deprecated. Use GetStatistics on the AudioProcessing interface instead.
   virtual int GetDelayMetrics(int* median, int* std) = 0;
   // Deprecated. Use GetStatistics on the AudioProcessing interface instead.
-  virtual int GetDelayMetrics(int* median, int* std,
+  virtual int GetDelayMetrics(int* median,
+                              int* std,
                               float* fraction_poor_delays) = 0;
 
   // Returns a pointer to the low level AEC component.  In case of multiple
@@ -1036,8 +1014,7 @@ class GainControl {
 
   // Sets the |minimum| and |maximum| analog levels of the audio capture device.
   // Must be set if and only if an analog mode is used. Limited to [0, 65535].
-  virtual int set_analog_level_limits(int minimum,
-                                      int maximum) = 0;
+  virtual int set_analog_level_limits(int minimum, int maximum) = 0;
   virtual int analog_level_minimum() const = 0;
   virtual int analog_level_maximum() const = 0;
 
@@ -1096,12 +1073,7 @@ class NoiseSuppression {
 
   // Determines the aggressiveness of the suppression. Increasing the level
   // will reduce the noise level at the expense of a higher speech distortion.
-  enum Level {
-    kLow,
-    kModerate,
-    kHigh,
-    kVeryHigh
-  };
+  enum Level { kLow, kModerate, kHigh, kVeryHigh };
 
   virtual int set_level(Level level) = 0;
   virtual Level level() const = 0;
@@ -1135,7 +1107,7 @@ class CustomProcessing {
 };
 
 // Interface for an echo detector submodule.
-class EchoDetector {
+class EchoDetector : public rtc::RefCountInterface {
  public:
   // (Re-)Initializes the submodule.
   virtual void Initialize(int capture_sample_rate_hz,
@@ -1161,8 +1133,6 @@ class EchoDetector {
 
   // Collect current metrics from the echo detector.
   virtual Metrics GetMetrics() const = 0;
-
-  virtual ~EchoDetector() {}
 };
 
 // The voice activity detection (VAD) component analyzes the stream to

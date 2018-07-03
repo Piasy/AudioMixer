@@ -24,15 +24,15 @@ namespace webrtc {
 class VideoTrackSource : public Notifier<VideoTrackSourceInterface> {
  public:
   explicit VideoTrackSource(bool remote);
-  // TODO(nisse): Delete, kept only for temporary backwards compatibility.
-  VideoTrackSource(rtc::VideoSourceInterface<VideoFrame>* source, bool remote);
   void SetState(SourceState new_state);
 
   SourceState state() const override { return state_; }
   bool remote() const override { return remote_; }
 
   bool is_screencast() const override { return false; }
-  rtc::Optional<bool> needs_denoising() const override { return rtc::nullopt; }
+  absl::optional<bool> needs_denoising() const override {
+    return absl::nullopt;
+  }
 
   bool GetStats(Stats* stats) override { return false; }
 
@@ -41,14 +41,10 @@ class VideoTrackSource : public Notifier<VideoTrackSourceInterface> {
   void RemoveSink(rtc::VideoSinkInterface<VideoFrame>* sink) override;
 
  protected:
-  // TODO(nisse): Default implementations for temporary backwards
-  // compatibility.
-  virtual rtc::VideoSourceInterface<VideoFrame>* source() { return source_; }
+  virtual rtc::VideoSourceInterface<VideoFrame>* source() = 0;
 
  private:
   rtc::ThreadChecker worker_thread_checker_;
-  // TODO(nisse): Delete, kept only for temporary backwards compatibility.
-  rtc::VideoSourceInterface<VideoFrame>* source_;
   SourceState state_;
   const bool remote_;
 };

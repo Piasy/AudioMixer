@@ -11,6 +11,8 @@
 #ifndef LOGGING_RTC_EVENT_LOG_EVENTS_RTC_EVENT_PROBE_RESULT_SUCCESS_H_
 #define LOGGING_RTC_EVENT_LOG_EVENTS_RTC_EVENT_PROBE_RESULT_SUCCESS_H_
 
+#include <memory>
+
 #include "logging/rtc_event_log/events/rtc_event.h"
 
 namespace webrtc {
@@ -24,8 +26,13 @@ class RtcEventProbeResultSuccess final : public RtcEvent {
 
   bool IsConfigEvent() const override;
 
+  std::unique_ptr<RtcEvent> Copy() const override;
+
   const int32_t id_;
   const int32_t bitrate_bps_;
+
+ private:
+  RtcEventProbeResultSuccess(const RtcEventProbeResultSuccess& other);
 };
 
 }  // namespace webrtc

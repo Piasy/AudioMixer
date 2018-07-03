@@ -43,11 +43,13 @@ class BrowserShutdownProfileDumper;
 class BrowserSurfaceViewManager;
 class BrowserTestBase;
 class CategorizedWorkerPool;
+class GpuProcessTransportFactory;
 class NestedMessagePumpAndroid;
 class ScopedAllowWaitForAndroidLayoutTests;
 class ScopedAllowWaitForDebugURL;
 class SessionStorageDatabase;
 class SoftwareOutputDeviceMus;
+class ServiceWorkerSubresourceLoader;
 class SynchronousCompositor;
 class SynchronousCompositorHost;
 class SynchronousCompositorSyncCallBridge;
@@ -220,6 +222,7 @@ class BASE_EXPORT ScopedAllowBlocking {
   FRIEND_TEST_ALL_PREFIXES(ThreadRestrictionsTest, ScopedAllowBlocking);
   friend class android_webview::ScopedAllowInitGLBindings;
   friend class content::BrowserProcessSubThread;
+  friend class content::GpuProcessTransportFactory;
   friend class cronet::CronetPrefsManager;
   friend class cronet::CronetURLRequestContext;
   friend class media::AudioInputDevice;
@@ -296,6 +299,7 @@ class BASE_EXPORT ScopedAllowBaseSyncPrimitives {
   friend class rlz_lib::FinancialPing;
   friend class shell_integration::LaunchXdgUtilityScopedAllowBaseSyncPrimitives;
   friend class webrtc::DesktopConfigurationMonitor;
+  friend class content::ServiceWorkerSubresourceLoader;
 
   ScopedAllowBaseSyncPrimitives() EMPTY_BODY_IF_DCHECK_IS_OFF;
   ~ScopedAllowBaseSyncPrimitives() EMPTY_BODY_IF_DCHECK_IS_OFF;
@@ -416,7 +420,7 @@ class BASE_EXPORT ThreadRestrictions {
 #endif
 
  private:
-  // DO NOT ADD ANY OTHER FRIEND STATEMENTS, talk to jam or brettw first.
+  // DO NOT ADD ANY OTHER FRIEND STATEMENTS.
   // BEGIN ALLOWED USAGE.
   friend class android_webview::AwFormDatabaseService;
   friend class android_webview::CookieManager;
@@ -481,8 +485,7 @@ class BASE_EXPORT ThreadRestrictions {
 
   // Constructing a ScopedAllowWait temporarily allows waiting on the current
   // thread.  Doing this is almost always incorrect, which is why we limit who
-  // can use this through friend. If you find yourself needing to use this, find
-  // another way. Talk to jam or brettw.
+  // can use this through friend.
   //
   // DEPRECATED. Use ScopedAllowBaseSyncPrimitives.
   class BASE_EXPORT ScopedAllowWait {

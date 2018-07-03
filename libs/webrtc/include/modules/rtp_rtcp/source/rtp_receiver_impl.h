@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "api/optional.h"
+#include "absl/types/optional.h"
 #include "modules/rtp_rtcp/include/rtp_receiver.h"
 #include "modules/rtp_rtcp/include/rtp_rtcp_defines.h"
 #include "modules/rtp_rtcp/source/rtp_receiver_strategy.h"
@@ -54,8 +54,6 @@ class RtpReceiverImpl : public RtpReceiver {
 
   int32_t CSRCs(uint32_t array_of_csrc[kRtpCsrcSize]) const override;
 
-  int32_t Energy(uint8_t array_of_energy[kRtpCsrcSize]) const override;
-
   TelephoneEventHandler* GetTelephoneEventHandler() override;
 
   std::vector<RtpSource> GetSources() const override;
@@ -74,7 +72,7 @@ class RtpReceiverImpl : public RtpReceiver {
   int32_t CheckPayloadChanged(const RTPHeader& rtp_header,
                               PayloadUnion* payload);
 
-  void UpdateSources(const rtc::Optional<uint8_t>& ssrc_audio_level);
+  void UpdateSources(const absl::optional<uint8_t>& ssrc_audio_level);
   void RemoveOutdatedSources(int64_t now_ms);
 
   Clock* clock_;
@@ -91,7 +89,7 @@ class RtpReceiverImpl : public RtpReceiver {
       critical_section_rtp_receiver_);
 
   // Sequence number and timestamps for the latest in-order packet.
-  rtc::Optional<uint16_t> last_received_sequence_number_
+  absl::optional<uint16_t> last_received_sequence_number_
       RTC_GUARDED_BY(critical_section_rtp_receiver_);
   uint32_t last_received_timestamp_
       RTC_GUARDED_BY(critical_section_rtp_receiver_);

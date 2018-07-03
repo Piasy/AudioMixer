@@ -17,8 +17,8 @@
 #include <memory>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/array_view.h"
-#include "api/optional.h"
 #include "modules/audio_processing/aec3/matrix_buffer.h"
 #include "modules/audio_processing/aec3/render_buffer.h"
 #include "modules/audio_processing/aec3/stationarity_estimator.h"
@@ -37,7 +37,8 @@ class EchoAudibility {
   // Feed new render data to the echo audibility estimator.
   void Update(const RenderBuffer& render_buffer,
               int delay_blocks,
-              bool external_delay_seen);
+              bool external_delay_seen,
+              float reverb_decay);
 
   // Get the residual echo scaling.
   void GetResidualEchoScaling(rtc::ArrayView<float> residual_scaling) const {
@@ -56,7 +57,8 @@ class EchoAudibility {
 
   // Updates the render stationarity flags for the current frame.
   void UpdateRenderStationarityFlags(const RenderBuffer& render_buffer,
-                                     int delay_blocks);
+                                     int delay_blocks,
+                                     float reverb_decay);
 
   // Updates the noise estimator with the new render data since the previous
   // call to this method.
@@ -68,7 +70,7 @@ class EchoAudibility {
   // values.
   bool IsRenderTooLow(const MatrixBuffer& block_buffer);
 
-  rtc::Optional<int> render_spectrum_write_prev_;
+  absl::optional<int> render_spectrum_write_prev_;
   int render_block_write_prev_;
   bool non_zero_render_seen_;
   StationarityEstimator render_stationarity_;

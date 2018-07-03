@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "call/bitrate_constraints.h"
+#include "api/bitrate_constraints.h"
 #include "call/rtp_transport_controller_send_interface.h"
 #include "modules/congestion_controller/include/network_changed_observer.h"
 #include "modules/pacing/packet_router.h"
@@ -50,8 +50,8 @@ class MockRtpTransportControllerSend
   MOCK_METHOD1(EnablePeriodicAlrProbing, void(bool));
   MOCK_METHOD1(OnSentPacket, void(const rtc::SentPacket&));
   MOCK_METHOD1(SetSdpBitrateParameters, void(const BitrateConstraints&));
-  MOCK_METHOD1(SetClientBitratePreferences,
-               void(const BitrateSettings&));
+  MOCK_METHOD1(SetClientBitratePreferences, void(const BitrateSettings&));
+  MOCK_METHOD1(SetAllocatedBitrateWithoutFeedback, void(uint32_t));
 };
 }  // namespace webrtc
 #endif  // CALL_TEST_MOCK_RTP_TRANSPORT_CONTROLLER_SEND_H_

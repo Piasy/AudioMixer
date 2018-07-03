@@ -13,7 +13,7 @@
 
 #include <memory>
 
-#include "api/optional.h"
+#include "absl/types/optional.h"
 #include "modules/pacing/pacer.h"
 #include "modules/pacing/packet_queue_interface.h"
 #include "rtc_base/criticalsection.h"
@@ -128,7 +128,7 @@ class PacedSender : public Pacer {
   virtual int64_t ExpectedQueueTimeMs() const;
 
   // Deprecated, alr detection will be moved out of the pacer.
-  virtual rtc::Optional<int64_t> GetApplicationLimitedRegionStartTime() const;
+  virtual absl::optional<int64_t> GetApplicationLimitedRegionStartTime() const;
 
   // Returns the number of milliseconds until the module want a worker thread
   // to call Process.
@@ -163,6 +163,9 @@ class PacedSender : public Pacer {
   PacketSender* const packet_sender_;
   const std::unique_ptr<AlrDetector> alr_detector_ RTC_PT_GUARDED_BY(critsect_);
 
+  const bool drain_large_queues_;
+  const bool send_padding_if_silent_;
+  const bool video_blocks_audio_;
   rtc::CriticalSection critsect_;
   bool paused_ RTC_GUARDED_BY(critsect_);
   // This is the media budget, keeping track of how many bits of media

@@ -21,8 +21,8 @@ struct EchoCanceller3Config {
   EchoCanceller3Config(const EchoCanceller3Config& e);
   struct Delay {
     size_t default_delay = 5;
-    size_t down_sampling_factor = 8;
-    size_t num_filters = 5;
+    size_t down_sampling_factor = 4;
+    size_t num_filters = 6;
     size_t api_call_jitter_blocks = 26;
     size_t min_echo_path_delay_blocks = 0;
     size_t delay_headroom_blocks = 2;
@@ -65,7 +65,8 @@ struct EchoCanceller3Config {
     float lf = 1.f;
     float mf = 1.f;
     float hf = 1.f;
-    float default_len = 0.f;
+    float default_len = 0.88f;
+    bool reverb_based_on_render = true;
     bool echo_can_saturate = true;
     bool bounded_erl = false;
   } ep_strength;
@@ -156,6 +157,7 @@ struct EchoCanceller3Config {
 
   struct Suppressor {
     size_t bands_with_reliable_coherence = 5;
+    size_t nearend_average_blocks = 4;
   } suppressor;
 };
 }  // namespace webrtc

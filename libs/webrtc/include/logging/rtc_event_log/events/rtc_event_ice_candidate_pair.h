@@ -11,9 +11,9 @@
 #ifndef LOGGING_RTC_EVENT_LOG_EVENTS_RTC_EVENT_ICE_CANDIDATE_PAIR_H_
 #define LOGGING_RTC_EVENT_LOG_EVENTS_RTC_EVENT_ICE_CANDIDATE_PAIR_H_
 
-#include "logging/rtc_event_log/events/rtc_event.h"
+#include <memory>
 
-#include <string>
+#include "logging/rtc_event_log/events/rtc_event.h"
 
 namespace webrtc {
 
@@ -22,6 +22,7 @@ enum class IceCandidatePairEventType {
   kCheckReceived,
   kCheckResponseSent,
   kCheckResponseReceived,
+  kNumValues,
 };
 
 class RtcEventIceCandidatePair final : public RtcEvent {
@@ -35,8 +36,13 @@ class RtcEventIceCandidatePair final : public RtcEvent {
 
   bool IsConfigEvent() const override;
 
+  std::unique_ptr<RtcEvent> Copy() const override;
+
   const IceCandidatePairEventType type_;
   const uint32_t candidate_pair_id_;
+
+ private:
+  RtcEventIceCandidatePair(const RtcEventIceCandidatePair& other);
 };
 
 }  // namespace webrtc

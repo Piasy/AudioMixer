@@ -28,7 +28,7 @@
 namespace webrtc {
 class MetricsObserverInterface;
 class TurnCustomizer;
-}
+}  // namespace webrtc
 
 namespace cricket {
 
@@ -75,18 +75,9 @@ enum {
   // When specified, do not collect IPv6 ICE candidates on Wi-Fi.
   PORTALLOCATOR_ENABLE_IPV6_ON_WIFI = 0x4000,
 
-  // When this flag is set, ports not bound to any specific network interface
-  // will be used, in addition to normal ports bound to the enumerated
-  // interfaces. Without this flag, these "any address" ports would only be
-  // used when network enumeration fails or is disabled. But under certain
-  // conditions, these ports may succeed where others fail, so they may allow
-  // the application to work in a wider variety of environments, at the expense
-  // of having to allocate additional candidates.
-  PORTALLOCATOR_ENABLE_ANY_ADDRESS_PORTS = 0x8000,
-
   // Exclude link-local network interfaces
   // from considertaion after adapter enumeration.
-  PORTALLOCATOR_DISABLE_LINK_LOCAL_NETWORKS = 0x10000,
+  PORTALLOCATOR_DISABLE_LINK_LOCAL_NETWORKS = 0x8000,
 };
 
 // Defines various reasons that have caused ICE regathering.
@@ -250,7 +241,7 @@ class PortAllocatorSession : public sigslot::has_slots<> {
   // The default value of the interval in implementation is restored if a null
   // optional value is passed.
   virtual void SetStunKeepaliveIntervalForReadyPorts(
-      const rtc::Optional<int>& stun_keepalive_interval) {}
+      const absl::optional<int>& stun_keepalive_interval) {}
   // Another way of getting the information provided by the signals below.
   //
   // Ports and candidates are not guaranteed to be in the same order as the
@@ -269,8 +260,8 @@ class PortAllocatorSession : public sigslot::has_slots<> {
   // ready(pairable).
   sigslot::signal2<PortAllocatorSession*, const std::vector<PortInterface*>&>
       SignalPortsPruned;
-  sigslot::signal2<PortAllocatorSession*,
-                   const std::vector<Candidate>&> SignalCandidatesReady;
+  sigslot::signal2<PortAllocatorSession*, const std::vector<Candidate>&>
+      SignalCandidatesReady;
   // Candidates should be signaled to be removed when the port that generated
   // the candidates is removed.
   sigslot::signal2<PortAllocatorSession*, const std::vector<Candidate>&>
@@ -353,8 +344,8 @@ class PortAllocator : public sigslot::has_slots<> {
                         int candidate_pool_size,
                         bool prune_turn_ports,
                         webrtc::TurnCustomizer* turn_customizer = nullptr,
-                        const rtc::Optional<int>&
-                            stun_candidate_keepalive_interval = rtc::nullopt);
+                        const absl::optional<int>&
+                            stun_candidate_keepalive_interval = absl::nullopt);
 
   const ServerAddresses& stun_servers() const {
     CheckRunOnValidThreadIfInitialized();
@@ -371,7 +362,7 @@ class PortAllocator : public sigslot::has_slots<> {
     return candidate_pool_size_;
   }
 
-  const rtc::Optional<int>& stun_candidate_keepalive_interval() const {
+  const absl::optional<int>& stun_candidate_keepalive_interval() const {
     CheckRunOnValidThreadIfInitialized();
     return stun_candidate_keepalive_interval_;
   }
@@ -607,7 +598,7 @@ class PortAllocator : public sigslot::has_slots<> {
   // all TurnPort(s) created.
   webrtc::TurnCustomizer* turn_customizer_ = nullptr;
 
-  rtc::Optional<int> stun_candidate_keepalive_interval_;
+  absl::optional<int> stun_candidate_keepalive_interval_;
 };
 
 }  // namespace cricket

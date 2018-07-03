@@ -28,30 +28,21 @@ class RTPFragmentationHeader;  // forward declaration
 // Note: if any pointers are added to this struct, it must be fitted
 // with a copy-constructor. See below.
 struct CodecSpecificInfoVP8 {
-  // TODO(nisse): Used on receive side only. Move elsewhere?
-  int16_t pictureId;  // Negative value to skip pictureId.
   bool nonReference;
   uint8_t simulcastIdx;
   uint8_t temporalIdx;
   bool layerSync;
-  // TODO(nisse): Used on receive side only. Move elsewhere?
-  int tl0PicIdx;  // Negative value to skip tl0PicIdx.
   int8_t keyIdx;  // Negative value to skip keyIdx.
 };
 
 struct CodecSpecificInfoVP9 {
-  // TODO(nisse): Used on receive side only. Move elsewhere?
-  int16_t picture_id;  // Negative value to skip pictureId.
-
   bool first_frame_in_picture;  // First frame, increment picture_id.
-  bool inter_pic_predicted;  // This layer frame is dependent on previously
-                             // coded frame(s).
+  bool inter_pic_predicted;     // This layer frame is dependent on previously
+                                // coded frame(s).
   bool flexible_mode;
   bool ss_data_available;
   bool non_ref_for_inter_layer_pred;
 
-  // TODO(nisse): Used on receive side only. Move elsewhere?
-  int tl0_pic_idx;  // Negative value to skip tl0PicIdx.
   uint8_t temporal_idx;
   uint8_t spatial_idx;
   bool temporal_up_switch;
@@ -79,6 +70,7 @@ struct CodecSpecificInfoGeneric {
 
 struct CodecSpecificInfoH264 {
   H264PacketizationMode packetization_mode;
+  uint8_t simulcast_idx;
 };
 
 union CodecSpecificInfoUnion {
@@ -92,7 +84,9 @@ union CodecSpecificInfoUnion {
 // must be fitted with a copy-constructor. This is because it is copied
 // in the copy-constructor of VCMEncodedFrame.
 struct CodecSpecificInfo {
-  CodecSpecificInfo() : codecType(kVideoCodecUnknown), codec_name(nullptr) {}
+  CodecSpecificInfo() : codecType(kVideoCodecUnknown), codec_name(nullptr) {
+    memset(&codecSpecific, 0, sizeof(codecSpecific));
+  }
   VideoCodecType codecType;
   const char* codec_name;
   CodecSpecificInfoUnion codecSpecific;

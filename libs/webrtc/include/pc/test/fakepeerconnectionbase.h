@@ -77,11 +77,6 @@ class FakePeerConnectionBase : public PeerConnectionInternal {
     return RTCError(RTCErrorType::UNSUPPORTED_OPERATION, "Not implemented");
   }
 
-  rtc::scoped_refptr<DtmfSenderInterface> CreateDtmfSender(
-      AudioTrackInterface* track) override {
-    return nullptr;
-  }
-
   rtc::scoped_refptr<RtpSenderInterface> CreateSender(
       const std::string& kind,
       const std::string& stream_id) override {
@@ -266,12 +261,12 @@ class FakePeerConnectionBase : public PeerConnectionInternal {
     return {};
   }
 
-  rtc::Optional<std::string> sctp_content_name() const override {
-    return rtc::nullopt;
+  absl::optional<std::string> sctp_content_name() const override {
+    return absl::nullopt;
   }
 
-  rtc::Optional<std::string> sctp_transport_name() const override {
-    return rtc::nullopt;
+  absl::optional<std::string> sctp_transport_name() const override {
+    return absl::nullopt;
   }
 
   std::map<std::string, std::string> GetTransportNamesByMid() const override {

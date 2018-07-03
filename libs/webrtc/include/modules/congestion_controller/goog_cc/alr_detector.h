@@ -11,18 +11,15 @@
 #ifndef MODULES_CONGESTION_CONTROLLER_GOOG_CC_ALR_DETECTOR_H_
 #define MODULES_CONGESTION_CONTROLLER_GOOG_CC_ALR_DETECTOR_H_
 
-#include "api/optional.h"
+#include "absl/types/optional.h"
 #include "common_types.h"  // NOLINT(build/include)
 #include "modules/pacing/interval_budget.h"
-#include "modules/pacing/paced_sender.h"
 #include "rtc_base/rate_statistics.h"
 #include "typedefs.h"  // NOLINT(build/include)
 
 namespace webrtc {
 
 class RtcEventLog;
-
-namespace webrtc_cc {
 
 // Application limited region detector is a class that utilizes signals of
 // elapsed time and bytes sent to estimate whether network traffic is
@@ -44,7 +41,7 @@ class AlrDetector {
 
   // Returns time in milliseconds when the current application-limited region
   // started or empty result if the sender is currently not application-limited.
-  rtc::Optional<int64_t> GetApplicationLimitedRegionStartTime() const;
+  absl::optional<int64_t> GetApplicationLimitedRegionStartTime() const;
 
   // Sent traffic percentage as a function of network capacity used to determine
   // application-limited region. ALR region start when bandwidth usage drops
@@ -63,15 +60,13 @@ class AlrDetector {
   int alr_start_budget_level_percent_;
   int alr_stop_budget_level_percent_;
 
-  rtc::Optional<int64_t> last_send_time_ms_;
+  absl::optional<int64_t> last_send_time_ms_;
 
   IntervalBudget alr_budget_;
-  rtc::Optional<int64_t> alr_started_time_ms_;
+  absl::optional<int64_t> alr_started_time_ms_;
 
   RtcEventLog* event_log_;
 };
-
-}  // namespace webrtc_cc
 }  // namespace webrtc
 
 #endif  // MODULES_CONGESTION_CONTROLLER_GOOG_CC_ALR_DETECTOR_H_

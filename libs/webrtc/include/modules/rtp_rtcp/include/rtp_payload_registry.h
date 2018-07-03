@@ -14,14 +14,13 @@
 #include <map>
 #include <set>
 
+#include "absl/types/optional.h"
 #include "api/audio_codecs/audio_format.h"
-#include "api/optional.h"
+#include "api/video_codecs/video_codec.h"
 #include "modules/rtp_rtcp/source/rtp_utility.h"
 #include "rtc_base/criticalsection.h"
 
 namespace webrtc {
-
-class VideoCodec;
 
 class RTPPayloadRegistry {
  public:
@@ -43,7 +42,7 @@ class RTPPayloadRegistry {
 
   int GetPayloadTypeFrequency(uint8_t payload_type) const;
 
-  rtc::Optional<RtpUtility::Payload> PayloadTypeToPayload(
+  absl::optional<RtpUtility::Payload> PayloadTypeToPayload(
       uint8_t payload_type) const;
 
   void ResetLastReceivedPayloadTypes() {
@@ -69,8 +68,8 @@ class RTPPayloadRegistry {
   std::map<int, RtpUtility::Payload> payload_type_map_;
   int8_t last_received_payload_type_;
 
-  // As a first step in splitting this class up in separate cases for audio and
-  // video, DCHECK that no instance is used for both audio and video.
+// As a first step in splitting this class up in separate cases for audio and
+// video, DCHECK that no instance is used for both audio and video.
 #if RTC_DCHECK_IS_ON
   bool used_for_audio_ RTC_GUARDED_BY(crit_sect_) = false;
   bool used_for_video_ RTC_GUARDED_BY(crit_sect_) = false;

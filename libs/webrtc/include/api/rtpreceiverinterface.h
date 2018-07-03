@@ -57,8 +57,8 @@ class RtpSource {
   // The source can be either a contributing source or a synchronization source.
   RtpSourceType source_type() const { return source_type_; }
 
-  rtc::Optional<uint8_t> audio_level() const { return audio_level_; }
-  void set_audio_level(const rtc::Optional<uint8_t>& level) {
+  absl::optional<uint8_t> audio_level() const { return audio_level_; }
+  void set_audio_level(const absl::optional<uint8_t>& level) {
     audio_level_ = level;
   }
 
@@ -71,7 +71,7 @@ class RtpSource {
   int64_t timestamp_ms_;
   uint32_t source_id_;
   RtpSourceType source_type_;
-  rtc::Optional<uint8_t> audio_level_;
+  absl::optional<uint8_t> audio_level_;
 };
 
 class RtpReceiverObserverInterface {
@@ -128,17 +128,17 @@ class RtpReceiverInterface : public rtc::RefCountInterface {
 // TODO(deadbeef): Move this to .cc file and out of api/. What threads methods
 // are called on is an implementation detail.
 BEGIN_SIGNALING_PROXY_MAP(RtpReceiver)
-  PROXY_SIGNALING_THREAD_DESTRUCTOR()
-  PROXY_CONSTMETHOD0(rtc::scoped_refptr<MediaStreamTrackInterface>, track)
-  PROXY_CONSTMETHOD0(std::vector<rtc::scoped_refptr<MediaStreamInterface>>,
-                     streams)
-  PROXY_CONSTMETHOD0(cricket::MediaType, media_type)
-  PROXY_CONSTMETHOD0(std::string, id)
-  PROXY_CONSTMETHOD0(RtpParameters, GetParameters);
-  PROXY_METHOD1(bool, SetParameters, const RtpParameters&)
-  PROXY_METHOD1(void, SetObserver, RtpReceiverObserverInterface*);
-  PROXY_CONSTMETHOD0(std::vector<RtpSource>, GetSources);
-  END_PROXY_MAP()
+PROXY_SIGNALING_THREAD_DESTRUCTOR()
+PROXY_CONSTMETHOD0(rtc::scoped_refptr<MediaStreamTrackInterface>, track)
+PROXY_CONSTMETHOD0(std::vector<rtc::scoped_refptr<MediaStreamInterface>>,
+                   streams)
+PROXY_CONSTMETHOD0(cricket::MediaType, media_type)
+PROXY_CONSTMETHOD0(std::string, id)
+PROXY_CONSTMETHOD0(RtpParameters, GetParameters);
+PROXY_METHOD1(bool, SetParameters, const RtpParameters&)
+PROXY_METHOD1(void, SetObserver, RtpReceiverObserverInterface*);
+PROXY_CONSTMETHOD0(std::vector<RtpSource>, GetSources);
+END_PROXY_MAP()
 
 }  // namespace webrtc
 

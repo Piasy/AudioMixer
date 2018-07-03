@@ -68,15 +68,12 @@ class VideoSendStream {
     uint32_t frames_dropped_by_encoder_queue = 0;
     uint32_t frames_dropped_by_rate_limiter = 0;
     uint32_t frames_dropped_by_encoder = 0;
-    rtc::Optional<uint64_t> qp_sum;
+    absl::optional<uint64_t> qp_sum;
     // Bitrate the encoder is currently configured to use due to bandwidth
     // limitations.
     int target_media_bitrate_bps = 0;
     // Bitrate the encoder is actually producing.
     int media_bitrate_bps = 0;
-    // Media bitrate this VideoSendStream is configured to prefer if there are
-    // no bandwidth limitations.
-    int preferred_media_bitrate_bps = 0;
     bool suspended = false;
     bool bw_limited_resolution = false;
     bool cpu_limited_resolution = false;
@@ -116,11 +113,6 @@ class VideoSendStream {
       // Enables the new method to estimate the cpu load from encoding, used for
       // cpu adaptation.
       bool experiment_cpu_load_estimator = false;
-
-      // Enables hardware VAAPI VP8 encoding if supported by the provided
-      // VideoEncoderFactory.
-      // TODO(ilnik): remove this when VAAPI VP8 experiment is over.
-      bool experiment_vaapi_vp8_hw_encoding = false;
 
       // Ownership stays with WebrtcVideoEngine (delegated from PeerConnection).
       VideoEncoderFactory* encoder_factory = nullptr;

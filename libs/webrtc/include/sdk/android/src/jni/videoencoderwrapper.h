@@ -70,7 +70,7 @@ class VideoEncoderWrapper : public VideoEncoder {
 
  private:
   struct FrameExtraInfo {
-    uint64_t capture_time_ns;  // Used as an identifier of the frame.
+    int64_t capture_time_ns;  // Used as an identifier of the frame.
 
     uint32_t timestamp_rtp;
   };
@@ -105,10 +105,6 @@ class VideoEncoderWrapper : public VideoEncoder {
   int number_of_cores_;
   VideoCodec codec_settings_;
   H264BitstreamParser h264_bitstream_parser_;
-
-  // RTP state.
-  uint16_t picture_id_;
-  uint8_t tl0_pic_idx_;
 
   // VP9 variables to populate codec specific structure.
   GofInfoVP9 gof_;  // Contains each frame's temporal information for

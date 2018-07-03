@@ -108,12 +108,13 @@ class VP9EncoderImpl : public VP9Encoder {
   bool force_key_frame_;
   size_t pics_since_key_;
   uint8_t num_temporal_layers_;
-  uint8_t num_spatial_layers_;
+  uint8_t num_spatial_layers_;         // Number of configured SLs
+  uint8_t num_active_spatial_layers_;  // Number of actively encoded SLs
   bool is_svc_;
   InterLayerPredMode inter_layer_pred_;
 
   // Framerate controller.
-  rtc::Optional<float> target_framerate_fps_;
+  absl::optional<float> target_framerate_fps_;
   RateStatistics output_framerate_;
   uint32_t last_encoded_frame_rtp_timestamp_;
 

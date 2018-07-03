@@ -129,8 +129,8 @@ class RtpVideoStreamReceiver : public RtpData,
   // Called by VideoReceiveStream when stats are updated.
   void UpdateRtt(int64_t max_rtt_ms);
 
-  rtc::Optional<int64_t> LastReceivedPacketMs() const;
-  rtc::Optional<int64_t> LastReceivedKeyframePacketMs() const;
+  absl::optional<int64_t> LastReceivedPacketMs() const;
+  absl::optional<int64_t> LastReceivedKeyframePacketMs() const;
 
   // RtpDemuxer only forwards a given RTP packet to one sink. However, some
   // sinks, such as FlexFEC, might wish to be informed of all of the packets
@@ -150,8 +150,7 @@ class RtpVideoStreamReceiver : public RtpData,
                                          const RTPHeader& header);
   void NotifyReceiverOfEmptyPacket(uint16_t seq_num);
   void NotifyReceiverOfFecPacket(const RTPHeader& header);
-  bool IsPacketInOrder(const RTPHeader& header) const;
-  bool IsPacketRetransmitted(const RTPHeader& header, bool in_order) const;
+  bool IsPacketRetransmitted(const RTPHeader& header) const;
   void UpdateHistograms();
   bool IsRedEnabled() const;
   void InsertSpsPpsIntoTracker(uint8_t payload_type);

@@ -26,13 +26,14 @@
 #include "modules/congestion_controller/bbr/rtt_stats.h"
 #include "modules/congestion_controller/bbr/windowed_filter.h"
 
-#include "api/optional.h"
+#include "absl/types/optional.h"
+#include "rtc_base/experiments/field_trial_parser.h"
+#include "rtc_base/experiments/field_trial_units.h"
 #include "rtc_base/random.h"
 
 namespace webrtc {
 namespace bbr {
 
-typedef int64_t BbrPacketCount;
 typedef int64_t BbrRoundTripCount;
 
 // BbrSender implements BBR congestion control algorithm.  BBR aims to estimate
@@ -60,14 +61,63 @@ class BbrNetworkController : public NetworkControllerInterface {
   // Indicates how the congestion control limits the amount of bytes in flight.
   enum RecoveryState {
     // Do not limit.
-    NOT_IN_RECOVERY,
+    NOT_IN_RECOVERY = 0,
     // Allow an extra outstanding byte for each byte acknowledged.
-    CONSERVATION,
+    CONSERVATION = 1,
     // Allow 1.5 extra outstanding bytes for each byte acknowledged.
-    MEDIUM_GROWTH,
+    MEDIUM_GROWTH = 2,
     // Allow two extra outstanding bytes for each byte acknowledged (slow
     // start).
-    GROWTH
+    GROWTH = 3
+  };
+  struct BbrControllerConfig {
+    FieldTrialParameter<double> probe_bw_pacing_gain_offset;
+    FieldTrialParameter<double> encoder_rate_gain;
+    FieldTrialParameter<double> encoder_rate_gain_in_probe_rtt;
+    // RTT delta to determine if startup should be exited due to increased RTT.
+    FieldTrialParameter<TimeDelta> exit_startup_rtt_threshold;
+
+    FieldTrialParameter<DataSize> initial_congestion_window;
+    FieldTrialParameter<DataSize> min_congestion_window;
+    FieldTrialParameter<DataSize> max_congestion_window;
+
+    FieldTrialParameter<double> probe_rtt_congestion_window_gain;
+    FieldTrialParameter<bool> pacing_rate_as_target;
+
+    // Configurable in QUIC BBR:
+    FieldTrialParameter<bool> exit_startup_on_loss;
+    // The number of RTTs to stay in STARTUP mode.  Defaults to 3.
+    FieldTrialParameter<int> num_startup_rtts;
+    // When true, recovery is rate based rather than congestion window based.
+    FieldTrialParameter<bool> rate_based_recovery;
+    FieldTrialParameter<double> max_aggregation_bytes_multiplier;
+    // When true, pace at 1.5x and disable packet conservation in STARTUP.
+    FieldTrialParameter<bool> slower_startup;
+    // When true, disables packet conservation in STARTUP.
+    FieldTrialParameter<bool> rate_based_startup;
+    // Used as the initial packet conservation mode when first entering
+    // recovery.
+    FieldTrialEnum<RecoveryState> initial_conservation_in_startup;
+    // If true, will not exit low gain mode until bytes_in_flight drops below
+    // BDP or it's time for high gain mode.
+    FieldTrialParameter<bool> fully_drain_queue;
+
+    FieldTrialParameter<double> max_ack_height_window_multiplier;
+    // If true, use a CWND of 0.75*BDP during probe_rtt instead of 4 packets.
+    FieldTrialParameter<bool> probe_rtt_based_on_bdp;
+    // If true, skip probe_rtt and update the timestamp of the existing min_rtt
+    // to now if min_rtt over the last cycle is within 12.5% of the current
+    // min_rtt. Even if the min_rtt is 12.5% too low, the 25% gain cycling and
+    // 2x CWND gain should overcome an overly small min_rtt.
+    FieldTrialParameter<bool> probe_rtt_skipped_if_similar_rtt;
+    // If true, disable PROBE_RTT entirely as long as the connection was
+    // recently app limited.
+    FieldTrialParameter<bool> probe_rtt_disabled_if_app_limited;
+
+    explicit BbrControllerConfig(std::string field_trial);
+    ~BbrControllerConfig();
+    BbrControllerConfig(const BbrControllerConfig&);
+    static BbrControllerConfig FromTrial();
   };
 
   // Debug state can be exported in order to troubleshoot potential congestion
@@ -214,11 +264,13 @@ class BbrNetworkController : public NetworkControllerInterface {
                                DataSize bytes_lost,
                                DataSize bytes_in_flight);
 
+  BbrControllerConfig config_;
+
   RttStats rtt_stats_;
   webrtc::Random random_;
   LossRateFilter loss_rate_;
 
-  rtc::Optional<TargetRateConstraints> constraints_;
+  absl::optional<TargetRateConstraints> constraints_;
 
   Mode mode_;
 
@@ -245,7 +297,7 @@ class BbrNetworkController : public NetworkControllerInterface {
   MaxAckHeightFilter max_ack_height_;
 
   // The time this aggregation started and the number of bytes acked during it.
-  rtc::Optional<Timestamp> aggregation_epoch_start_time_;
+  absl::optional<Timestamp> aggregation_epoch_start_time_;
   DataSize aggregation_epoch_bytes_;
 
   // The number of bytes acknowledged since the last time bytes in flight
@@ -268,6 +320,9 @@ class BbrNetworkController : public NetworkControllerInterface {
 
   // The initial value of the |congestion_window_|.
   DataSize initial_congestion_window_;
+
+  // The smallest value the |congestion_window_| can achieve.
+  DataSize min_congestion_window_;
 
   // The largest value the |congestion_window_| can achieve.
   DataSize max_congestion_window_;
@@ -300,10 +355,13 @@ class BbrNetworkController : public NetworkControllerInterface {
   // The bandwidth compared to which the increase is measured.
   DataRate bandwidth_at_last_round_;
 
+  // Set to true upon exiting quiescence.
+  bool exiting_quiescence_;
+
   // Time at which PROBE_RTT has to be exited.  Setting it to zero indicates
   // that the time is yet unknown as the number of packets in flight has not
   // reached the required value.
-  rtc::Optional<Timestamp> exit_probe_rtt_at_;
+  absl::optional<Timestamp> exit_probe_rtt_at_;
   // Indicates whether a round-trip has passed since PROBE_RTT became active.
   bool probe_rtt_round_passed_;
 
@@ -314,57 +372,11 @@ class BbrNetworkController : public NetworkControllerInterface {
   // Current state of recovery.
   RecoveryState recovery_state_;
   // Receiving acknowledgement of a packet after |end_recovery_at_| will cause
-  // BBR to exit the recovery mode.  An unset value indicates at least one
+  // BBR to exit the recovery mode.  A set value indicates at least one
   // loss has been detected, so it must not be reset.
-  rtc::Optional<int64_t> end_recovery_at_;
+  absl::optional<int64_t> end_recovery_at_;
   // A window used to limit the number of bytes in flight during loss recovery.
   DataSize recovery_window_;
-
-  struct BbrControllerConfig {
-    // Default config based on default QUIC config
-    static BbrControllerConfig DefaultConfig();
-    static BbrControllerConfig ExperimentConfig();
-
-    double probe_bw_pacing_gain_offset;
-    double encoder_rate_gain;
-    double encoder_rate_gain_in_probe_rtt;
-    // RTT delta to determine if startup should be exited due to increased RTT.
-    int64_t exit_startup_rtt_threshold_ms;
-
-    double probe_rtt_congestion_window_gain;
-
-    // Configurable in QUIC BBR:
-    bool exit_startup_on_loss;
-    // The number of RTTs to stay in STARTUP mode.  Defaults to 3.
-    BbrRoundTripCount num_startup_rtts;
-    // When true, recovery is rate based rather than congestion window based.
-    bool rate_based_recovery;
-    double max_aggregation_bytes_multiplier;
-    // When true, pace at 1.5x and disable packet conservation in STARTUP.
-    bool slower_startup;
-    // When true, disables packet conservation in STARTUP.
-    bool rate_based_startup;
-    // Used as the initial packet conservation mode when first entering
-    // recovery.
-    RecoveryState initial_conservation_in_startup;
-    // If true, will not exit low gain mode until bytes_in_flight drops below
-    // BDP or it's time for high gain mode.
-    bool fully_drain_queue;
-
-    double max_ack_height_window_multiplier;
-    // If true, use a CWND of 0.75*BDP during probe_rtt instead of 4 packets.
-    bool probe_rtt_based_on_bdp;
-    // If true, skip probe_rtt and update the timestamp of the existing min_rtt
-    // to now if min_rtt over the last cycle is within 12.5% of the current
-    // min_rtt. Even if the min_rtt is 12.5% too low, the 25% gain cycling and
-    // 2x CWND gain should overcome an overly small min_rtt.
-    bool probe_rtt_skipped_if_similar_rtt;
-    // If true, disable PROBE_RTT entirely as long as the connection was
-    // recently app limited.
-    bool probe_rtt_disabled_if_app_limited;
-  };
-
-  BbrControllerConfig config_;
 
   bool app_limited_since_last_probe_rtt_;
   TimeDelta min_rtt_since_last_probe_rtt_;

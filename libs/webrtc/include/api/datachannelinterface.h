@@ -23,7 +23,7 @@
 namespace webrtc {
 
 // C++ version of: https://www.w3.org/TR/webrtc/#idl-def-rtcdatachannelinit
-// TODO(deadbeef): Use rtc::Optional for the "-1 if unset" things.
+// TODO(deadbeef): Use absl::optional for the "-1 if unset" things.
 struct DataChannelInit {
   // Deprecated. Reliability is assumed, and channel will be unreliable if
   // maxRetransmitTime or MaxRetransmits is set.
@@ -61,14 +61,10 @@ struct DataChannelInit {
 // as binary or text.
 struct DataBuffer {
   DataBuffer(const rtc::CopyOnWriteBuffer& data, bool binary)
-      : data(data),
-        binary(binary) {
-  }
+      : data(data), binary(binary) {}
   // For convenience for unit tests.
   explicit DataBuffer(const std::string& text)
-      : data(text.data(), text.length()),
-        binary(false) {
-  }
+      : data(text.data(), text.length()), binary(false) {}
   size_t size() const { return data.size(); }
 
   rtc::CopyOnWriteBuffer data;

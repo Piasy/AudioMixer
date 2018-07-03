@@ -70,7 +70,7 @@ struct VCMFrameCount {
 class VCMReceiveCallback {
  public:
   virtual int32_t FrameToRender(VideoFrame& videoFrame,  // NOLINT
-                                rtc::Optional<uint8_t> qp,
+                                absl::optional<uint8_t> qp,
                                 VideoContentType content_type) = 0;
 
   virtual int32_t ReceivedDecodedReferenceFrame(const uint64_t pictureId);
@@ -129,22 +129,6 @@ class VCMPacketRequestCallback {
 
  protected:
   virtual ~VCMPacketRequestCallback() {}
-};
-
-class NackSender {
- public:
-  virtual void SendNack(const std::vector<uint16_t>& sequence_numbers) = 0;
-
- protected:
-  virtual ~NackSender() {}
-};
-
-class KeyFrameRequestSender {
- public:
-  virtual void RequestKeyFrame() = 0;
-
- protected:
-  virtual ~KeyFrameRequestSender() {}
 };
 
 }  // namespace webrtc

@@ -34,10 +34,7 @@ typedef NS_ENUM(NSInteger, RTCBundlePolicy) {
 };
 
 /** Represents the rtcp mux policy. */
-typedef NS_ENUM(NSInteger, RTCRtcpMuxPolicy) {
-  RTCRtcpMuxPolicyNegotiate,
-  RTCRtcpMuxPolicyRequire
-};
+typedef NS_ENUM(NSInteger, RTCRtcpMuxPolicy) { RTCRtcpMuxPolicyNegotiate, RTCRtcpMuxPolicyRequire };
 
 /** Represents the tcp candidate policy. */
 typedef NS_ENUM(NSInteger, RTCTcpCandidatePolicy) {
@@ -88,8 +85,7 @@ RTC_EXPORT
 @property(nonatomic, assign) RTCRtcpMuxPolicy rtcpMuxPolicy;
 @property(nonatomic, assign) RTCTcpCandidatePolicy tcpCandidatePolicy;
 @property(nonatomic, assign) RTCCandidateNetworkPolicy candidateNetworkPolicy;
-@property(nonatomic, assign)
-    RTCContinualGatheringPolicy continualGatheringPolicy;
+@property(nonatomic, assign) RTCContinualGatheringPolicy continualGatheringPolicy;
 
 /** By default, the PeerConnection will use a limited number of IPv6 network
  *  interfaces, in order to avoid too many ICE candidate pairs being created
@@ -161,6 +157,12 @@ RTC_EXPORT
  *  For all other users, specify UnifiedPlan.
  */
 @property(nonatomic, assign) RTCSdpSemantics sdpSemantics;
+
+/** Actively reset the SRTP parameters when the DTLS transports underneath are
+ *  changed after offer/answer negotiation. This is only intended to be a
+ *  workaround for crbug.com/835958
+ */
+@property(nonatomic, assign) BOOL activeResetSrtpParams;
 
 - (instancetype)init;
 

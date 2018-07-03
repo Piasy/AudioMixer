@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "api/call/transport.h"
+#include "api/test/simulated_network.h"
 #include "call/call.h"
 #include "common_types.h"  // NOLINT(build/include)
 #include "modules/include/module.h"
@@ -40,10 +41,10 @@ class NetworkPacket {
   NetworkPacket(rtc::CopyOnWriteBuffer packet,
                 int64_t send_time,
                 int64_t arrival_time,
-                rtc::Optional<PacketOptions> packet_options,
+                absl::optional<PacketOptions> packet_options,
                 bool is_rtcp,
                 MediaType media_type_,
-                rtc::Optional<PacketTime> packet_time_);
+                absl::optional<PacketTime> packet_time_);
   // Disallow copy constructor and copy assignment (no deep copies of |data_|).
   NetworkPacket(const NetworkPacket&) = delete;
   NetworkPacket& operator=(const NetworkPacket&) = delete;
@@ -74,42 +75,14 @@ class NetworkPacket {
   int64_t arrival_time_;
   // If using a Transport for outgoing degradation, populate with
   // PacketOptions (transport-wide sequence number) for RTP.
-  rtc::Optional<PacketOptions> packet_options_;
+  absl::optional<PacketOptions> packet_options_;
   bool is_rtcp_;
   // If using a PacketReceiver for incoming degradation, populate with
   // appropriate MediaType and PacketTime. This type/timing will be kept and
   // forwarded. The PacketTime might be altered to reflect time spent in fake
   // network pipe.
   MediaType media_type_;
-  rtc::Optional<PacketTime> packet_time_;
-};
-
-struct PacketInFlightInfo {
-  PacketInFlightInfo(size_t size, int64_t send_time_us, uint64_t packet_id)
-      : size(size), send_time_us(send_time_us), packet_id(packet_id) {}
-
-  size_t size;
-  int64_t send_time_us;
-  // Unique identifier for the packet in relation to other packets in flight.
-  uint64_t packet_id;
-};
-
-struct PacketDeliveryInfo {
-  static constexpr int kNotReceived = -1;
-  PacketDeliveryInfo(PacketInFlightInfo source, int64_t receive_time_us)
-      : receive_time_us(receive_time_us), packet_id(source.packet_id) {}
-  int64_t receive_time_us;
-  uint64_t packet_id;
-};
-
-class NetworkSimulationInterface {
- public:
-  virtual bool EnqueuePacket(PacketInFlightInfo packet_info) = 0;
-  // Retrieves all packets that should be delivered by the given receive time.
-  virtual std::vector<PacketDeliveryInfo> DequeueDeliverablePackets(
-      int64_t receive_time_us) = 0;
-  virtual rtc::Optional<int64_t> NextDeliveryTimeUs() const = 0;
-  virtual ~NetworkSimulationInterface() = default;
+  absl::optional<PacketTime> packet_time_;
 };
 
 // Class simulating a network link. This is a simple and naive solution just
@@ -117,23 +90,7 @@ class NetworkSimulationInterface {
 // capacity introduced delay.
 class SimulatedNetwork : public NetworkSimulationInterface {
  public:
-  struct Config {
-    Config() {}
-    // Queue length in number of packets.
-    size_t queue_length_packets = 0;
-    // Delay in addition to capacity induced delay.
-    int queue_delay_ms = 0;
-    // Standard deviation of the extra delay.
-    int delay_standard_deviation_ms = 0;
-    // Link capacity in kbps.
-    int link_capacity_kbps = 0;
-    // Random packet loss.
-    int loss_percent = 0;
-    // If packets are allowed to be reordered.
-    bool allow_reordering = false;
-    // The average length of a burst of lost packets.
-    int avg_burst_loss_length = -1;
-  };
+  using Config = NetworkSimulationInterface::SimulatedNetworkConfig;
   explicit SimulatedNetwork(Config config, uint64_t random_seed = 1);
 
   // Sets a new configuration. This won't affect packets already in the pipe.
@@ -144,7 +101,7 @@ class SimulatedNetwork : public NetworkSimulationInterface {
   std::vector<PacketDeliveryInfo> DequeueDeliverablePackets(
       int64_t receive_time_us) override;
 
-  rtc::Optional<int64_t> NextDeliveryTimeUs() const override;
+  absl::optional<int64_t> NextDeliveryTimeUs() const override;
 
  private:
   struct PacketInfo {
@@ -260,10 +217,10 @@ class FakeNetworkPipe : public Transport, public PacketReceiver, public Module {
 
   // Returns true if enqueued, or false if packet was dropped.
   virtual bool EnqueuePacket(rtc::CopyOnWriteBuffer packet,
-                     rtc::Optional<PacketOptions> options,
-                     bool is_rtcp,
-                     MediaType media_type,
-                     rtc::Optional<PacketTime> packet_time);
+                             absl::optional<PacketOptions> options,
+                             bool is_rtcp,
+                             MediaType media_type,
+                             absl::optional<PacketTime> packet_time);
   void DeliverPacket(NetworkPacket* packet)
       RTC_EXCLUSIVE_LOCKS_REQUIRED(config_lock_);
   bool HasTransport() const;

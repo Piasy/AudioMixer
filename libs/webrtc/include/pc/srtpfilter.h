@@ -17,10 +17,10 @@
 #include <string>
 #include <vector>
 
+#include "absl/types/optional.h"
 #include "api/array_view.h"
 #include "api/cryptoparams.h"
 #include "api/jsep.h"
-#include "api/optional.h"
 #include "pc/sessiondescription.h"
 #include "rtc_base/buffer.h"
 #include "rtc_base/constructormagic.h"
@@ -38,10 +38,7 @@ namespace cricket {
 // TODO(zhihuang): Find a better name for this class, like "SdesNegotiator".
 class SrtpFilter {
  public:
-  enum Mode {
-    PROTECT,
-    UNPROTECT
-  };
+  enum Mode { PROTECT, UNPROTECT };
   enum Error {
     ERROR_NONE,
     ERROR_FAIL,
@@ -81,8 +78,8 @@ class SrtpFilter {
 
   bool ResetParams();
 
-  rtc::Optional<int> send_cipher_suite() { return send_cipher_suite_; }
-  rtc::Optional<int> recv_cipher_suite() { return recv_cipher_suite_; }
+  absl::optional<int> send_cipher_suite() { return send_cipher_suite_; }
+  absl::optional<int> recv_cipher_suite() { return recv_cipher_suite_; }
 
   rtc::ArrayView<const uint8_t> send_key() { return send_key_; }
   rtc::ArrayView<const uint8_t> recv_key() { return recv_key_; }
@@ -112,13 +109,13 @@ class SrtpFilter {
                              size_t len);
 
   enum State {
-    ST_INIT,           // SRTP filter unused.
-    ST_SENTOFFER,      // Offer with SRTP parameters sent.
-    ST_RECEIVEDOFFER,  // Offer with SRTP parameters received.
+    ST_INIT,                    // SRTP filter unused.
+    ST_SENTOFFER,               // Offer with SRTP parameters sent.
+    ST_RECEIVEDOFFER,           // Offer with SRTP parameters received.
     ST_SENTPRANSWER_NO_CRYPTO,  // Sent provisional answer without crypto.
     // Received provisional answer without crypto.
     ST_RECEIVEDPRANSWER_NO_CRYPTO,
-    ST_ACTIVE,         // Offer and answer set.
+    ST_ACTIVE,  // Offer and answer set.
     // SRTP filter is active but new parameters are offered.
     // When the answer is set, the state transitions to ST_ACTIVE or ST_INIT.
     ST_SENTUPDATEDOFFER,
@@ -138,8 +135,8 @@ class SrtpFilter {
   std::vector<CryptoParams> offer_params_;
   CryptoParams applied_send_params_;
   CryptoParams applied_recv_params_;
-  rtc::Optional<int> send_cipher_suite_;
-  rtc::Optional<int> recv_cipher_suite_;
+  absl::optional<int> send_cipher_suite_;
+  absl::optional<int> recv_cipher_suite_;
   rtc::ZeroOnFreeBuffer<uint8_t> send_key_;
   rtc::ZeroOnFreeBuffer<uint8_t> recv_key_;
 };

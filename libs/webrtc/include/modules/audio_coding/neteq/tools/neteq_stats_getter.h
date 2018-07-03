@@ -69,9 +69,7 @@ class NetEqStatsGetter : public NetEqGetAudioCallback {
 
   double AverageSpeechExpandRate() const;
 
-  NetEqDelayAnalyzer* delay_analyzer() const {
-    return delay_analyzer_.get();
-  }
+  NetEqDelayAnalyzer* delay_analyzer() const { return delay_analyzer_.get(); }
 
   const std::vector<ConcealmentEvent>& concealment_events() const {
     // Do not account for the last concealment event to avoid potential end
@@ -79,8 +77,13 @@ class NetEqStatsGetter : public NetEqGetAudioCallback {
     return concealment_events_;
   }
 
-  const std::vector<std::pair<int64_t, NetEqNetworkStatistics>>& stats() const {
-    return stats_;
+  const std::vector<std::pair<int64_t, NetEqNetworkStatistics>>* stats() const {
+    return &stats_;
+  }
+
+  const std::vector<std::pair<int64_t, NetEqLifetimeStatistics>>*
+  lifetime_stats() const {
+    return &lifetime_stats_;
   }
 
   Stats AverageStats() const;
@@ -90,6 +93,7 @@ class NetEqStatsGetter : public NetEqGetAudioCallback {
   int64_t stats_query_interval_ms_ = 1000;
   int64_t last_stats_query_time_ms_ = 0;
   std::vector<std::pair<int64_t, NetEqNetworkStatistics>> stats_;
+  std::vector<std::pair<int64_t, NetEqLifetimeStatistics>> lifetime_stats_;
   size_t current_concealment_event_ = 1;
   uint64_t voice_concealed_samples_until_last_event_ = 0;
   std::vector<ConcealmentEvent> concealment_events_;

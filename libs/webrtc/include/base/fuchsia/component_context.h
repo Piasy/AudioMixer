@@ -5,9 +5,10 @@
 #ifndef BASE_FUCHSIA_COMPONENT_CONTEXT_H_
 #define BASE_FUCHSIA_COMPONENT_CONTEXT_H_
 
+#include <lib/zx/channel.h>
+
 #include "base/base_export.h"
 #include "base/fuchsia/fidl_interface_request.h"
-#include "base/fuchsia/scoped_zx_handle.h"
 #include "base/macros.h"
 #include "base/strings/string_piece.h"
 
@@ -17,7 +18,7 @@ template <typename Interface>
 class InterfacePtr;
 
 template <typename Interface>
-class SynchronousInterfacePtr;
+class Synchronous2InterfacePtr;
 
 }  // namespace fidl
 
@@ -27,7 +28,7 @@ namespace fuchsia {
 // Provides access to the component's environment.
 class BASE_EXPORT ComponentContext {
  public:
-  explicit ComponentContext(ScopedZxHandle service_root);
+  explicit ComponentContext(zx::channel service_root);
   ~ComponentContext();
 
   // Returns default ComponentContext instance for the current process. It uses
@@ -48,14 +49,14 @@ class BASE_EXPORT ComponentContext {
   // Connects to an environment service and returns synchronous interface
   // implementation.
   template <typename Interface>
-  fidl::SynchronousInterfacePtr<Interface> ConnectToServiceSync() {
-    fidl::SynchronousInterfacePtr<Interface> result;
+  fidl::Synchronous2InterfacePtr<Interface> ConnectToServiceSync() {
+    fidl::Synchronous2InterfacePtr<Interface> result;
     ConnectToService(FidlInterfaceRequest(&result));
     return result;
   }
 
  private:
-  ScopedZxHandle service_root_;
+  zx::channel service_root_;
 
   DISALLOW_COPY_AND_ASSIGN(ComponentContext);
 };
