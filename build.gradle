@@ -42,8 +42,8 @@ ext {
     artifactName = 'AudioMixer'
     artifactDescription = 'AudioMixer'
     artifactLabels = ['AudioMixer']
-    releaseVersionCode = 1
-    releaseVersionName = '1.0.0'
+    releaseVersionCode = 2
+    releaseVersionName = '1.0.1'
 
     androidCompileSdkVersion = 27
     androidBuildToolsVersion = '27.0.3'

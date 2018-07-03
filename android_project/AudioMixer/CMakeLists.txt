@@ -5,6 +5,7 @@ set(CWD ${CMAKE_CURRENT_LIST_DIR})
 
 include_directories(
     ../../libs/webrtc/include
+    ../../libs/webrtc/include/third_party/abseil-cpp
     ../../libs/ffmpeg/include
     ../../djinni/support-lib/
     ../../djinni/support-lib/jni/

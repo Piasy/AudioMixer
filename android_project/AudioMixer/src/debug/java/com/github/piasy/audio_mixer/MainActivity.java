@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
             int sampleRate = 48000;
             int channelNum = 1;
             int frameDurationMs = 10;
-            AudioFileSource source = new AudioFileSource("/sdcard/mp3/morning.mp3", sampleRate,
+            AudioFileSource source = new AudioFileSource("/sdcard/mp3/morning-48k.mp3", sampleRate,
                     channelNum, frameDurationMs);
 
             int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             int sampleRate = 48000;
             int channelNum = 1;
-            int frameDurationMs = 10;
+            int frameDurationMs = 5;
 
             int minBufferSize = AudioTrack.getMinBufferSize(sampleRate,
                     channelNum == 1 ? AudioFormat.CHANNEL_OUT_MONO
@@ -267,11 +267,11 @@ public class MainActivity extends AppCompatActivity {
             AudioMixer mixer = new AudioMixer(new MixerConfig(
                     new ArrayList<>(Arrays.asList(
                             new MixerSource(MixerSource.TYPE_FILE, 1, 1,
-                                    "/sdcard/mp3/morning.mp3", 0, 0),
+                                    "/sdcard/mp3/morning-48k.mp3", 0, 0),
                             new MixerSource(MixerSource.TYPE_FILE, 2, 1,
-                                    "/sdcard/mp3/lion.mp3", 0, 0),
+                                    "/sdcard/mp3/lion-48k.mp3", 0, 0),
                             new MixerSource(MixerSource.TYPE_FILE, 3, 1,
-                                    "/sdcard/mp3/iamyou.mp3", 0, 0)
+                                    "/sdcard/mp3/iamyou-48k.mp3", 0, 0)
                     )),
                     sampleRate, channelNum, frameDurationMs
             ));
@@ -320,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
             AudioMixer mixer = new AudioMixer(new MixerConfig(
                     new ArrayList<>(Arrays.asList(
                             new MixerSource(MixerSource.TYPE_FILE, 1, 1,
-                                    "/sdcard/mp3/morning.mp3", 0, 0),
+                                    "/sdcard/mp3/morning-48k.mp3", 0, 0),
                             new MixerSource(MixerSource.TYPE_RECORD, 2, 1, "", sampleRate,
                                     channelNum)
                     )),
