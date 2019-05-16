@@ -334,7 +334,8 @@ public class MainActivity extends AppCompatActivity {
 
                 while (mRunning) {
                     int read = recorder.read(buf, 0, bufSize);
-                    AudioBuffer buffer = mixer.addRecordedDataAndMix(buf, read);
+                    mixer.addRecordedData(2, buf, read);
+                    AudioBuffer buffer = mixer.mix();
                     if (buffer.getSize() > 0) {
                         mixerDump.write(buffer.getBuffer(), 0, buffer.getSize());
                     } else {

@@ -5,7 +5,7 @@ package com.github.piasy.audio_mixer;
  *
  * Usage:
  *
- * <pre>
+ * <pre>{@code 
  * AudioResampler resampler = new AudioResampler(inputSampleRate, inputChannelNum,
  *      outputSampleRate, outputChannelNum);
  * AudioBuffer inputBuffer = resampler.getInputBuffer();
@@ -21,7 +21,7 @@ package com.github.piasy.audio_mixer;
  * }
  *
  * resampler.destroy();
- * <pre/>
+ * }</pre>
  */
 
 public class AudioResampler {

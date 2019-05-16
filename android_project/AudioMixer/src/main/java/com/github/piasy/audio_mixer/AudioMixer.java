@@ -31,8 +31,7 @@ public class AudioMixer extends AudioMixerApi {
 
     private static native int nativeMix(long handle, byte[] buf);
 
-    private static native int nativeAddRecordedDataAndMix(long handle, byte[] data, int size,
-            byte[] buf);
+    private static native int nativeAddRecordedData(long handle, int ssrc, byte[] data, int size);
 
     @Override
     public void updateVolume(final int ssrc, final float volume) {
@@ -55,10 +54,8 @@ public class AudioMixer extends AudioMixerApi {
         );
     }
 
-    public AudioBuffer addRecordedDataAndMix(byte[] data, int size) {
-        return mBuffer.setSize(
-                nativeAddRecordedDataAndMix(mNativeMixer.nativeRef, data, size, mBuffer.getBuffer())
-        );
+    public void addRecordedData(final int ssrc, byte[] data, int size) {
+        nativeAddRecordedData(mNativeMixer.nativeRef, ssrc, data, size);
     }
 
     public void destroy() {

@@ -30,14 +30,13 @@ public:
 
     int32_t Mix(void* output_buffer);
 
-    int32_t AddRecordedDataAndMix(const void* data, int32_t size, void* output_buffer);
+    void AddRecordedData(int32_t ssrc, const void* data, int32_t size);
 
 private:
     std::shared_ptr<AudioSource> DoAddSource(const MixerSource& source);
 
     rtc::scoped_refptr<webrtc::AudioMixer> mixer_;
     std::map<int32_t, std::shared_ptr<AudioSource>> sources_;
-    std::shared_ptr<AudioRecordSource> record_source_;
     std::unique_ptr<webrtc::AudioFrame> mixed_frame_;
     int32_t output_sample_rate_;
     int32_t output_channel_num_;

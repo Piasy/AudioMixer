@@ -168,19 +168,15 @@ Java_com_github_piasy_audio_1mixer_AudioMixer_nativeMix(
     return size;
 }
 
-JNIEXPORT jint JNICALL
-Java_com_github_piasy_audio_1mixer_AudioMixer_nativeAddRecordedDataAndMix(
-        JNIEnv* env, jclass type, jlong handle, jbyteArray data_, jint size, jbyteArray buffer_) {
+JNIEXPORT void JNICALL
+Java_com_github_piasy_audio_1mixer_AudioMixer_nativeAddRecordedData(
+        JNIEnv* env, jclass type, jlong handle, jint j_ssrc, jbyteArray data_, jint size) {
     jbyte* data = env->GetByteArrayElements(data_, NULL);
-    jbyte* buffer = env->GetByteArrayElements(buffer_, NULL);
 
     const auto& ref = ::djinni::objectFromHandleAddress<AudioMixerApi>(handle);
-    int32_t output_size = reinterpret_cast<AudioMixer*>(ref.get())
-            ->AddRecordedDataAndMix(data, size, reinterpret_cast<void*>(buffer));
+    reinterpret_cast<AudioMixer*>(ref.get())->AddRecordedData(::djinni::I32::toCpp(env, j_ssrc), data, size);
 
-    env->ReleaseByteArrayElements(buffer_, buffer, 0);
     env->ReleaseByteArrayElements(data_, data, 0);
-    return output_size;
 }
 
 }
