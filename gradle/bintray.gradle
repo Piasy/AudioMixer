@@ -77,9 +77,11 @@ task sourcesJar(type: Jar) {
 
 if (project.getPlugins().hasPlugin('com.android.application') ||
         project.getPlugins().hasPlugin('com.android.library')) {
+    def source = android.sourceSets.main.java.srcDirs
+    source += "$rootProject.rootDir/generated_src/java"
     task javadoc(type: Javadoc) {
-        failOnError = false
-        source = android.sourceSets.main.java.srcDirs
+        failOnError = true
+        source = source
         android.compileSdkVersion rootProject.ext.androidCompileSdkVersion
         android.buildToolsVersion rootProject.ext.androidBuildToolsVersion
         classpath += project.files(android.getBootClasspath().join(File.pathSeparator))

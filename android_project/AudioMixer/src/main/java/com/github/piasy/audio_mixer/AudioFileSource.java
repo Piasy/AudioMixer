@@ -5,7 +5,7 @@ package com.github.piasy.audio_mixer;
  *
  * Usage:
  *
- * <pre>
+ * <pre>{@code 
  * AudioFileSource source = new AudioFileSource(filepath, outputSampleRate, outputChannelNum,
  *         msPerBuf);
  *
@@ -22,7 +22,7 @@ package com.github.piasy.audio_mixer;
  * Log.d(TAG, "decode finish: " + exitCode);
  *
  * source.destroy();
- * <pre/>
+ * }</pre>
  */
 
 public class AudioFileSource {

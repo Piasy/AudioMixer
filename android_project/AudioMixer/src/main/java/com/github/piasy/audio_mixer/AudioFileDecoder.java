@@ -5,7 +5,7 @@ package com.github.piasy.audio_mixer;
  *
  * Usage:
  *
- * <pre>
+ * <pre>{@code 
  * AudioFileDecoder decoder = new AudioFileDecoder(filepath, msPerBuf);
  *
  * while (true) {
@@ -21,7 +21,7 @@ package com.github.piasy.audio_mixer;
  * Log.d(TAG, "decode finish: " + exitCode);
  *
  * decoder.destroy();
- * <pre/>
+ * }</pre>
  */
 
 public class AudioFileDecoder {
