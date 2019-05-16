@@ -11,9 +11,9 @@ namespace audio_mixer {
 
 struct MixerSource final {
 
-    static int32_t const TYPE_FILE;
+    static constexpr int32_t TYPE_FILE = 1;
 
-    static int32_t const TYPE_RECORD;
+    static constexpr int32_t TYPE_RECORD = 2;
     int32_t type;
     int32_t ssrc;
     float volume;

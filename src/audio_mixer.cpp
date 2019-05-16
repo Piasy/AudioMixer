@@ -101,16 +101,15 @@ std::shared_ptr<AudioSource> AudioMixer::DoAddSource(const MixerSource& source) 
         RTC_CHECK(source.channel_num == output_channel_num_)
         << "record source must have the same channels as output";
 
-        std::shared_ptr<AudioRecordSource> record_source_;
-        record_source_.reset(new AudioRecordSource(
+        std::shared_ptr<AudioRecordSource> record_source = std::make_shared<AudioRecordSource>(
                 source.ssrc, output_sample_rate_, output_channel_num_, frame_duration_ms_,
                 source.volume
-        ));
+        );
         sources_.insert(std::pair<int32_t, std::shared_ptr<AudioSource>>(
-                source.ssrc, record_source_
+                source.ssrc, record_source
         ));
 
-        return record_source_;
+        return record_source;
     } else {
         std::shared_ptr<AudioSource> file_source = std::make_shared<AudioFileSource>(
                 source.ssrc, source.path, output_sample_rate_, output_channel_num_,

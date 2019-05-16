@@ -16,7 +16,10 @@ public abstract class AudioMixerApi {
 
     public abstract boolean removeSource(int ssrc);
 
-    public static native AudioMixerApi create(MixerConfig config);
+    public static AudioMixerApi create(MixerConfig config)
+    {
+        return CppProxy.create(config);
+    }
 
     static final class CppProxy extends AudioMixerApi
     {
@@ -30,14 +33,14 @@ public abstract class AudioMixerApi {
         }
 
         private native void nativeDestroy(long nativeRef);
-        public void destroy()
+        public void _djinni_private_destroy()
         {
             boolean destroyed = this.destroyed.getAndSet(true);
             if (!destroyed) nativeDestroy(this.nativeRef);
         }
         protected void finalize() throws java.lang.Throwable
         {
-            destroy();
+            _djinni_private_destroy();
             super.finalize();
         }
 
@@ -64,5 +67,7 @@ public abstract class AudioMixerApi {
             return native_removeSource(this.nativeRef, ssrc);
         }
         private native boolean native_removeSource(long _nativeRef, int ssrc);
+
+        public static native AudioMixerApi create(MixerConfig config);
     }
 }

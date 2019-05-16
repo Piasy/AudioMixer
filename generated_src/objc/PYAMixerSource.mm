@@ -35,12 +35,12 @@ int32_t const PYAMixerSourceTypeRecord = 2;
                                  sampleRate:(int32_t)sampleRate
                                  channelNum:(int32_t)channelNum
 {
-    return [[self alloc] initWithType:type
-                                 ssrc:ssrc
-                               volume:volume
-                                 path:path
-                           sampleRate:sampleRate
-                           channelNum:channelNum];
+    return [(PYAMixerSource*)[self alloc] initWithType:type
+                                                  ssrc:ssrc
+                                                volume:volume
+                                                  path:path
+                                            sampleRate:sampleRate
+                                            channelNum:channelNum];
 }
 
 - (NSString *)description

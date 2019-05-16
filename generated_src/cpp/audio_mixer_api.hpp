@@ -15,9 +15,9 @@ class AudioMixerApi {
 public:
     virtual ~AudioMixerApi() {}
 
-    static int32_t const MAX_BUF_SIZE;
+    static constexpr int32_t MAX_BUF_SIZE = 7680;
 
-    static int32_t const SAMPLE_SIZE;
+    static constexpr int32_t SAMPLE_SIZE = 2;
 
     static std::shared_ptr<AudioMixerApi> Create(const MixerConfig & config);
 

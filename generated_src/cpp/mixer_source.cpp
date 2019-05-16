@@ -5,8 +5,8 @@
 
 namespace audio_mixer {
 
-int32_t const MixerSource::TYPE_FILE = 1;
+int32_t constexpr MixerSource::TYPE_FILE;
 
-int32_t const MixerSource::TYPE_RECORD = 2;
+int32_t constexpr MixerSource::TYPE_RECORD;
 
 }  // namespace audio_mixer

@@ -59,6 +59,6 @@ public class AudioMixer extends AudioMixerApi {
     }
 
     public void destroy() {
-        mNativeMixer.destroy();
+        mNativeMixer._djinni_private_destroy();
     }
 }

@@ -7,8 +7,8 @@
 
 namespace audio_mixer {
 
-int32_t const AudioMixerApi::MAX_BUF_SIZE = 7680;
+int32_t constexpr AudioMixerApi::MAX_BUF_SIZE;
 
-int32_t const AudioMixerApi::SAMPLE_SIZE = 2;
+int32_t constexpr AudioMixerApi::SAMPLE_SIZE;
 
 }  // namespace audio_mixer

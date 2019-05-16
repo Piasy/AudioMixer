@@ -21,7 +21,7 @@ CJNIEXPORT void JNICALL Java_com_github_piasy_audio_1mixer_AudioMixerApi_00024Cp
     } JNI_TRANSLATE_EXCEPTIONS_RETURN(jniEnv, )
 }
 
-CJNIEXPORT jobject JNICALL Java_com_github_piasy_audio_1mixer_AudioMixerApi_create(JNIEnv* jniEnv, jobject /*this*/, jobject j_config)
+CJNIEXPORT jobject JNICALL Java_com_github_piasy_audio_1mixer_AudioMixerApi_00024CppProxy_create(JNIEnv* jniEnv, jobject /*this*/, jobject j_config)
 {
     try {
         DJINNI_FUNCTION_PROLOGUE0(jniEnv);

@@ -25,10 +25,10 @@
                               outputChannelNum:(int32_t)outputChannelNum
                                frameDurationMs:(int32_t)frameDurationMs
 {
-    return [[self alloc] initWithSources:sources
-                        outputSampleRate:outputSampleRate
-                        outputChannelNum:outputChannelNum
-                         frameDurationMs:frameDurationMs];
+    return [(PYAMixerConfig*)[self alloc] initWithSources:sources
+                                         outputSampleRate:outputSampleRate
+                                         outputChannelNum:outputChannelNum
+                                          frameDurationMs:frameDurationMs];
 }
 
 - (NSString *)description
