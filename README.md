@@ -51,7 +51,7 @@ AudioMixer mixer = new AudioMixer(new MixerConfig(
 Do mix with recorded data:
 
 ``` java
-AudioBuffer buffer = mixer.addRecordedDataAndMix(buf, size);
+mixer.addRecordedData(2, buf, size);
 ```
 
 Do mix with file only:

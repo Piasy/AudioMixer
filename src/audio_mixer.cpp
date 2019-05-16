@@ -18,7 +18,6 @@ std::shared_ptr<AudioMixerApi> AudioMixerApi::Create(const MixerConfig& config) 
 
 AudioMixer::AudioMixer(const MixerConfig& config)
         : mixer_(webrtc::AudioMixerImpl::Create()),
-          record_source_(nullptr),
           mixed_frame_(std::make_unique<webrtc::AudioFrame>()),
           output_sample_rate_(config.output_sample_rate),
           output_channel_num_(config.output_channel_num) {
@@ -88,20 +87,21 @@ int32_t AudioMixer::Mix(void* output_buffer) {
     return size;
 }
 
-int32_t AudioMixer::AddRecordedDataAndMix(const void* data, int32_t size, void* output_buffer) {
-    record_source_->OnAudioRecorded(data, size);
-
-    return Mix(output_buffer);
+void AudioMixer::AddRecordedData(int32_t ssrc, const void* data, int32_t size) {
+    auto source = sources_.find(ssrc);
+    if (source != sources_.end()) {
+        reinterpret_cast<AudioRecordSource*>(source->second.get())->OnAudioRecorded(data, size);
+    }
 }
 
 std::shared_ptr<AudioSource> AudioMixer::DoAddSource(const MixerSource& source) {
     if (source.type == MixerSource::TYPE_RECORD) {
-        RTC_CHECK(record_source_.get() == nullptr) << "only one record source is supported";
         RTC_CHECK(source.sample_rate == output_sample_rate_)
         << "record source must have the same sample rate as output";
         RTC_CHECK(source.channel_num == output_channel_num_)
         << "record source must have the same channels as output";
 
+        std::shared_ptr<AudioRecordSource> record_source_;
         record_source_.reset(new AudioRecordSource(
                 source.ssrc, output_sample_rate_, output_channel_num_, frame_duration_ms_,
                 source.volume
