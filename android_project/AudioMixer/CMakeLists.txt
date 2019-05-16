@@ -15,7 +15,10 @@ include_directories(
 )
 
 
-add_definitions(-DWEBRTC_POSIX, -DWEBRTC_ANDROID)
+add_definitions(
+    -DWEBRTC_POSIX
+    -DWEBRTC_ANDROID
+)
 
 
 file(GLOB audio_mixer_sources
@@ -35,13 +38,13 @@ file(GLOB audio_mixer_deps
 )
 
 add_library(audio_mixer SHARED
-            ${audio_mixer_sources}
-            )
+    ${audio_mixer_sources}
+)
 
-target_link_libraries(audio_mixer
-                      android
-                      log
-                      z
-
-                      ${audio_mixer_deps}
-                      )
+target_link_libraries(
+    audio_mixer
+    android
+    log
+    z
+    ${audio_mixer_deps}
+)
