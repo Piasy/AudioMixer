@@ -76,12 +76,13 @@
     return _buffer;
 }
 
-- (PYAAudioBuffer*)addRecordedDataAndMix:(void*)data size:(int32_t)size {
+- (PYAAudioBuffer*)addRecordedData:(int32_t)ssrc
+                              data:(void*)data
+                              size:(int32_t)size {
     audio_mixer::AudioMixer* nativeMixer =
         (audio_mixer::AudioMixer*)[_nativeMixer nativeMixer];
     if (nativeMixer) {
-        _buffer.size =
-            nativeMixer->AddRecordedDataAndMix(data, size, _buffer.data);
+        nativeMixer->AddRecordedData(ssrc, data, size);
     }
 
     return _buffer;

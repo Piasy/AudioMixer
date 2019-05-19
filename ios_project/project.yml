@@ -8,10 +8,15 @@ targets:
     deploymentTarget: "9.0"
     sources:
       - example
+      - ../mp3
     settings:
       INFOPLIST_FILE: "example/Info.plist"
       ENABLE_BITCODE: "NO"
+      USER_HEADER_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/webrtc/include/third_party/abseil-cpp"
       SYSTEM_HEADER_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include"
+      LIBRARY_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/webrtc/lib/iOS"
+      OTHER_CFLAGS: "$(inherited) -DWEBRTC_POSIX -DWEBRTC_IOS"
+      OTHER_LDFLAGS: "$(inherited) -lnative_api_audio_device_module -laudio_device -lwebrtc -framework CoreMedia -framework CoreVideo -framework VideoToolbox -framework AudioToolbox -framework AVFoundation"
     dependencies:
       - target: AudioMixer
   AudioMixer:
@@ -19,6 +24,7 @@ targets:
     platform: iOS
     deploymentTarget: "9.0"
     sources:
+      - objc
       - ../src
       - ../generated_src/cpp
       - ../generated_src/objc
@@ -31,8 +37,9 @@ targets:
       - path: ../djinni/support-lib/objc
     settings:
       ENABLE_BITCODE: "NO"
+      CLANG_CXX_LANGUAGE_STANDARD: "c++14"
       SYSTEM_HEADER_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include"
-      USER_HEADER_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include $(PROJECT_DIR)/../djinni/support-lib $(PROJECT_DIR)/../djinni/support-lib/objc $(PROJECT_DIR)/../generated_src/cpp $(PROJECT_DIR)/../generated_src/objc $(PROJECT_DIR)/../src"
+      USER_HEADER_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/ffmpeg/include $(PROJECT_DIR)/../libs/webrtc/include $(PROJECT_DIR)/../libs/webrtc/include/third_party/abseil-cpp $(PROJECT_DIR)/../djinni/support-lib $(PROJECT_DIR)/../djinni/support-lib/objc $(PROJECT_DIR)/../generated_src/cpp $(PROJECT_DIR)/../generated_src/objc $(PROJECT_DIR)/../src"
       LIBRARY_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/../libs/webrtc/lib/iOS $(PROJECT_DIR)/../libs/ffmpeg/lib/iOS"
       OTHER_CFLAGS: "$(inherited) -DWEBRTC_POSIX -DWEBRTC_IOS"
       OTHER_LDFLAGS: "$(inherited) -lz -lbz2 -liconv -lwebrtc -lswresample -lavformat -lavcodec -lavutil -framework CoreMedia -framework CoreVideo -framework VideoToolbox -framework AudioToolbox"

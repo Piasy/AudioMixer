@@ -386,8 +386,8 @@ typedef NS_ENUM(NSInteger, TestType) {
         int32_t size = MIN(recordedSize, mixerInputSize - _remainingData);
         memcpy((int8_t*)_buffer + _remainingData, buf, size);
         if (size == mixerInputSize - _remainingData) {
-            _mixedBuffer =
-                [_mixer addRecordedDataAndMix:_buffer size:mixerInputSize];
+            [_mixer addRecordedData:2 data:_buffer size:mixerInputSize];
+            _mixedBuffer = [_mixer mix];
             write([_recordAndMixDumper fileDescriptor], _mixedBuffer.data,
                   _mixedBuffer.size);
             _remainingData = 0;
@@ -402,8 +402,8 @@ typedef NS_ENUM(NSInteger, TestType) {
             _remainingData = recordedSize;
             break;
         }
-        _mixedBuffer =
-            [_mixer addRecordedDataAndMix:_buffer size:mixerInputSize];
+        [_mixer addRecordedData:2 data:_buffer size:mixerInputSize];
+        _mixedBuffer = [_mixer mix];
         write([_recordAndMixDumper fileDescriptor], _mixedBuffer.data,
               _mixedBuffer.size);
         bufReadPos += mixerInputSize;

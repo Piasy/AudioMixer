@@ -39,5 +39,7 @@
 
 - (PYAAudioBuffer*)mix;
 
-- (PYAAudioBuffer*)addRecordedDataAndMix:(void*)data size:(int32_t)size;
+- (PYAAudioBuffer*)addRecordedData:(int32_t)ssrc
+                              data:(void*)data
+                              size:(int32_t)size;
 @end

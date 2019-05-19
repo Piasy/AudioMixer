@@ -20,4 +20,6 @@ extern int32_t const PYAAudioMixerApiSampleSize;
 
 - (BOOL)removeSource:(int32_t)ssrc;
 
+- (nullable void *)nativeMixer;
+
 @end
