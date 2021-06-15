@@ -6,18 +6,14 @@ A cross-platform audio mixer, supports Android, iOS, macOS and Windows. Powered 
 
 ### Android
 
-[ ![Download](https://api.bintray.com/packages/piasy/maven/AudioMixer/images/download.svg) ](https://bintray.com/piasy/maven/AudioMixer/_latestVersion)
-
 ``` gradle
 allprojects {
     repositories {
-        maven {
-            url  "http://dl.bintray.com/piasy/maven"
-        }
+        mavenCentral()
     }
 }
 
-compile 'com.github.piasy:AudioMixer:1.0.2'
+compile 'com.github.piasy:AudioMixer:1.0.3'
 ```
 
 ### iOS & macOS

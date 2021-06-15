@@ -4,6 +4,8 @@
 /local.properties
 /gradle/bintray.properties
 **/build
+**/.externalNativeBuild
+**/.cxx
 
 /libs/ffmpeg/lib/
 /libs/webrtc/lib/
